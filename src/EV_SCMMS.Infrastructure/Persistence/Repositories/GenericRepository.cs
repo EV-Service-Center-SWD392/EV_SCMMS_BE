@@ -37,19 +37,20 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
     public virtual async Task<T> AddAsync(T entity, CancellationToken cancellationToken = default)
     {
         await _dbSet.AddAsync(entity, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
         return entity;
     }
 
-    public virtual Task UpdateAsync(T entity, CancellationToken cancellationToken = default)
+    public virtual async Task UpdateAsync(T entity, CancellationToken cancellationToken = default)
     {
         _dbSet.Update(entity);
-        return Task.CompletedTask;
+        await _context.SaveChangesAsync(cancellationToken);
     }
 
-    public virtual Task DeleteAsync(T entity, CancellationToken cancellationToken = default)
+    public virtual async Task DeleteAsync(T entity, CancellationToken cancellationToken = default)
     {
         _dbSet.Remove(entity);
-        return Task.CompletedTask;
+        await _context.SaveChangesAsync(cancellationToken);
     }
 
     public virtual async Task<int> CountAsync(Expression<Func<T, bool>>? predicate = null, CancellationToken cancellationToken = default)

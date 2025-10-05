@@ -1,17 +1,14 @@
 namespace EV_SCMMS.Core.Application.DTOs;
 
 /// <summary>
-/// DTO for authentication result
+/// DTO for authentication response data
 /// </summary>
-public class AuthResultDto
+public class AuthResponseDto
 {
-    public bool Success { get; set; }
-    public string? Token { get; set; }
-    public string? RefreshToken { get; set; }
-    public DateTime? ExpiresAt { get; set; }
-    public UserInfoDto? User { get; set; }
-    public string? Message { get; set; }
-    public IEnumerable<string>? Errors { get; set; }
+    public string Token { get; set; } = string.Empty;
+    public string RefreshToken { get; set; } = string.Empty;
+    public DateTime ExpiresAt { get; set; }
+    public UserInfoDto User { get; set; } = null!;
 }
 
 /// <summary>

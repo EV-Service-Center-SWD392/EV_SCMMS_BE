@@ -1,5 +1,8 @@
+using AutoMapper;
 using EV_SCMMS.Core.Application.DTOs;
+using EV_SCMMS.Core.Application.Interfaces;
 using EV_SCMMS.Core.Application.Interfaces.Services;
+using EV_SCMMS.Core.Application.Results;
 using EV_SCMMS.Core.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
@@ -13,19 +16,22 @@ public class AuthService : IAuthService
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ITokenService _tokenService;
+    private readonly IMapper _mapper;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
         UserManager<ApplicationUser> userManager,
         ITokenService tokenService,
+        IMapper mapper,
         ILogger<AuthService> logger)
     {
         _userManager = userManager;
         _tokenService = tokenService;
+        _mapper = mapper;
         _logger = logger;
     }
 
-    public async Task<AuthResultDto> RegisterAsync(RegisterDto registerDto, CancellationToken cancellationToken = default)
+    public async Task<IServiceResult<AuthResponseDto>> RegisterAsync(RegisterDto registerDto, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -33,46 +39,26 @@ public class AuthService : IAuthService
             var existingUser = await _userManager.FindByEmailAsync(registerDto.Email);
             if (existingUser != null)
             {
-                return new AuthResultDto
-                {
-                    Success = false,
-                    Message = "User with this email already exists",
-                    Errors = new[] { "Email is already registered" }
-                };
+                return ServiceResult<AuthResponseDto>.Failure("User with this email already exists");
             }
 
             existingUser = await _userManager.FindByNameAsync(registerDto.Username);
             if (existingUser != null)
             {
-                return new AuthResultDto
-                {
-                    Success = false,
-                    Message = "User with this username already exists",
-                    Errors = new[] { "Username is already taken" }
-                };
+                return ServiceResult<AuthResponseDto>.Failure("User with this username already exists");
             }
 
-            // Create new user
-            var user = new ApplicationUser
-            {
-                UserName = registerDto.Username,
-                Email = registerDto.Email,
-                FullName = registerDto.FullName,
-                EmailConfirmed = false,
-                CreatedAt = DateTime.UtcNow,
-                IsActive = true
-            };
+            // Create new user using AutoMapper
+            var user = _mapper.Map<ApplicationUser>(registerDto);
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);
 
             if (!result.Succeeded)
             {
-                return new AuthResultDto
-                {
-                    Success = false,
-                    Message = "Failed to create user",
-                    Errors = result.Errors.Select(e => e.Description)
-                };
+                return ServiceResult<AuthResponseDto>.Failure(
+                    "Failed to create user",
+                    result.Errors.Select(e => e.Description)
+                );
             }
 
             // Assign default role
@@ -90,36 +76,27 @@ public class AuthService : IAuthService
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
             await _userManager.UpdateAsync(user);
 
-            return new AuthResultDto
+            var authResponse = new AuthResponseDto
             {
-                Success = true,
                 Token = token,
                 RefreshToken = refreshToken,
                 ExpiresAt = _tokenService.GetTokenExpiryTime(),
-                Message = "Registration successful",
-                User = new UserInfoDto
-                {
-                    Id = user.Id,
-                    Username = user.UserName!,
-                    Email = user.Email!,
-                    FullName = user.FullName,
-                    Roles = roles
-                }
+                User = _mapper.Map<UserInfoDto>(user)
             };
+
+            // Map roles separately as they're not part of the entity
+            authResponse.User.Roles = roles;
+
+            return ServiceResult<AuthResponseDto>.Success(authResponse, "Registration successful");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during user registration");
-            return new AuthResultDto
-            {
-                Success = false,
-                Message = "An error occurred during registration",
-                Errors = new[] { ex.Message }
-            };
+            return ServiceResult<AuthResponseDto>.Failure("An error occurred during registration", new[] { ex.Message });
         }
     }
 
-    public async Task<AuthResultDto> LoginAsync(LoginDto loginDto, CancellationToken cancellationToken = default)
+    public async Task<IServiceResult<AuthResponseDto>> LoginAsync(LoginDto loginDto, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -129,22 +106,12 @@ public class AuthService : IAuthService
 
             if (user == null)
             {
-                return new AuthResultDto
-                {
-                    Success = false,
-                    Message = "Invalid credentials",
-                    Errors = new[] { "User not found" }
-                };
+                return ServiceResult<AuthResponseDto>.Failure("Invalid credentials");
             }
 
             if (!user.IsActive)
             {
-                return new AuthResultDto
-                {
-                    Success = false,
-                    Message = "Account is inactive",
-                    Errors = new[] { "Your account has been deactivated" }
-                };
+                return ServiceResult<AuthResponseDto>.Failure("Account is inactive");
             }
 
             // Check password
@@ -157,20 +124,10 @@ public class AuthService : IAuthService
 
                 if (await _userManager.IsLockedOutAsync(user))
                 {
-                    return new AuthResultDto
-                    {
-                        Success = false,
-                        Message = "Account locked",
-                        Errors = new[] { "Your account has been locked due to multiple failed login attempts" }
-                    };
+                    return ServiceResult<AuthResponseDto>.Failure("Your account has been locked due to multiple failed login attempts");
                 }
 
-                return new AuthResultDto
-                {
-                    Success = false,
-                    Message = "Invalid credentials",
-                    Errors = new[] { "Invalid email/username or password" }
-                };
+                return ServiceResult<AuthResponseDto>.Failure("Invalid email/username or password");
             }
 
             // Reset failed login count on successful login
@@ -188,60 +145,63 @@ public class AuthService : IAuthService
 
             _logger.LogInformation("User {Username} logged in successfully", user.UserName);
 
-            return new AuthResultDto
+            var authResponse = new AuthResponseDto
             {
-                Success = true,
                 Token = token,
                 RefreshToken = refreshToken,
                 ExpiresAt = _tokenService.GetTokenExpiryTime(),
-                Message = "Login successful",
-                User = new UserInfoDto
-                {
-                    Id = user.Id,
-                    Username = user.UserName!,
-                    Email = user.Email!,
-                    FullName = user.FullName,
-                    Roles = roles
-                }
+                User = _mapper.Map<UserInfoDto>(user)
             };
+
+            // Map roles separately as they're not part of the entity
+            authResponse.User.Roles = roles;
+
+            return ServiceResult<AuthResponseDto>.Success(authResponse, "Login successful");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during user login");
-            return new AuthResultDto
-            {
-                Success = false,
-                Message = "An error occurred during login",
-                Errors = new[] { ex.Message }
-            };
+            return ServiceResult<AuthResponseDto>.Failure("An error occurred during login", new[] { ex.Message });
         }
     }
 
-    public async Task<AuthResultDto> RefreshTokenAsync(RefreshTokenDto refreshTokenDto, CancellationToken cancellationToken = default)
+    public async Task<IServiceResult<AuthResponseDto>> RefreshTokenAsync(RefreshTokenDto refreshTokenDto, CancellationToken cancellationToken = default)
     {
         // Implementation for refresh token logic
         // This would validate the refresh token and generate new tokens
         throw new NotImplementedException("Refresh token logic to be implemented");
     }
 
-    public async Task<bool> RevokeTokenAsync(string userId, CancellationToken cancellationToken = default)
+    public async Task<IServiceResult> RevokeTokenAsync(string userId, CancellationToken cancellationToken = default)
     {
         var user = await _userManager.FindByIdAsync(userId);
-        if (user == null) return false;
+        if (user == null)
+        {
+            return ServiceResult.Failure("User not found");
+        }
 
         user.RefreshToken = null;
         user.RefreshTokenExpiryTime = null;
         await _userManager.UpdateAsync(user);
 
-        return true;
+        return ServiceResult.Success("Token revoked successfully");
     }
 
-    public async Task<bool> ChangePasswordAsync(string userId, string currentPassword, string newPassword, CancellationToken cancellationToken = default)
+    public async Task<IServiceResult> ChangePasswordAsync(string userId, string currentPassword, string newPassword, CancellationToken cancellationToken = default)
     {
         var user = await _userManager.FindByIdAsync(userId);
-        if (user == null) return false;
+        if (user == null)
+        {
+            return ServiceResult.Failure("User not found");
+        }
 
         var result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
-        return result.Succeeded;
+        
+        if (!result.Succeeded)
+        {
+            return ServiceResult.Failure("Failed to change password", result.Errors.Select(e => e.Description));
+        }
+
+        return ServiceResult.Success("Password changed successfully");
     }
 }

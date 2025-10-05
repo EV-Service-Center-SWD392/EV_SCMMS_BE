@@ -5,6 +5,7 @@ using EV_SCMMS.Core.Domain.Entities;
 using EV_SCMMS.Infrastructure.Identity;
 using EV_SCMMS.Infrastructure.Persistence;
 using EV_SCMMS.Infrastructure.Services;
+using EV_SCMMS.WebAPI.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -59,6 +60,9 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddAuthorization();
+
+// Configure AutoMapper
+builder.Services.AddAutoMapper(typeof(EV_SCMMS.Infrastructure.Mappings.MappingProfile).Assembly);
 
 // Register Application Services
 builder.Services.AddScoped<ITokenService, TokenService>();
@@ -128,6 +132,12 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
+
+// Use custom middleware in correct order (ExceptionHandling -> Logging -> Performance)
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseMiddleware<RequestLoggingMiddleware>();
+app.UseMiddleware<PerformanceMonitoringMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

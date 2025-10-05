@@ -33,10 +33,10 @@ public class AuthController : ControllerBase
 
         var result = await _authService.RegisterAsync(registerDto, cancellationToken);
 
-        if (!result.Success)
-            return BadRequest(result);
+        if (!result.IsSuccess)
+            return BadRequest(new { message = result.Message, errors = result.Errors });
 
-        return Ok(result);
+        return Ok(new { message = result.Message, data = result.Data });
     }
 
     /// <summary>
@@ -54,10 +54,10 @@ public class AuthController : ControllerBase
 
         var result = await _authService.LoginAsync(loginDto, cancellationToken);
 
-        if (!result.Success)
-            return Unauthorized(result);
+        if (!result.IsSuccess)
+            return Unauthorized(new { message = result.Message, errors = result.Errors });
 
-        return Ok(result);
+        return Ok(new { message = result.Message, data = result.Data });
     }
 
     /// <summary>
@@ -75,10 +75,10 @@ public class AuthController : ControllerBase
 
         var result = await _authService.RefreshTokenAsync(refreshTokenDto, cancellationToken);
 
-        if (!result.Success)
-            return Unauthorized(result);
+        if (!result.IsSuccess)
+            return Unauthorized(new { message = result.Message, errors = result.Errors });
 
-        return Ok(result);
+        return Ok(new { message = result.Message, data = result.Data });
     }
 
     /// <summary>
@@ -97,17 +97,16 @@ public class AuthController : ControllerBase
 
         var result = await _authService.RevokeTokenAsync(userId, cancellationToken);
 
-        if (!result)
-            return BadRequest(new { message = "Failed to logout" });
+        if (!result.IsSuccess)
+            return BadRequest(new { message = result.Message, errors = result.Errors });
 
-        return Ok(new { message = "Logged out successfully" });
+        return Ok(new { message = result.Message });
     }
 
     /// <summary>
     /// Change user password
     /// </summary>
-    /// <param name="currentPassword">Current password</param>
-    /// <param name="newPassword">New password</param>
+    /// <param name="changePasswordDto">Password change data</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Success status</returns>
     [HttpPost("change-password")]
@@ -130,10 +129,10 @@ public class AuthController : ControllerBase
             changePasswordDto.NewPassword,
             cancellationToken);
 
-        if (!result)
-            return BadRequest(new { message = "Failed to change password" });
+        if (!result.IsSuccess)
+            return BadRequest(new { message = result.Message, errors = result.Errors });
 
-        return Ok(new { message = "Password changed successfully" });
+        return Ok(new { message = result.Message });
     }
 
     /// <summary>

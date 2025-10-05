@@ -1,4 +1,6 @@
 using EV_SCMMS.Core.Application.Interfaces;
+using EV_SCMMS.Core.Application.Interfaces.Repositories;
+using EV_SCMMS.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace EV_SCMMS.Infrastructure.Persistence;
@@ -10,10 +12,20 @@ public class UnitOfWork : IUnitOfWork
 {
     private readonly AppDbContext _context;
     private IDbContextTransaction? _transaction;
+    private IUserRepository? _userRepository;
 
     public UnitOfWork(AppDbContext context)
     {
         _context = context;
+    }
+
+    public IUserRepository UserRepository
+    {
+        get
+        {
+            _userRepository ??= new UserRepository(_context);
+            return _userRepository;
+        }
     }
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

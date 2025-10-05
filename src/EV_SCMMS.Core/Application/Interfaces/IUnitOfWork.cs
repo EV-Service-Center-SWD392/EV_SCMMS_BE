@@ -1,3 +1,5 @@
+using EV_SCMMS.Core.Application.Interfaces.Repositories;
+
 namespace EV_SCMMS.Core.Application.Interfaces;
 
 /// <summary>
@@ -5,6 +7,11 @@ namespace EV_SCMMS.Core.Application.Interfaces;
 /// </summary>
 public interface IUnitOfWork : IDisposable
 {
+    /// <summary>
+    /// User repository
+    /// </summary>
+    IUserRepository UserRepository { get; }
+
     /// <summary>
     /// Save all changes made in this context to the database
     /// </summary>
