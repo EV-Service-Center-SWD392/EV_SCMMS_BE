@@ -1,7 +1,6 @@
 using System.Text;
 using EV_SCMMS.Core.Application.Interfaces;
 using EV_SCMMS.Core.Application.Interfaces.Services;
-using EV_SCMMS.Core.Domain.Entities;
 using EV_SCMMS.Infrastructure.Identity;
 using EV_SCMMS.Infrastructure.Persistence;
 using EV_SCMMS.Infrastructure.Services;

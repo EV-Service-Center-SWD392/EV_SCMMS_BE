@@ -1,6 +1,7 @@
 using AutoMapper;
 using EV_SCMMS.Core.Application.DTOs;
 using EV_SCMMS.Core.Domain.Entities;
+using EV_SCMMS.Infrastructure.Identity;
 
 namespace EV_SCMMS.Infrastructure.Mappings;
 

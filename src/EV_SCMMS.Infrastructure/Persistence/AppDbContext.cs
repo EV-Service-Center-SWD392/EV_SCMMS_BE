@@ -1,4 +1,5 @@
 using EV_SCMMS.Core.Domain.Entities;
+using EV_SCMMS.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,7 +8,7 @@ namespace EV_SCMMS.Infrastructure.Persistence;
 /// <summary>
 /// Application database context with Identity
 /// </summary>
-public class AppDbContext : IdentityDbContext<ApplicationUser>
+public class AppDbContext : IdentityDbContext<Infrastructure.Identity.ApplicationUser>
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
@@ -21,7 +22,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         base.OnModelCreating(modelBuilder);
 
         // Configure ApplicationUser
-        modelBuilder.Entity<ApplicationUser>(entity =>
+        modelBuilder.Entity<Infrastructure.Identity.ApplicationUser>(entity =>
         {
             entity.ToTable("AspNetUsers");
             entity.Property(e => e.FullName).HasMaxLength(200);

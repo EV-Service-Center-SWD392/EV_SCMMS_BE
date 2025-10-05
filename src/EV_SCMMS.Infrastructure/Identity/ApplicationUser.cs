@@ -1,9 +1,10 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace EV_SCMMS.Core.Domain.Entities;
+namespace EV_SCMMS.Infrastructure.Identity;
 
 /// <summary>
 /// Application user entity extending IdentityUser
+/// This is an infrastructure concern for ASP.NET Core Identity
 /// </summary>
 public class ApplicationUser : IdentityUser
 {
