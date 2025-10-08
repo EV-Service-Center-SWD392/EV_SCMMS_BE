@@ -14,19 +14,21 @@ public class UnitOfWork : IUnitOfWork
     private IDbContextTransaction? _transaction;
     private IUserRepository? _userRepository;
 
+    public IUserRepository UserRepository => throw new NotImplementedException();
+
     public UnitOfWork(AppDbContext context)
     {
         _context = context;
     }
 
-    public IUserRepository UserRepository
-    {
-        get
-        {
-            _userRepository ??= new UserRepository(_context);
-            return _userRepository;
-        }
-    }
+    // public IUserRepository UserRepository
+    // {
+    //     get
+    //     {
+    //         _userRepository ??= new UserRepository(_context);
+    //         return _userRepository;
+    //     }
+    // }
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
