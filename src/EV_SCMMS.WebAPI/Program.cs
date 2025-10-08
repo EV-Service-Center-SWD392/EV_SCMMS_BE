@@ -71,8 +71,16 @@ builder.Services.AddScoped<IUserService, UserService>();
 // builder.Services.AddScoped<IVehicleService, VehicleService>(); // Uncomment when implemented
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-// Add Health Checks
-builder.Services.AddHealthChecks();
+// Add Health Checks with PostgreSQL connection check
+builder.Services.AddHealthChecks()
+    .AddNpgSql(
+        builder.Configuration.GetConnectionString("DefaultConnection") ?? 
+        throw new InvalidOperationException("DefaultConnection is not configured"),
+        name: "postgresql",
+        tags: new[] { "db", "postgresql", "ready" })
+    .AddDbContextCheck<AppDbContext>(
+        name: "dbcontext",
+        tags: new[] { "db", "ef", "ready" });
 
 // Configure Swagger/OpenAPI with JWT support
 builder.Services.AddEndpointsApiExplorer();
