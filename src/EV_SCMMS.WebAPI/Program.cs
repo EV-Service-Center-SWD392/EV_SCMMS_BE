@@ -8,6 +8,7 @@ using EV_SCMMS.WebAPI.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
@@ -69,6 +70,9 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 // builder.Services.AddScoped<IVehicleService, VehicleService>(); // Uncomment when implemented
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+// Add Health Checks
+builder.Services.AddHealthChecks();
 
 // Configure Swagger/OpenAPI with JWT support
 builder.Services.AddEndpointsApiExplorer();
@@ -153,6 +157,13 @@ app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Add Health Check endpoints
+app.MapHealthChecks("/health");
+app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("ready")
+});
 
 app.MapControllers();
 
