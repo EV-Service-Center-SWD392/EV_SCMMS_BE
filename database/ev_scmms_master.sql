@@ -92,6 +92,7 @@ CREATE TABLE SparePartForecast_TuHT (
     Status              VARCHAR(50) DEFAULT 'PENDING',                -- Trạng thái duyệt
     createdAt           TIMESTAMP DEFAULT CURRENT_TIMESTAMP,          -- Ngày tạo
     updatedAt           TIMESTAMP DEFAULT CURRENT_TIMESTAMP           -- Ngày cập nhật
+    IsActive            BOOLEAN DEFAULT TRUE,                             -- Đang hoạt động hay không
 );
 
 CREATE TABLE SparePartReplenishmentRequest (
@@ -106,6 +107,7 @@ CREATE TABLE SparePartReplenishmentRequest (
     Notes           VARCHAR(500),                                     -- Ghi chú thêm
     createdAt       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,              -- Ngày tạo
     updatedAt       TIMESTAMP DEFAULT CURRENT_TIMESTAMP               -- Ngày cập nhật
+    IsActive        BOOLEAN DEFAULT TRUE                              -- Đang hoạt động hay không
 );
 
 CREATE TRIGGER trg_update_center_updatedAt

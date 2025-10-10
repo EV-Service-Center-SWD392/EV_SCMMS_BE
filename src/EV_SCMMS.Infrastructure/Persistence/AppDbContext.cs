@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using EV_SCMMS.Infrastructure.Persistence.Models;
+using EV_SCMMS.Core.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace EV_SCMMS.Infrastructure.Persistence;
@@ -9,11 +9,15 @@ public partial class AppDbContext : DbContext
 {
     public AppDbContext()
     {
+        // DISABLE LAZY LOADING to prevent performance issues
+        ChangeTracker.LazyLoadingEnabled = false;
     }
 
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)
     {
+        // DISABLE LAZY LOADING to prevent performance issues
+        ChangeTracker.LazyLoadingEnabled = false;
     }
 
     public virtual DbSet<Center> Centers { get; set; }
@@ -29,8 +33,6 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<SpareparttypeTuht> SpareparttypeTuhts { get; set; }
 
     public virtual DbSet<SparepartusagehistoryTuht> SparepartusagehistoryTuhts { get; set; }
-
-
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -214,6 +216,9 @@ public partial class AppDbContext : DbContext
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("updatedat");
+            entity.Property(e => e.Isactive)
+                .HasDefaultValue(true)
+                .HasColumnName("isactive");     
 
             entity.HasOne(d => d.Center).WithMany(p => p.SparepartforecastTuhts)
                 .HasForeignKey(d => d.Centerid)
@@ -258,6 +263,9 @@ public partial class AppDbContext : DbContext
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("updatedat");
+            entity.Property(e => e.Isactive)
+                .HasDefaultValue(true)
+                .HasColumnName("isactive");
 
             entity.HasOne(d => d.Center).WithMany(p => p.Sparepartreplenishmentrequests)
                 .HasForeignKey(d => d.Centerid)
