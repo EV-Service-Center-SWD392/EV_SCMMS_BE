@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using EV_SCMMS.Infrastructure.Models;
+﻿using EV_SCMMS.Core.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace EV_SCMMS.Infrastructure.Persistence;
@@ -53,10 +51,6 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<Vehicle> Vehicles { get; set; }
 
     public virtual DbSet<WorkOrderApprovalThaoNtt> WorkOrderApprovalThaoNtts { get; set; }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseNpgsql("Host=127.0.0.1;Port=5432;Database=postgress;Username=postgres;Password=12345");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -257,6 +251,8 @@ public partial class AppDbContext : DbContext
             entity.HasIndex(e => e.ItemId, "idx_thaontt_chkresp_item");
 
             entity.HasIndex(e => e.Severity, "idx_thaontt_chkresp_severity");
+
+            entity.HasIndex(e => new { e.IntakeId, e.ItemId }, "uq_chkresp_intake_item").IsUnique();
 
             entity.Property(e => e.CrthaoNttid)
                 .HasDefaultValueSql("uuid_generate_v4()")
@@ -697,6 +693,8 @@ public partial class AppDbContext : DbContext
 
             entity.HasIndex(e => e.OrderId, "idx_woa_order");
 
+            entity.HasIndex(e => e.OrderId, "uq_woa_order").IsUnique();
+
             entity.Property(e => e.WoathaoNttid)
                 .HasDefaultValueSql("uuid_generate_v4()")
                 .HasColumnName("WOAThaoNTTId");
@@ -713,8 +711,8 @@ public partial class AppDbContext : DbContext
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("updatedAt");
 
-            entity.HasOne(d => d.Order).WithMany(p => p.WorkOrderApprovalThaoNtts)
-                .HasForeignKey(d => d.OrderId)
+            entity.HasOne(d => d.Order).WithOne(p => p.WorkOrderApprovalThaoNtt)
+                .HasForeignKey<WorkOrderApprovalThaoNtt>(d => d.OrderId)
                 .HasConstraintName("WorkOrderApprovalThaoNTT_OrderId_fkey");
         });
 
