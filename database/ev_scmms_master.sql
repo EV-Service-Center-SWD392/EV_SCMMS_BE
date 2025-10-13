@@ -396,3 +396,96 @@ CREATE INDEX idx_thaontt_os_service      ON "OrderServiceThaoNTT" ("ServiceId");
 CREATE INDEX idx_thaontt_woa_order       ON "WorkOrderApprovalThaoNTT" ("OrderId");
 CREATE INDEX idx_thaontt_woa_status      ON "WorkOrderApprovalThaoNTT" ("Status");
 CREATE INDEX idx_thaontt_woa_method      ON "WorkOrderApprovalThaoNTT" ("Method");
+
+
+-- 1) CHECK/UNIQUE cho các bảng ThaoNTT
+ALTER TABLE "BookingScheduleThaoNTT"
+  ADD CONSTRAINT chk_sched_time_range CHECK ("EndUtc" > "StartUtc");
+
+ALTER TABLE "ChecklistItemThaoNTT"
+  ADD CONSTRAINT chk_chkitem_type CHECK ("Type" IN (0,1,2));  -- 0=Bool,1=Number,2=Text
+
+ALTER TABLE "ChecklistResponseThaoNTT"
+  ADD CONSTRAINT uq_chkresp_intake_item UNIQUE ("IntakeId","ItemId"),
+  ADD CONSTRAINT chk_chkresp_severity CHECK ("Severity" IS NULL OR "Severity" BETWEEN 0 AND 3);
+
+ALTER TABLE "AssignmentThaoNTT"
+  ADD CONSTRAINT chk_assign_time_range CHECK ("PlannedEndUtc" IS NULL OR "PlannedEndUtc" > "PlannedStartUtc"),
+  ADD CONSTRAINT chk_assign_status CHECK ("Status" IS NULL OR "Status" IN ('Unassigned','Assigned','InProgress','Completed','Canceled'));
+
+ALTER TABLE "ServiceIntakeThaoNTT"
+  ADD CONSTRAINT chk_intake_odo CHECK ("OdometerKm" IS NULL OR "OdometerKm" >= 0),
+  ADD CONSTRAINT chk_intake_soc CHECK ("BatterySoC" IS NULL OR ("BatterySoC" BETWEEN 0 AND 100));
+
+ALTER TABLE "OrderServiceThaoNTT"
+  ADD CONSTRAINT chk_os_qty CHECK ("Quantity" > 0),
+  ADD CONSTRAINT chk_os_unitprice CHECK ("UnitPrice" >= 0);
+
+ALTER TABLE "OrderThaoNTT"
+  ADD CONSTRAINT chk_order_status CHECK ("Status" IN (0,1,2,3,4,5,6)),
+  ADD CONSTRAINT chk_order_total CHECK ("TotalAmount" >= 0);
+
+ALTER TABLE "BookingThaoNTT"
+  ADD CONSTRAINT chk_booking_status CHECK ("Status" IN (0,1,2,3,4,5));
+
+ALTER TABLE "WorkOrderApprovalThaoNTT"
+  ADD CONSTRAINT chk_woa_status CHECK ("Status" IN (0,1,2)),
+  ADD CONSTRAINT chk_woa_method CHECK ("Method" IS NULL OR "Method" IN ('App','InPerson','ESign')),
+  ADD CONSTRAINT chk_woa_approvedat CHECK (
+    ("Status" = 1 AND "ApprovedAt" IS NOT NULL) OR
+    ("Status" IN (0,2) AND "ApprovedAt" IS NULL)
+  ),
+  ADD CONSTRAINT uq_woa_order UNIQUE ("OrderId");
+
+-- (Tuỳ chính sách) Nếu muốn 1 Booking chỉ có 1 Order, bật dòng này:
+-- ALTER TABLE "OrderThaoNTT" ADD CONSTRAINT uq_order_booking UNIQUE ("BookingId");
+
+-- 2) Trigger hạn mức Capacity cho Slot (tránh over-booking)
+CREATE OR REPLACE FUNCTION enforce_slot_capacity() RETURNS TRIGGER AS $$
+DECLARE
+  v_capacity INT;
+  v_count INT;
+BEGIN
+  -- Nếu chuyển sang Canceled thì cho qua (giải phóng chỗ)
+  IF NEW."Status" = 2 THEN
+    RETURN NEW;
+  END IF;
+
+  -- Không gắn slot thì không kiểm
+  IF NEW."BookingScheduleId" IS NULL THEN
+    RETURN NEW;
+  END IF;
+
+  -- Khóa hàng slot để tuần tự hoá kiểm tra capacity
+  PERFORM 1 FROM "BookingScheduleThaoNTT"
+   WHERE "BSThaoNTTId" = NEW."BookingScheduleId"
+   FOR UPDATE;
+
+  SELECT "Capacity" INTO v_capacity
+    FROM "BookingScheduleThaoNTT"
+   WHERE "BSThaoNTTId" = NEW."BookingScheduleId";
+
+  IF v_capacity IS NULL THEN
+    RETURN NEW;
+  END IF;
+
+  -- Đếm booking hiệu lực trong slot (không tính Canceled; nếu UPDATE thì loại chính nó)
+  SELECT COUNT(*) INTO v_count
+    FROM "BookingThaoNTT" b
+   WHERE b."BookingScheduleId" = NEW."BookingScheduleId"
+     AND b."Status" <> 2
+     AND (TG_OP = 'INSERT' OR b."BookingThaoNTTId" <> NEW."BookingThaoNTTId");
+
+  IF v_count >= v_capacity THEN
+    RAISE EXCEPTION 'Slot % is full (capacity=%)', NEW."BookingScheduleId", v_capacity
+      USING ERRCODE = '23514';
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_booking_capacity ON "BookingThaoNTT";
+CREATE TRIGGER trg_booking_capacity
+BEFORE INSERT OR UPDATE OF "BookingScheduleId","Status" ON "BookingThaoNTT"
+FOR EACH ROW EXECUTE FUNCTION enforce_slot_capacity();
