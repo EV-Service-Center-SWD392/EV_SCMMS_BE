@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace EV_SCMMS.Infrastructure.Models;
+﻿namespace EV_SCMMS.Core.Domain.Models;
 
 public partial class OrderThaoNtt
 {
@@ -31,5 +28,5 @@ public partial class OrderThaoNtt
 
     public virtual Vehicle? Vehicle { get; set; }
 
-    public virtual ICollection<WorkOrderApprovalThaoNtt> WorkOrderApprovalThaoNtts { get; set; } = new List<WorkOrderApprovalThaoNtt>();
+    public virtual WorkOrderApprovalThaoNtt? WorkOrderApprovalThaoNtt { get; set; }
 }
