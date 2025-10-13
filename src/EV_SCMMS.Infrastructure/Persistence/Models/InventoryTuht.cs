@@ -1,27 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace EV_SCMMS.Infrastructure.Persistence.Models;
+namespace EV_SCMMS.Infrastructure.Models;
 
-public partial class InventoryTuht
+public partial class InventoryTuHt
 {
-    public Guid Inventoryid { get; set; }
+    public Guid InventoryId { get; set; }
 
-    public Guid Centerid { get; set; }
+    public Guid CenterId { get; set; }
 
     public int? Quantity { get; set; }
 
-    public int? Minimumstocklevel { get; set; }
+    public int? MinimumStockLevel { get; set; }
 
     public string? Status { get; set; }
 
-    public bool? Isactive { get; set; }
+    public bool? IsActive { get; set; }
 
-    public DateTime? Createdat { get; set; }
+    public DateTime? CreatedAt { get; set; }
 
-    public DateTime? Updatedat { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 
     public virtual Center Center { get; set; } = null!;
 
-    public virtual ICollection<SparepartTuht> SparepartTuhts { get; set; } = new List<SparepartTuht>();
+    public virtual ICollection<SparePartTuHt> SparePartTuHts { get; set; } = new List<SparePartTuHt>();
 }
