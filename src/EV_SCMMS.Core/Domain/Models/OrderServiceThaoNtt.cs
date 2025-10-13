@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace EV_SCMMS.Infrastructure.Models;
+﻿namespace EV_SCMMS.Core.Domain.Models;
 
 public partial class OrderServiceThaoNtt
 {

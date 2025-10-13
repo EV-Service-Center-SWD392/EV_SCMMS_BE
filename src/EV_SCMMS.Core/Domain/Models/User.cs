@@ -1,7 +1,8 @@
-﻿using System;
+﻿using EV_SCMMS.Core.Domain.Models;
+using System;
 using System.Collections.Generic;
 
-namespace EV_SCMMS.Infrastructure.Models;
+namespace EV_SCMMS.Core.Domain.Models;
 
 public partial class User
 {
