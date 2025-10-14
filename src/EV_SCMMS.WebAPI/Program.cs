@@ -70,6 +70,11 @@ builder.Services.AddAuthorization();
 // Register Application Services
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
+// Register Authentication Services
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IPasswordHashService, PasswordHashService>();
+
 // Register Business Services for Spare Parts Management
 builder.Services.AddScoped<ICenterService, CenterService>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
@@ -79,16 +84,8 @@ builder.Services.AddScoped<ISparepartForecastService, SparepartForecastService>(
 builder.Services.AddScoped<ISparepartReplenishmentRequestService, SparepartReplenishmentRequestService>();
 builder.Services.AddScoped<ISparepartUsageHistoryService, SparepartUsageHistoryService>();
 
-// Add Health Checks with PostgreSQL connection check
-builder.Services.AddHealthChecks()
-    .AddNpgSql(
-        builder.Configuration.GetConnectionString("DefaultConnection") ?? 
-        throw new InvalidOperationException("DefaultConnection is not configured"),
-        name: "postgresql",
-        tags: new[] { "db", "postgresql", "ready" })
-    .AddDbContextCheck<AppDbContext>(
-        name: "dbcontext",
-        tags: new[] { "db", "ef", "ready" });
+// Add Basic Health Checks
+builder.Services.AddHealthChecks();
 
 // Configure Swagger/OpenAPI with JWT support
 builder.Services.AddEndpointsApiExplorer();
@@ -176,10 +173,6 @@ app.UseAuthorization();
 
 // Add Health Check endpoints
 app.MapHealthChecks("/health");
-app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
-{
-    Predicate = check => check.Tags.Contains("ready")
-});
 
 app.MapControllers();
 

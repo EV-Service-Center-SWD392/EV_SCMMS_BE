@@ -7,6 +7,15 @@ namespace EV_SCMMS.Core.Application.Interfaces;
 /// </summary>
 public interface IUnitOfWork : IDisposable
 {
+    /// <summary>
+    /// User repository
+    /// </summary>
+    IUserRepository UserRepository { get; }
+
+    /// <summary>
+    /// Role repository
+    /// </summary>
+    IRoleRepository RoleRepository { get; }
 
     /// <summary>
     /// Center repository

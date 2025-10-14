@@ -14,6 +14,8 @@ public class UnitOfWork : IUnitOfWork
     private IDbContextTransaction? _transaction;
     
     // Repository instances
+    private IUserRepository? _userRepository;
+    private IRoleRepository? _roleRepository;
     private ICenterRepository? _centerRepository;
     private IInventoryRepository? _inventoryRepository;
     private ISparepartRepository? _sparepartRepository;
@@ -25,6 +27,24 @@ public class UnitOfWork : IUnitOfWork
     public UnitOfWork(AppDbContext context)
     {
         _context = context;
+    }
+
+    public IUserRepository UserRepository
+    {
+        get
+        {
+            _userRepository ??= new UserRepository(_context);
+            return _userRepository;
+        }
+    }
+
+    public IRoleRepository RoleRepository
+    {
+        get
+        {
+            _roleRepository ??= new RoleRepository(_context);
+            return _roleRepository;
+        }
     }
 
     public ICenterRepository CenterRepository
