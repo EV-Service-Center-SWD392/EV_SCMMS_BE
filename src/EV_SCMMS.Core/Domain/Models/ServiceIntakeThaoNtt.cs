@@ -22,7 +22,5 @@ public partial class ServiceIntakeThaoNtt
 
     public virtual User? Advisor { get; set; }
 
-    public virtual BookingThaoNtt Booking { get; set; } = null!;
-
     public virtual ICollection<ChecklistResponseThaoNtt> ChecklistResponseThaoNtts { get; set; } = new List<ChecklistResponseThaoNtt>();
 }

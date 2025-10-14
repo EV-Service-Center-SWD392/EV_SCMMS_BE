@@ -16,10 +16,6 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<AssignmentThaoNtt> AssignmentThaoNtts { get; set; }
 
-    public virtual DbSet<BookingScheduleThaoNtt> BookingScheduleThaoNtts { get; set; }
-
-    public virtual DbSet<BookingThaoNtt> BookingThaoNtts { get; set; }
-
     public virtual DbSet<Center> Centers { get; set; }
 
     public virtual DbSet<ChecklistItemThaoNtt> ChecklistItemThaoNtts { get; set; }
@@ -87,98 +83,10 @@ public partial class AppDbContext : DbContext
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("updatedAt");
 
-            entity.HasOne(d => d.Booking).WithMany(p => p.AssignmentThaoNtts)
-                .HasForeignKey(d => d.BookingId)
-                .HasConstraintName("AssignmentThaoNTT_BookingId_fkey");
-
             entity.HasOne(d => d.Technician).WithMany(p => p.AssignmentThaoNtts)
                 .HasForeignKey(d => d.TechnicianId)
                 .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName("AssignmentThaoNTT_TechnicianId_fkey");
-        });
-
-        modelBuilder.Entity<BookingScheduleThaoNtt>(entity =>
-        {
-            entity.HasKey(e => e.BsthaoNttid).HasName("BookingScheduleThaoNTT_pkey");
-
-            entity.ToTable("BookingScheduleThaoNTT");
-
-            entity.HasIndex(e => new { e.CenterId, e.StartUtc }, "idx_sched_center_start");
-
-            entity.HasIndex(e => e.CenterId, "idx_thaontt_sched_center");
-
-            entity.HasIndex(e => new { e.StartUtc, e.EndUtc }, "idx_thaontt_sched_time");
-
-            entity.HasIndex(e => new { e.CenterId, e.StartUtc, e.EndUtc }, "uq_schedule_slot").IsUnique();
-
-            entity.Property(e => e.BsthaoNttid)
-                .HasDefaultValueSql("uuid_generate_v4()")
-                .HasColumnName("BSThaoNTTId");
-            entity.Property(e => e.Capacity).HasDefaultValue(1);
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("createdAt");
-            entity.Property(e => e.EndUtc).HasColumnType("timestamp without time zone");
-            entity.Property(e => e.Note).HasMaxLength(500);
-            entity.Property(e => e.StartUtc).HasColumnType("timestamp without time zone");
-            entity.Property(e => e.Status).HasDefaultValue((short)0);
-            entity.Property(e => e.UpdatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("updatedAt");
-
-            entity.HasOne(d => d.Center).WithMany(p => p.BookingScheduleThaoNtts)
-                .HasForeignKey(d => d.CenterId)
-                .HasConstraintName("BookingScheduleThaoNTT_CenterId_fkey");
-        });
-
-        modelBuilder.Entity<BookingThaoNtt>(entity =>
-        {
-            entity.HasKey(e => e.BookingThaoNttid).HasName("BookingThaoNTT_pkey");
-
-            entity.ToTable("BookingThaoNTT");
-
-            entity.HasIndex(e => e.CustomerId, "idx_booking_customer");
-
-            entity.HasIndex(e => e.VehicleId, "idx_booking_vehicle");
-
-            entity.HasIndex(e => e.CustomerId, "idx_thaontt_booking_customer");
-
-            entity.HasIndex(e => e.BookingScheduleId, "idx_thaontt_booking_schedule");
-
-            entity.HasIndex(e => e.Status, "idx_thaontt_booking_status");
-
-            entity.HasIndex(e => e.VehicleId, "idx_thaontt_booking_vehicle");
-
-            entity.Property(e => e.BookingThaoNttid)
-                .HasDefaultValueSql("uuid_generate_v4()")
-                .HasColumnName("BookingThaoNTTId");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("createdAt");
-            entity.Property(e => e.Notes).HasMaxLength(1000);
-            entity.Property(e => e.Status).HasDefaultValue((short)0);
-            entity.Property(e => e.UpdatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("updatedAt");
-
-            entity.HasOne(d => d.BookingSchedule).WithMany(p => p.BookingThaoNtts)
-                .HasForeignKey(d => d.BookingScheduleId)
-                .OnDelete(DeleteBehavior.SetNull)
-                .HasConstraintName("BookingThaoNTT_BookingScheduleId_fkey");
-
-            entity.HasOne(d => d.Customer).WithMany(p => p.BookingThaoNtts)
-                .HasForeignKey(d => d.CustomerId)
-                .OnDelete(DeleteBehavior.Restrict)
-                .HasConstraintName("BookingThaoNTT_CustomerId_fkey");
-
-            entity.HasOne(d => d.Vehicle).WithMany(p => p.BookingThaoNtts)
-                .HasForeignKey(d => d.VehicleId)
-                .OnDelete(DeleteBehavior.Restrict)
-                .HasConstraintName("BookingThaoNTT_VehicleId_fkey");
         });
 
         modelBuilder.Entity<Center>(entity =>
@@ -376,11 +284,6 @@ public partial class AppDbContext : DbContext
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("updatedAt");
 
-            entity.HasOne(d => d.Booking).WithMany(p => p.OrderThaoNtts)
-                .HasForeignKey(d => d.BookingId)
-                .OnDelete(DeleteBehavior.SetNull)
-                .HasConstraintName("OrderThaoNTT_BookingId_fkey");
-
             entity.HasOne(d => d.Customer).WithMany(p => p.OrderThaoNtts)
                 .HasForeignKey(d => d.CustomerId)
                 .OnDelete(DeleteBehavior.SetNull)
@@ -441,10 +344,6 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.AdvisorId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("ServiceIntakeThaoNTT_AdvisorId_fkey");
-
-            entity.HasOne(d => d.Booking).WithMany(p => p.ServiceIntakeThaoNtts)
-                .HasForeignKey(d => d.BookingId)
-                .HasConstraintName("ServiceIntakeThaoNTT_BookingId_fkey");
         });
 
         modelBuilder.Entity<SparePartForecastTuHt>(entity =>
