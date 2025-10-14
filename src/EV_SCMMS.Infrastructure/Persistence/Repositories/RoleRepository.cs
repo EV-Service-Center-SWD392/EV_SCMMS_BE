@@ -46,7 +46,7 @@ public class RoleRepository : GenericRepository<Role>, IRoleRepository
     public async Task<Role?> GetDefaultUserRoleAsync(CancellationToken cancellationToken = default)
     {
         return await _context.Set<Role>()
-            .Where(r => r.Name.ToLower() == "user")
+            .Where(r => r.Name.ToLower() == "customer")
             .FirstOrDefaultAsync(cancellationToken);
     }
 }

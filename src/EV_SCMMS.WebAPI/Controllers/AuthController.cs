@@ -26,7 +26,6 @@ public class AuthController : ControllerBase
     /// Authenticate user with email and password
     /// </summary>
     /// <param name="loginDto">Login credentials containing email and password</param>
-    /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Authentication result with JWT token</returns>
     /// <response code="200">Login successful</response>
     /// <response code="400">Invalid login credentials</response>
@@ -36,14 +35,14 @@ public class AuthController : ControllerBase
     [ProducesResponseType(typeof(AuthResultDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> LoginAsync([FromBody] LoginDto loginDto, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> LoginAsync([FromBody] LoginDto loginDto)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
 
-        var result = await _authService.LoginAsync(loginDto, cancellationToken);
+        var result = await _authService.LoginAsync(loginDto);
         
         if (result.IsSuccess)
         {
@@ -59,7 +58,6 @@ public class AuthController : ControllerBase
     /// Register a new user account
     /// </summary>
     /// <param name="registerDto">Registration data including user details and credentials</param>
-    /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Authentication result with JWT token for the new user</returns>
     /// <response code="200">Registration successful</response>
     /// <response code="400">Invalid registration data</response>
@@ -69,14 +67,14 @@ public class AuthController : ControllerBase
     [ProducesResponseType(typeof(AuthResultDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> RegisterAsync([FromBody] RegisterDto registerDto, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> RegisterAsync([FromBody] RegisterDto registerDto)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
 
-        var result = await _authService.RegisterAsync(registerDto, cancellationToken);
+        var result = await _authService.RegisterAsync(registerDto);
         
         if (result.IsSuccess)
         {
@@ -96,10 +94,52 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
+    /// Create a new staff member (Admin only)
+    /// </summary>
+    /// <param name="createStaffDto">Staff creation data including role specification</param>
+    /// <returns>Authentication result with JWT token for the new staff member</returns>
+    /// <response code="200">Staff creation successful</response>
+    /// <response code="400">Invalid staff creation data</response>
+    /// <response code="401">Not authenticated</response>
+    /// <response code="403">Not authorized (Admin role required)</response>
+    /// <response code="409">Email already exists</response>
+    [HttpPost("create-staff")]
+    [Authorize(Roles = "ADMIN")]
+    [ProducesResponseType(typeof(AuthResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> CreateStaffAsync([FromBody] CreateStaffDto createStaffDto)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var result = await _authService.CreateStaffAsync(createStaffDto);
+        
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Staff member created successfully by admin: {Email} with role: {Role}", createStaffDto.Email, createStaffDto.Role);
+            return Ok(result);
+        }
+
+        _logger.LogWarning("Staff creation failed: {Email} - {Error}", createStaffDto.Email, result.Message);
+        
+        // Return conflict status for email already exists
+        if (result.Message.Contains("already exists"))
+        {
+            return Conflict(result);
+        }
+        
+        return BadRequest(result);
+    }
+
+    /// <summary>
     /// Refresh JWT access token using refresh token
     /// </summary>
     /// <param name="refreshToken">Valid refresh token</param>
-    /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>New authentication result with fresh JWT token</returns>
     /// <response code="200">Token refreshed successfully</response>
     /// <response code="400">Invalid refresh token</response>
@@ -109,14 +149,14 @@ public class AuthController : ControllerBase
     [ProducesResponseType(typeof(AuthResultDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> RefreshTokenAsync([FromBody] string refreshToken, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> RefreshTokenAsync([FromBody] string refreshToken)
     {
         if (string.IsNullOrWhiteSpace(refreshToken))
         {
             return BadRequest("Refresh token is required");
         }
 
-        var result = await _authService.RefreshTokenAsync(refreshToken, cancellationToken);
+        var result = await _authService.RefreshTokenAsync(refreshToken);
         
         if (result.IsSuccess)
         {
@@ -132,7 +172,6 @@ public class AuthController : ControllerBase
     /// Revoke refresh token (logout)
     /// </summary>
     /// <param name="refreshToken">Refresh token to revoke</param>
-    /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Success status</returns>
     /// <response code="200">Token revoked successfully</response>
     /// <response code="400">Invalid refresh token</response>
@@ -140,14 +179,14 @@ public class AuthController : ControllerBase
     [Authorize]
     [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> RevokeTokenAsync([FromBody] string refreshToken, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> RevokeTokenAsync([FromBody] string refreshToken)
     {
         if (string.IsNullOrWhiteSpace(refreshToken))
         {
             return BadRequest("Refresh token is required");
         }
 
-        var result = await _authService.RevokeTokenAsync(refreshToken, cancellationToken);
+        var result = await _authService.RevokeTokenAsync(refreshToken);
         
         if (result.IsSuccess)
         {

@@ -23,13 +23,14 @@ public interface IUserRepository : IGenericRepository<User>
     /// <returns>True if email exists</returns>
     Task<bool> EmailExistsAsync(string email, CancellationToken cancellationToken = default);
 
+  Task<bool> PhoneExistsAsync(string phone, CancellationToken cancellationToken = default);
     /// <summary>
     /// Get user with role information
     /// </summary>
     /// <param name="userId">User ID</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>User with role</returns>
-    Task<User?> GetUserWithRoleAsync(Guid userId, CancellationToken cancellationToken = default);
+  Task<User?> GetUserWithRoleAsync(Guid userId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Get user by email with role information

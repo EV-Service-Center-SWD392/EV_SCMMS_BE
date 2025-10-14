@@ -3,9 +3,9 @@ using System.ComponentModel.DataAnnotations;
 namespace EV_SCMMS.Core.Application.DTOs.Auth;
 
 /// <summary>
-/// Data transfer object for user registration
+/// Data transfer object for staff creation by admin
 /// </summary>
-public class RegisterDto
+public class CreateStaffDto
 {
     /// <summary>
     /// User email address
@@ -46,7 +46,7 @@ public class RegisterDto
     /// User phone number
     /// </summary>
     [Phone(ErrorMessage = "Invalid phone number format")]
-    [MaxLength(10, ErrorMessage = "Phone number cannot exceed 32 characters")]
+    [MaxLength(32, ErrorMessage = "Phone number cannot exceed 32 characters")]
     public string? PhoneNumber { get; set; }
 
     /// <summary>
@@ -60,5 +60,10 @@ public class RegisterDto
     /// </summary>
     public DateOnly? Birthday { get; set; }
 
-
+    /// <summary>
+    /// Role name for the staff member (e.g., "STAFF", "MANAGER", "ADMIN")
+    /// </summary>
+    [Required(ErrorMessage = "Role is required")]
+    [MaxLength(50, ErrorMessage = "Role name cannot exceed 50 characters")]
+    public string Role { get; set; } = string.Empty;
 }

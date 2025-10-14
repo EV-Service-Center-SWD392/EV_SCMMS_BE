@@ -66,4 +66,10 @@ public class UserRepository : GenericRepository<User>, IUserRepository
             .Where(u => u.Email.ToLower() == email.ToLower() && u.Isactive == true)
             .FirstOrDefaultAsync(cancellationToken);
     }
+
+  public async Task<bool> PhoneExistsAsync(string phone, CancellationToken cancellationToken = default)
+  {
+    return await _context.Set<User>()
+           .AnyAsync(u => u.Phonenumber == phone.ToLower(), cancellationToken);
+  }
 }
