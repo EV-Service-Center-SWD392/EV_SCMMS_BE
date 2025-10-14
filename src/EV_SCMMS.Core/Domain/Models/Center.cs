@@ -1,4 +1,7 @@
-﻿namespace EV_SCMMS.Core.Domain.Models;
+﻿using System;
+using System.Collections.Generic;
+
+namespace EV_SCMMS.Core.Domain.Models;
 
 public partial class Center
 {
@@ -15,8 +18,6 @@ public partial class Center
     public DateTime? CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
-
-    public virtual ICollection<BookingScheduleThaoNtt> BookingScheduleThaoNtts { get; set; } = new List<BookingScheduleThaoNtt>();
 
     public virtual ICollection<InventoryTuHt> InventoryTuHts { get; set; } = new List<InventoryTuHt>();
 

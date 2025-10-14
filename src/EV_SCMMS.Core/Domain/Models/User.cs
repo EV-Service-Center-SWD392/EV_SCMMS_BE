@@ -26,8 +26,6 @@ public partial class User
 
     public virtual ICollection<AssignmentThaoNtt> AssignmentThaoNtts { get; set; } = new List<AssignmentThaoNtt>();
 
-    public virtual ICollection<BookingThaoNtt> BookingThaoNtts { get; set; } = new List<BookingThaoNtt>();
-
     public virtual ICollection<OrderThaoNtt> OrderThaoNtts { get; set; } = new List<OrderThaoNtt>();
 
     public virtual ICollection<ServiceIntakeThaoNtt> ServiceIntakeThaoNtts { get; set; } = new List<ServiceIntakeThaoNtt>();

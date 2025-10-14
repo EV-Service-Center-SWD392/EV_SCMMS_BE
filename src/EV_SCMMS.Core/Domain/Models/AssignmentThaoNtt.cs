@@ -20,7 +20,5 @@ public partial class AssignmentThaoNtt
 
     public DateTime? UpdatedAt { get; set; }
 
-    public virtual BookingThaoNtt Booking { get; set; } = null!;
-
     public virtual User Technician { get; set; } = null!;
 }

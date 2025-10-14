@@ -20,8 +20,6 @@ public partial class OrderThaoNtt
 
     public int? PaymentId { get; set; }
 
-    public virtual BookingThaoNtt? Booking { get; set; }
-
     public virtual User? Customer { get; set; }
 
     public virtual ICollection<OrderServiceThaoNtt> OrderServiceThaoNtts { get; set; } = new List<OrderServiceThaoNtt>();
