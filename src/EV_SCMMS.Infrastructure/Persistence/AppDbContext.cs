@@ -7,11 +7,15 @@ public partial class AppDbContext : DbContext
 {
     public AppDbContext()
     {
+        // DISABLE LAZY LOADING to prevent performance issues
+        ChangeTracker.LazyLoadingEnabled = false;
     }
 
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)
     {
+        // DISABLE LAZY LOADING to prevent performance issues
+        ChangeTracker.LazyLoadingEnabled = false;
     }
 
     public virtual DbSet<AssignmentThaoNtt> AssignmentThaoNtts { get; set; }
@@ -418,7 +422,7 @@ public partial class AppDbContext : DbContext
 
             entity.HasOne(d => d.Center).WithMany(p => p.SparePartReplenishmentRequests)
                 .HasForeignKey(d => d.CenterId)
-                .HasConstraintName("SparePartReplenishmentRequest_CenterID_fkey");
+                .HasConstraintName("SparePartReplenishmentRequest_CenterID_fkey");  
 
             entity.HasOne(d => d.Forecast).WithMany(p => p.SparePartReplenishmentRequests)
                 .HasForeignKey(d => d.ForecastId)

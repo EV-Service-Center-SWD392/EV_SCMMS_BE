@@ -7,10 +7,41 @@ namespace EV_SCMMS.Core.Application.Interfaces;
 /// </summary>
 public interface IUnitOfWork : IDisposable
 {
+
     /// <summary>
-    /// User repository
+    /// Center repository
     /// </summary>
-    IUserRepository UserRepository { get; }
+    ICenterRepository CenterRepository { get; }
+
+    /// <summary>
+    /// Inventory repository
+    /// </summary>
+    IInventoryRepository InventoryRepository { get; }
+
+    /// <summary>
+    /// Sparepart repository
+    /// </summary>
+    ISparepartRepository SparepartRepository { get; }
+
+    /// <summary>
+    /// Sparepart Type repository
+    /// </summary>
+    ISparepartTypeRepository SparepartTypeRepository { get; }
+
+    /// <summary>
+    /// Sparepart Forecast repository
+    /// </summary>
+    ISparepartForecastRepository SparepartForecastRepository { get; }
+
+    /// <summary>
+    /// Sparepart Replenishment Request repository
+    /// </summary>
+    ISparepartReplenishmentRequestRepository SparepartReplenishmentRequestRepository { get; }
+
+    /// <summary>
+    /// Sparepart Usage History repository
+    /// </summary>
+    ISparepartUsageHistoryRepository SparepartUsageHistoryRepository { get; }
 
     /// <summary>
     /// Save all changes made in this context to the database

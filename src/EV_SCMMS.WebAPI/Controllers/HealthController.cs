@@ -56,8 +56,12 @@ public class HealthController : ControllerBase
     {
         try
         {
-            // Test database connection
-            var canConnect = await _context.Database.CanConnectAsync();
+            // Test database connection with timeout
+            using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            
+            var startTime = DateTime.UtcNow;
+            var canConnect = await _context.Database.CanConnectAsync(cancellationTokenSource.Token);
+            var responseTime = DateTime.UtcNow - startTime;
             
             if (!canConnect)
             {
@@ -66,15 +70,11 @@ public class HealthController : ControllerBase
                     Status = "Unhealthy",
                     Database = "Disconnected",
                     Timestamp = DateTime.UtcNow,
-                    Message = "Cannot connect to database"
+                    Message = "Cannot connect to database",
+                    ResponseTimeMs = responseTime.TotalMilliseconds
                 };
                 return StatusCode(503, failedResponse);
             }
-
-            // Test database responsiveness with a simple query
-            var startTime = DateTime.UtcNow;
-            await _context.Database.ExecuteSqlRawAsync("SELECT 1");
-            var responseTime = DateTime.UtcNow - startTime;
 
             var healthStatus = new
             {
@@ -82,10 +82,25 @@ public class HealthController : ControllerBase
                 Database = "Connected",
                 Timestamp = DateTime.UtcNow,
                 ResponseTimeMs = responseTime.TotalMilliseconds,
-                ConnectionString = _context.Database.GetConnectionString()?.Replace(_context.Database.GetConnectionString()?.Split("Password=")[1]?.Split(";")[0] ?? "", "***") // Hide password
+                Provider = "PostgreSQL/Supabase"
             };
 
             return Ok(healthStatus);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogWarning("Database health check timed out");
+            
+            var timeoutResponse = new
+            {
+                Status = "Unhealthy",
+                Database = "Timeout",
+                Timestamp = DateTime.UtcNow,
+                Error = "Database connection timed out after 10 seconds",
+                Type = "TimeoutException"
+            };
+
+            return StatusCode(503, timeoutResponse);
         }
         catch (Exception ex)
         {
@@ -122,13 +137,14 @@ public class HealthController : ControllerBase
 
             try
             {
+                using var dbCancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(10));
                 var dbStartTime = DateTime.UtcNow;
-                databaseHealthy = await _context.Database.CanConnectAsync();
-                if (databaseHealthy)
-                {
-                    await _context.Database.ExecuteSqlRawAsync("SELECT 1");
-                }
+                databaseHealthy = await _context.Database.CanConnectAsync(dbCancellationTokenSource.Token);
                 databaseResponseTime = (DateTime.UtcNow - dbStartTime).TotalMilliseconds;
+            }
+            catch (OperationCanceledException)
+            {
+                databaseError = "Database connection timed out";
             }
             catch (Exception ex)
             {
