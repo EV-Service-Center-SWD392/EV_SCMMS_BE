@@ -3,33 +3,33 @@ using System.Collections.Generic;
 
 namespace EV_SCMMS.Core.Domain.Models;
 
-public partial class Sparepartreplenishmentrequest
+public partial class SparePartReplenishmentRequest
 {
-    public Guid Requestid { get; set; }
+    public Guid RequestId { get; set; }
 
-    public Guid Centerid { get; set; }
+    public Guid CenterId { get; set; }
 
-    public Guid Sparepartid { get; set; }
+    public Guid SparePartId { get; set; }
 
-    public Guid? Forecastid { get; set; }
+    public Guid? ForecastId { get; set; }
 
-    public int? Suggestedquantity { get; set; }
+    public int? SuggestedQuantity { get; set; }
 
     public string? Status { get; set; }
 
-    public Guid? Approvedby { get; set; }
+    public Guid? ApprovedBy { get; set; }
 
-    public DateTime? Approvedat { get; set; }
+    public DateTime? ApprovedAt { get; set; }
 
     public string? Notes { get; set; }
 
-    public DateTime? Createdat { get; set; }
+    public DateTime? CreatedAt { get; set; }
 
-    public DateTime? Updatedat { get; set; }
-    public bool? Isactive { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+
     public virtual Center Center { get; set; } = null!;
 
-    public virtual SparepartforecastTuht? Forecast { get; set; }
+    public virtual SparePartForecastTuHt? Forecast { get; set; }
 
-    public virtual SparepartTuht Sparepart { get; set; } = null!;
+    public virtual SparePartTuHt SparePart { get; set; } = null!;
 }

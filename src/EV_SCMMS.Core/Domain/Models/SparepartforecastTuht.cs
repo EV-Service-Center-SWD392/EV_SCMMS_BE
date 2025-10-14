@@ -3,40 +3,39 @@ using System.Collections.Generic;
 
 namespace EV_SCMMS.Core.Domain.Models;
 
-public partial class SparepartforecastTuht
+public partial class SparePartForecastTuHt
 {
-    public Guid Forecastid { get; set; }
+    public Guid ForecastId { get; set; }
 
-    public Guid Sparepartid { get; set; }
+    public Guid SparePartId { get; set; }
 
-    public Guid Centerid { get; set; }
+    public Guid CenterId { get; set; }
 
-    public int? Predictedusage { get; set; }
+    public int? PredictedUsage { get; set; }
 
-    public int? Safetystock { get; set; }
+    public int? SafetyStock { get; set; }
 
-    public int? Reorderpoint { get; set; }
+    public int? ReorderPoint { get; set; }
 
-    public string? Forecastedby { get; set; }
+    public string? ForecastedBy { get; set; }
 
-    public decimal? Forecastconfidence { get; set; }
+    public decimal? ForecastConfidence { get; set; }
 
-    public DateTime? Forecastdate { get; set; }
+    public DateTime? ForecastDate { get; set; }
 
-    public Guid? Approvedby { get; set; }
+    public Guid? ApprovedBy { get; set; }
 
-    public DateTime? Approveddate { get; set; }
+    public DateTime? ApprovedDate { get; set; }
 
     public string? Status { get; set; }
 
-    public DateTime? Createdat { get; set; }
+    public DateTime? CreatedAt { get; set; }
 
-    public DateTime? Updatedat { get; set; }
-    public bool? Isactive { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 
     public virtual Center Center { get; set; } = null!;
 
-    public virtual SparepartTuht Sparepart { get; set; } = null!;
+    public virtual SparePartTuHt SparePart { get; set; } = null!;
 
-    public virtual ICollection<Sparepartreplenishmentrequest> Sparepartreplenishmentrequests { get; set; } = new List<Sparepartreplenishmentrequest>();
+    public virtual ICollection<SparePartReplenishmentRequest> SparePartReplenishmentRequests { get; set; } = new List<SparePartReplenishmentRequest>();
 }

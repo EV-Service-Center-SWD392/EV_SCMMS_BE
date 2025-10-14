@@ -3,27 +3,27 @@ using System.Collections.Generic;
 
 namespace EV_SCMMS.Core.Domain.Models;
 
-public partial class SparepartusagehistoryTuht
+public partial class SparePartUsageHistoryTuHt
 {
-    public Guid Usageid { get; set; }
+    public Guid UsageId { get; set; }
 
-    public Guid Sparepartid { get; set; }
+    public Guid SparePartId { get; set; }
 
-    public Guid Centerid { get; set; }
+    public Guid CenterId { get; set; }
 
-    public int Quantityused { get; set; }
+    public int QuantityUsed { get; set; }
 
-    public DateTime? Useddate { get; set; }
+    public DateTime? UsedDate { get; set; }
 
     public string? Status { get; set; }
 
-    public bool? Isactive { get; set; }
+    public bool? IsActive { get; set; }
 
-    public DateTime? Createdat { get; set; }
+    public DateTime? CreatedAt { get; set; }
 
-    public DateTime? Updatedat { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 
     public virtual Center Center { get; set; } = null!;
 
-    public virtual SparepartTuht Sparepart { get; set; } = null!;
+    public virtual SparePartTuHt SparePart { get; set; } = null!;
 }

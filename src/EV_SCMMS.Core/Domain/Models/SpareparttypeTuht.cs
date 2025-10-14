@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace EV_SCMMS.Core.Domain.Models;
 
-public partial class SpareparttypeTuht
+public partial class SparePartTypeTuHt
 {
-    public Guid Typeid { get; set; }
+    public Guid TypeId { get; set; }
 
     public string Name { get; set; } = null!;
 
@@ -13,11 +13,11 @@ public partial class SpareparttypeTuht
 
     public string? Status { get; set; }
 
-    public bool? Isactive { get; set; }
+    public bool? IsActive { get; set; }
 
-    public DateTime? Createdat { get; set; }
+    public DateTime? CreatedAt { get; set; }
 
-    public DateTime? Updatedat { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 
-    public virtual ICollection<SparepartTuht> SparepartTuhts { get; set; } = new List<SparepartTuht>();
+    public virtual ICollection<SparePartTuHt> SparePartTuHts { get; set; } = new List<SparePartTuHt>();
 }
