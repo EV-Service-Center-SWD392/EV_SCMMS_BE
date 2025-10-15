@@ -18,6 +18,4 @@ public partial class OutdatedRefreshToken
     public DateTime Expiresat { get; set; }
 
     public DateTime Createdat { get; set; }
-
-    public virtual User User { get; set; } = null!;
 }

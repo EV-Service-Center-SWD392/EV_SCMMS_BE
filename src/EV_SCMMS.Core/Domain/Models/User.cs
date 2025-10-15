@@ -34,5 +34,4 @@ public partial class User
 
   public virtual Role Role { get; set; } = null!;
 
-  public virtual ICollection<OutdatedRefreshToken> Outdatedrefreshtokens { get; set; } = new List<OutdatedRefreshToken>();
 }

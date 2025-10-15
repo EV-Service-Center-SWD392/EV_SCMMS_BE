@@ -132,11 +132,6 @@ public partial class AppDbContext : DbContext
       entity.Property(e => e.Token)
           .HasMaxLength(512)
           .HasColumnName("token");
-      entity.Property(e => e.Userid).HasColumnName("userid");
-
-      entity.HasOne(d => d.User).WithMany(p => p.Outdatedrefreshtokens)
-          .HasForeignKey(d => d.Userid)
-          .HasConstraintName("fk_outdated_refreshtoken_userid");
     });
 
     modelBuilder.Entity<RevokedToken>(entity =>
