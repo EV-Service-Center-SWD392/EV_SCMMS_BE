@@ -18,6 +18,10 @@ public partial class AppDbContext : DbContext
 
   public virtual DbSet<User> Appusers { get; set; }
 
+  public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
+
+  public virtual DbSet<ActiveRefreshToken> ActiveRefreshTokens { get; set; }
+
   public virtual DbSet<Center> Centers { get; set; }
 
   public virtual DbSet<InventoryTuht> InventoryTuhts { get; set; }
@@ -97,59 +101,56 @@ public partial class AppDbContext : DbContext
               .OnDelete(DeleteBehavior.Restrict)
               .HasConstraintName("appuser_roleid_fkey");
     });
-    modelBuilder.Entity<OutdatedRefreshToken>(entity =>
+    modelBuilder.Entity<ActiveRefreshToken>(entity =>
     {
-      entity.ToTable("outdatedrefreshtoken");
-      entity.HasKey(e => e.Tokenid).HasName("outdatedrefreshtoken_pkey");
+      entity
+          .HasNoKey()
+          .ToView("activerefreshtokens");
 
-      entity.ToTable("outdatedrefreshtoken");
-
-      entity.HasIndex(e => e.Revokedat, "idx_outdated_refreshtoken_revoked");
-
-      entity.HasIndex(e => e.Token, "idx_outdated_refreshtoken_token");
-
-      entity.HasIndex(e => e.Userid, "idx_outdated_refreshtoken_userid");
-
-      entity.HasIndex(e => e.Token, "outdatedrefreshtoken_token_key").IsUnique();
-
-      entity.Property(e => e.Tokenid)
-          .HasDefaultValueSql("uuid_generate_v4()")
-          .HasColumnName("tokenid");
       entity.Property(e => e.Createdat)
           .HasColumnType("timestamp without time zone")
           .HasColumnName("createdat");
       entity.Property(e => e.Expiresat)
           .HasColumnType("timestamp without time zone")
           .HasColumnName("expiresat");
-      entity.Property(e => e.Revokedat)
-          .HasDefaultValueSql("CURRENT_TIMESTAMP")
-          .HasColumnType("timestamp without time zone")
-          .HasColumnName("revokedat");
-      entity.Property(e => e.Revokedreason)
-          .HasMaxLength(100)
-          .HasDefaultValueSql("'MANUAL_REVOKE'::character varying")
-          .HasColumnName("revokedreason");
       entity.Property(e => e.Token)
           .HasMaxLength(512)
           .HasColumnName("token");
+      entity.Property(e => e.Tokenid).HasColumnName("tokenid");
+      entity.Property(e => e.Userid).HasColumnName("userid");
     });
-
-    modelBuilder.Entity<RevokedToken>(entity =>
+    modelBuilder.Entity<RefreshToken>(entity =>
     {
-      entity
-          .HasNoKey()
-          .ToView("revokedtokens");
+      entity.HasKey(e => e.Tokenid).HasName("refreshtoken_pkey");
 
-      entity.Property(e => e.Revokedat)
+      entity.ToTable("refreshtoken");
+
+      entity.HasIndex(e => e.Expiresat, "idx_refreshtoken_expiresat");
+
+      entity.HasIndex(e => e.Token, "idx_refreshtoken_token");
+
+      entity.HasIndex(e => e.Userid, "idx_refreshtoken_userid");
+
+      entity.HasIndex(e => e.Token, "refreshtoken_token_key").IsUnique();
+
+      entity.Property(e => e.Tokenid)
+          .HasDefaultValueSql("uuid_generate_v4()")
+          .HasColumnName("tokenid");
+      entity.Property(e => e.Createdat)
+          .HasDefaultValueSql("CURRENT_TIMESTAMP")
           .HasColumnType("timestamp without time zone")
-          .HasColumnName("revokedat");
-      entity.Property(e => e.Revokedreason)
-          .HasMaxLength(100)
-          .HasColumnName("revokedreason");
+          .HasColumnName("createdat");
+      entity.Property(e => e.Expiresat)
+          .HasColumnType("timestamp without time zone")
+          .HasColumnName("expiresat");
       entity.Property(e => e.Token)
           .HasMaxLength(512)
           .HasColumnName("token");
       entity.Property(e => e.Userid).HasColumnName("userid");
+
+      entity.HasOne(d => d.User).WithMany(p => p.RefreshTokens)
+          .HasForeignKey(d => d.Userid)
+          .HasConstraintName("refreshtoken_userid_fkey");
     });
     modelBuilder.Entity<Center>(entity =>
     {

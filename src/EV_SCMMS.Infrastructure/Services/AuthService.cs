@@ -64,7 +64,7 @@ public class AuthService : IAuthService
 
       // Generate tokens
       var accessToken = _tokenService.GenerateAccessToken(user.Userid, user.Email, user.Role.Name);
-      var refreshToken = _tokenService.GenerateRefreshToken();
+      var refreshTokenEntity = await _unitOfWork.RefreshTokenService.GenerateRefreshTokenAsync(user.Userid, accessToken);
       var expiresAt = _tokenService.GetTokenExpiration();
 
       // Create auth result
@@ -75,7 +75,7 @@ public class AuthService : IAuthService
         FullName = $"{user.Firstname} {user.Lastname}".Trim(),
         Role = user.Role.Name,
         AccessToken = accessToken,
-        RefreshToken = refreshToken,
+        RefreshToken = refreshTokenEntity.Tokenid.ToString(), // Return tokenid as refresh token
         ExpiresAt = expiresAt
       };
 
@@ -251,22 +251,53 @@ public class AuthService : IAuthService
   /// Refresh access token
   /// </summary>
   /// <param name="refreshToken">Refresh token</param>
+  /// <param name="accessToken">Current access token to validate</param>
   /// <returns>New authentication result</returns>
-  public async Task<IServiceResult<AuthResultDto>> RefreshTokenAsync(string refreshToken)
+  public async Task<IServiceResult<AuthResultDto>> RefreshTokenAsync(string refreshToken, string accessToken)
   {
     try
     {
-      // Note: In a production environment, you should store refresh tokens in database
-      // and validate them properly. For now, we'll implement a basic version.
+      // Validate and get refresh token from database with access token validation
+      var refreshTokenEntity = await _unitOfWork.RefreshTokenService.GetRefreshTokenWithAccessTokenValidationAsync(refreshToken, accessToken);
+      
+      if (refreshTokenEntity == null)
+      {
+        _logger?.LogWarning("Refresh token not found, expired, or access token mismatch: {RefreshToken}", refreshToken);
+        return ServiceResult<AuthResultDto>.Failure("Invalid or expired refresh token, or access token mismatch");
+      }
 
-      // This is a simplified implementation
-      // In a real application, you would:
-      // 1. Store refresh tokens in database with user association
-      // 2. Validate the refresh token exists and is not expired
-      // 3. Check if the refresh token is not revoked
+      // Get user with role information
+      var user = await _unitOfWork.UserRepository.GetByIdWithRoleAsync(refreshTokenEntity.Userid);
+      
+      if (user == null || user.Isactive != true)
+      {
+        _logger?.LogWarning("User not found or inactive for refresh token: {UserId}", refreshTokenEntity.Userid);
+        await _unitOfWork.RefreshTokenService.RevokeRefreshTokenAsync(refreshToken);
+        return ServiceResult<AuthResultDto>.Failure("User account is not active");
+      }
 
-      _logger?.LogWarning("RefreshTokenAsync not fully implemented - requires refresh token storage");
-      return ServiceResult<AuthResultDto>.Failure("Refresh token functionality not fully implemented");
+      // Generate new tokens
+      var newAccessToken = _tokenService.GenerateAccessToken(user.Userid, user.Email, user.Role.Name);
+      var newRefreshTokenEntity = await _unitOfWork.RefreshTokenService.GenerateRefreshTokenAsync(user.Userid, newAccessToken);
+      var expiresAt = _tokenService.GetTokenExpiration();
+
+      // Revoke the old refresh token
+      await _unitOfWork.RefreshTokenService.RevokeRefreshTokenAsync(refreshToken);
+
+      // Create auth result
+      var authResult = new AuthResultDto
+      {
+        UserId = user.Userid,
+        Email = user.Email,
+        FullName = $"{user.Firstname} {user.Lastname}".Trim(),
+        Role = user.Role.Name,
+        AccessToken = newAccessToken,
+        RefreshToken = newRefreshTokenEntity.Tokenid.ToString(), // Return tokenid as refresh token
+        ExpiresAt = expiresAt
+      };
+
+      _logger?.LogInformation("Token refreshed successfully for user: {UserId}", user.Userid);
+      return ServiceResult<AuthResultDto>.Success(authResult, "Token refreshed successfully");
     }
     catch (Exception ex)
     {
@@ -284,16 +315,48 @@ public class AuthService : IAuthService
   {
     try
     {
-      // Note: In a production environment, you should store refresh tokens in database
-      // and mark them as revoked. For now, we'll implement a basic version.
+      var result = await _unitOfWork.RefreshTokenService.RevokeRefreshTokenAsync(refreshToken);
+      
+      if (!result)
+      {
+        _logger?.LogWarning("Attempted to revoke non-existent refresh token");
+        return ServiceResult<bool>.Failure("Invalid refresh token");
+      }
 
-      _logger?.LogWarning("RevokeTokenAsync not fully implemented - requires refresh token storage");
+      _logger?.LogInformation("Refresh token revoked successfully");
       return ServiceResult<bool>.Success(true, "Token revoked successfully");
     }
     catch (Exception ex)
     {
       _logger?.LogError(ex, "Error during token revocation");
       return ServiceResult<bool>.Failure($"Error during token revocation: {ex.Message}");
+    }
+  }
+
+  /// <summary>
+  /// Revoke all refresh tokens for a user
+  /// </summary>
+  /// <param name="userId">User ID</param>
+  /// <returns>Success status</returns>
+  public async Task<IServiceResult<bool>> RevokeAllUserTokensAsync(Guid userId)
+  {
+    try
+    {
+      var result = await _unitOfWork.RefreshTokenService.RevokeAllUserRefreshTokensAsync(userId);
+      
+      if (!result)
+      {
+        _logger?.LogWarning("No tokens found to revoke for user: {UserId}", userId);
+        return ServiceResult<bool>.Success(true, "No tokens to revoke");
+      }
+
+      _logger?.LogInformation("All refresh tokens revoked successfully for user: {UserId}", userId);
+      return ServiceResult<bool>.Success(true, "All tokens revoked successfully");
+    }
+    catch (Exception ex)
+    {
+      _logger?.LogError(ex, "Error during all tokens revocation for user: {UserId}", userId);
+      return ServiceResult<bool>.Failure($"Error during tokens revocation: {ex.Message}");
     }
   }
 }

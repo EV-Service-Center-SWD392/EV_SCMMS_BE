@@ -54,6 +54,20 @@ public class UserRepository : GenericRepository<User>, IUserRepository
     }
 
     /// <summary>
+    /// Get user by ID with role information
+    /// </summary>
+    /// <param name="userId">User ID</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>User with role</returns>
+    public async Task<User?> GetByIdWithRoleAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Set<User>()
+            .Include(u => u.Role)
+            .Where(u => u.Userid == userId && u.Isactive == true)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    /// <summary>
     /// Get user by email with role information
     /// </summary>
     /// <param name="email">User email</param>
