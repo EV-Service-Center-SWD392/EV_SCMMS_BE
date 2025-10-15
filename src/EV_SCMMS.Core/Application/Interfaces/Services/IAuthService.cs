@@ -1,4 +1,6 @@
 using EV_SCMMS.Core.Application.DTOs.Auth;
+using EV_SCMMS.Core.Application.DTOs.User;
+
 using EV_SCMMS.Core.Application.Results;
 
 namespace EV_SCMMS.Core.Application.Interfaces.Services;
@@ -20,14 +22,14 @@ public interface IAuthService
     /// </summary>
     /// <param name="registerDto">Registration data</param>
     /// <returns>Authentication result</returns>
-    Task<IServiceResult<AuthResultDto>> RegisterAsync(RegisterDto registerDto);
+    Task<IServiceResult<UserDto>> RegisterAsync(RegisterDto registerDto);
 
     /// <summary>
     /// Create a new staff member (Admin only)
     /// </summary>
     /// <param name="createStaffDto">Staff creation data</param>
     /// <returns>Authentication result</returns>
-    Task<IServiceResult<AuthResultDto>> CreateStaffAsync(CreateStaffDto createStaffDto);
+    Task<IServiceResult<UserDto>> CreateStaffAsync(CreateStaffDto createStaffDto);
 
     /// <summary>
     /// Refresh access token

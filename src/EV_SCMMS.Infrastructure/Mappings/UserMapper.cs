@@ -29,8 +29,6 @@ public static class UserMapper
             RoleName = user.Role?.Name ?? string.Empty,
             Status = user.Status,
             IsActive = user.Isactive,
-            CreatedAt = user.Createdat,
-            UpdatedAt = user.Updatedat
         };
     }
 
@@ -61,9 +59,7 @@ public static class UserMapper
             Address = registerDto.Address,
             Birthday = registerDto.Birthday,
             Status = "ACTIVE",
-            Isactive = true,
-            Createdat = DateTime.UtcNow,
-            Updatedat = DateTime.UtcNow
+            Isactive = true
         };
     }
 
@@ -80,6 +76,26 @@ public static class UserMapper
         user.Phonenumber = registerDto.PhoneNumber;
         user.Address = registerDto.Address;
         user.Birthday = registerDto.Birthday;
-        user.Updatedat = DateTime.UtcNow;
     }
+
+  /// <summary>
+  /// Update User entity from RegisterDto
+  /// </summary>
+  /// <param name="user">User entity to update</param>
+  /// <param name="registerDto">RegisterDto with new data</param>
+  public static User CreateStaffToEntity(this CreateStaffDto registerDto)
+  {
+    return new User
+    {
+      Userid = Guid.NewGuid(),
+      Email = registerDto.Email.ToLower(),
+      Firstname = registerDto.FirstName,
+      Lastname = registerDto.LastName,
+      Phonenumber = registerDto.PhoneNumber,
+      Address = registerDto.Address,
+      Birthday = registerDto.Birthday,
+      Status = "ACTIVE",
+      Isactive = true
+    };
+  }
 }

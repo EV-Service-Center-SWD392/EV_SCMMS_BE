@@ -3,6 +3,7 @@ using EV_SCMMS.Core.Application.Interfaces;
 using EV_SCMMS.Core.Application.Interfaces.Services;
 using EV_SCMMS.Core.Application.Results;
 using EV_SCMMS.Core.Domain.Models;
+using EV_SCMMS.Core.Application.DTOs.User;
 using EV_SCMMS.Infrastructure.Mappings;
 using Microsoft.Extensions.Logging;
 
@@ -93,7 +94,7 @@ public class AuthService : IAuthService
   /// </summary>
   /// <param name="registerDto">Registration data</param>
   /// <returns>Authentication result</returns>
-  public async Task<IServiceResult<AuthResultDto>> RegisterAsync(RegisterDto registerDto)
+  public async Task<IServiceResult<UserDto>> RegisterAsync(RegisterDto registerDto)
   {
     try
     {
@@ -103,68 +104,69 @@ public class AuthService : IAuthService
       if (emailExists)
       {
         _logger?.LogWarning("Registration attempt failed for email: {Email} - Email already exists", registerDto.Email);
-        return ServiceResult<AuthResultDto>.Failure("Email already exists");
+        return ServiceResult<UserDto>.Failure("Email already exists");
       }
       if (phoneExists)
       {
         _logger?.LogWarning("Registration attempt failed for Phone: {phone} - Phone already exists", registerDto.Email);
-        return ServiceResult<AuthResultDto>.Failure("Phone already exists");
+        return ServiceResult<UserDto>.Failure("Phone already exists");
       }
       // Get customer role by name (default for regular registration)
       var role = await _unitOfWork.RoleRepository.GetByNameAsync("CUSTOMER");
       if (role == null)
       {
         _logger?.LogError("Registration attempt failed for email: {Email} - Customer role not found", registerDto.Email);
-        return ServiceResult<AuthResultDto>.Failure("Customer role not found. Please contact administrator.");
+        return ServiceResult<UserDto>.Failure("Customer role not found. Please contact administrator.");
       }
 
       // Hash password
       var hashedPassword = _passwordHashService.HashPassword(registerDto.Password);
 
       // Create new user
-      var newUser = new User
-      {
-        Userid = Guid.NewGuid(),
-        Email = registerDto.Email.ToLower(),
-        Password = hashedPassword,
-        Firstname = registerDto.FirstName,
-        Lastname = registerDto.LastName,
-        Phonenumber = registerDto.PhoneNumber,
-        Address = registerDto.Address,
-        Birthday = registerDto.Birthday,
-        Roleid = role.Roleid,
-        Status = "ACTIVE",
-        Isactive = true
-      };
+      //var newUser = new User
+      //{
+      //  Userid = Guid.NewGuid(),
+      //  Email = registerDto.Email.ToLower(),
+      //  Password = hashedPassword,
+      //  Firstname = registerDto.FirstName,
+      //  Lastname = registerDto.LastName,
+      //  Phonenumber = registerDto.PhoneNumber,
+      //  Address = registerDto.Address,
+      //  Birthday = registerDto.Birthday,
+      //  Roleid = role.Roleid,
+      //  Status = "ACTIVE",
+      //  Isactive = true
+      //};
+      var newUser = registerDto.ToEntity();
+      newUser.Roleid = role.Roleid;
+      newUser.Password = hashedPassword;
 
       // Save user to database
       await _unitOfWork.UserRepository.AddAsync(newUser);
       await _unitOfWork.SaveChangesAsync();
 
       // Generate tokens
-      var accessToken = _tokenService.GenerateAccessToken(newUser.Userid, newUser.Email, role.Name);
-      var refreshToken = _tokenService.GenerateRefreshToken();
+      //var accessToken = _tokenService.GenerateAccessToken(newUser.Userid, newUser.Email, role.Name);
+      //var refreshToken = _tokenService.GenerateRefreshToken();
       var expiresAt = _tokenService.GetTokenExpiration();
 
       // Create auth result
-      var authResult = new AuthResultDto
-      {
-        UserId = newUser.Userid,
-        Email = newUser.Email,
-        FullName = $"{newUser.Firstname} {newUser.Lastname}".Trim(),
-        Role = role.Name,
-        AccessToken = accessToken,
-        RefreshToken = refreshToken,
-        ExpiresAt = expiresAt
-      };
+      //var authResult = new UserDto
+      //{
+      //  UserId = newUser.Userid,
+      //  Email = newUser.Email,
+      //  FullName = $"{newUser.Firstname} {newUser.Lastname}".Trim(),
+      //  Role = role.Name
+      //};
 
+        var authResult = newUser.ToDto();
       _logger?.LogInformation("User registered successfully: {Email}", registerDto.Email);
-      return ServiceResult<AuthResultDto>.Success(authResult, "Registration successful");
+      return ServiceResult<UserDto>.Success(authResult, "Registration successful");
     }
     catch (Exception ex)
     {
       _logger?.LogError(ex, "Error during registration for email: {Email}", registerDto.Email);
-      return ServiceResult<AuthResultDto>.Failure($"Error during registration: {ex.Message}");
+      return ServiceResult<UserDto>.Failure($"Error during registration: {ex.Message}");
     }
   }
 
@@ -173,7 +175,7 @@ public class AuthService : IAuthService
   /// </summary>
   /// <param name="createStaffDto">Staff creation data</param>
   /// <returns>Authentication result</returns>
-  public async Task<IServiceResult<AuthResultDto>> CreateStaffAsync(CreateStaffDto createStaffDto)
+  public async Task<IServiceResult<UserDto>> CreateStaffAsync(CreateStaffDto createStaffDto)
   {
     try
     {
@@ -182,7 +184,7 @@ public class AuthService : IAuthService
       if (emailExists)
       {
         _logger?.LogWarning("Staff creation attempt failed for email: {Email} - Email already exists", createStaffDto.Email);
-        return ServiceResult<AuthResultDto>.Failure("Email already exists");
+        return ServiceResult<UserDto>.Failure("Email already exists");
       }
 
       // Find role by name
@@ -190,56 +192,58 @@ public class AuthService : IAuthService
       if (role == null)
       {
         _logger?.LogWarning("Staff creation attempt failed for email: {Email} - Role not found: {Role}", createStaffDto.Email, createStaffDto.Role);
-        return ServiceResult<AuthResultDto>.Failure($"Role '{createStaffDto.Role}' not found");
+        return ServiceResult<UserDto>.Failure($"Role '{createStaffDto.Role}' not found");
       }
 
       // Hash password
       var hashedPassword = _passwordHashService.HashPassword(createStaffDto.Password);
 
       // Create new staff user
-      var newUser = new User
-      {
-        Userid = Guid.NewGuid(),
-        Email = createStaffDto.Email.ToLower(),
-        Password = hashedPassword,
-        Firstname = createStaffDto.FirstName,
-        Lastname = createStaffDto.LastName,
-        Phonenumber = createStaffDto.PhoneNumber,
-        Address = createStaffDto.Address,
-        Birthday = createStaffDto.Birthday,
-        Roleid = role.Roleid,
-        Status = "ACTIVE",
-        Isactive = true
-      };
+      //var newUser = new User
+      //{
+      //  Userid = Guid.NewGuid(),
+      //  Email = createStaffDto.Email.ToLower(),
+      //  Password = hashedPassword,
+      //  Firstname = createStaffDto.FirstName,
+      //  Lastname = createStaffDto.LastName,
+      //  Phonenumber = createStaffDto.PhoneNumber,
+      //  Address = createStaffDto.Address,
+      //  Birthday = createStaffDto.Birthday,
+      //  Roleid = role.Roleid,
+      //  Status = "ACTIVE",
+      //  Isactive = true
+      //};
 
+      //Map
+      var newUser= createStaffDto.CreateStaffToEntity();
+      newUser.Roleid = role.Roleid;
+      newUser.Password = hashedPassword;
       // Save user to database
       await _unitOfWork.UserRepository.AddAsync(newUser);
       await _unitOfWork.SaveChangesAsync();
 
       // Generate tokens
-      var accessToken = _tokenService.GenerateAccessToken(newUser.Userid, newUser.Email, role.Name);
-      var refreshToken = _tokenService.GenerateRefreshToken();
+      //var accessToken = _tokenService.GenerateAccessToken(newUser.Userid, newUser.Email, role.Name);
+      //var refreshToken = _tokenService.GenerateRefreshToken();
       var expiresAt = _tokenService.GetTokenExpiration();
 
       // Create auth result
-      var authResult = new AuthResultDto
-      {
-        UserId = newUser.Userid,
-        Email = newUser.Email,
-        FullName = $"{newUser.Firstname} {newUser.Lastname}".Trim(),
-        Role = role.Name,
-        AccessToken = accessToken,
-        RefreshToken = refreshToken,
-        ExpiresAt = expiresAt
-      };
+      //var authResult = new UserDto
+      //{
+      //  UserId = newUser.Userid,
+      //  Email = newUser.Email,
+      //  FullName = $"{newUser.Firstname} {newUser.Lastname}".Trim(),
+      //  Role = role.Name,
+      //};
 
+      var authResult = newUser.ToDto();
       _logger?.LogInformation("Staff member created successfully: {Email} with role: {Role}", createStaffDto.Email, createStaffDto.Role);
-      return ServiceResult<AuthResultDto>.Success(authResult, "Staff member created successfully");
+      return ServiceResult<UserDto>.Success(authResult, "Staff member created successfully");
     }
     catch (Exception ex)
     {
       _logger?.LogError(ex, "Error during staff creation for email: {Email}", createStaffDto.Email);
-      return ServiceResult<AuthResultDto>.Failure($"Error during staff creation: {ex.Message}");
+      return ServiceResult<UserDto>.Failure($"Error during staff creation: {ex.Message}");
     }
   }
 
