@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using EV_SCMMS.Core.Domain.Models;
+﻿using EV_SCMMS.Core.Domain.Models;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
 
 namespace EV_SCMMS.Infrastructure.Persistence;
 
@@ -98,6 +98,50 @@ public partial class AppDbContext : DbContext
               .HasConstraintName("appuser_roleid_fkey");
     });
 
+    modelBuilder.Entity<Refreshtoken>(entity =>
+    {
+      entity.HasKey(e => e.Tokenid).HasName("refreshtoken_pkey");
+
+      entity.ToTable("refreshtoken");
+
+      entity.HasIndex(e => new { e.Isactive, e.Isrevoked }, "idx_refreshtoken_active");
+
+      entity.HasIndex(e => e.Expiresat, "idx_refreshtoken_expires");
+
+      entity.HasIndex(e => e.Token, "idx_refreshtoken_token");
+
+      entity.HasIndex(e => e.Userid, "idx_refreshtoken_userid");
+
+      entity.HasIndex(e => e.Token, "refreshtoken_token_key").IsUnique();
+
+      entity.Property(e => e.Tokenid)
+          .HasDefaultValueSql("uuid_generate_v4()")
+          .HasColumnName("tokenid");
+      entity.Property(e => e.Createdat)
+          .HasDefaultValueSql("CURRENT_TIMESTAMP")
+          .HasColumnType("timestamp without time zone")
+          .HasColumnName("createdat");
+      entity.Property(e => e.Expiresat)
+          .HasColumnType("timestamp without time zone")
+          .HasColumnName("expiresat");
+      entity.Property(e => e.Isactive)
+          .HasDefaultValue(true)
+          .HasColumnName("isactive");
+      entity.Property(e => e.Isrevoked)
+          .HasDefaultValue(false)
+          .HasColumnName("isrevoked");
+      entity.Property(e => e.Revokedat)
+          .HasColumnType("timestamp without time zone")
+          .HasColumnName("revokedat");
+      entity.Property(e => e.Token)
+          .HasMaxLength(512)
+          .HasColumnName("token");
+      entity.Property(e => e.Userid).HasColumnName("userid");
+
+      entity.HasOne(d => d.User).WithMany(p => p.Refreshtokens)
+          .HasForeignKey(d => d.Userid)
+          .HasConstraintName("fk_refreshtoken_userid");
+    });
     modelBuilder.Entity<Center>(entity =>
     {
       entity.HasKey(e => e.Centerid).HasName("center_pkey");
