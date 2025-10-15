@@ -1,5 +1,5 @@
 using EV_SCMMS.Core.Domain.Models;
-using EV_SCMMS.Core.Domain.Services;
+using EV_SCMMS.Core.Application.Services;
 using EV_SCMMS.Core.Domain.Utilities;
 using EV_SCMMS.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;

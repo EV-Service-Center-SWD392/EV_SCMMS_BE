@@ -1,5 +1,5 @@
 using EV_SCMMS.Core.Application.Interfaces.Repositories;
-using EV_SCMMS.Core.Domain.Services;
+using EV_SCMMS.Core.Application.Services;
 
 namespace EV_SCMMS.Core.Application.Interfaces;
 

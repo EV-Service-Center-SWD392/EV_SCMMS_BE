@@ -1,6 +1,6 @@
 using EV_SCMMS.Core.Domain.Models;
 
-namespace EV_SCMMS.Core.Domain.Services;
+namespace EV_SCMMS.Core.Application.Services;
 
 public interface IRefreshTokenService
 {

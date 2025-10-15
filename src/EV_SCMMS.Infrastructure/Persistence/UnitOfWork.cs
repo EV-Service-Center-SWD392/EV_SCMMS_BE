@@ -1,6 +1,6 @@
 using EV_SCMMS.Core.Application.Interfaces;
 using EV_SCMMS.Core.Application.Interfaces.Repositories;
-using EV_SCMMS.Core.Domain.Services;
+using EV_SCMMS.Core.Application.Services;
 using EV_SCMMS.Infrastructure.Persistence.Repositories;
 using EV_SCMMS.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore.Storage;
