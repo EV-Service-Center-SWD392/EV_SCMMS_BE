@@ -33,6 +33,14 @@ public interface IUserRepository : IGenericRepository<User>
   Task<User?> GetUserWithRoleAsync(Guid userId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Get user by ID with role information
+    /// </summary>
+    /// <param name="userId">User ID</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>User with role</returns>
+    Task<User?> GetByIdWithRoleAsync(Guid userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Get user by email with role information
     /// </summary>
     /// <param name="email">User email</param>

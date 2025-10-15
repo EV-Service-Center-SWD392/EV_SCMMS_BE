@@ -35,8 +35,9 @@ public interface IAuthService
     /// Refresh access token
     /// </summary>
     /// <param name="refreshToken">Refresh token</param>
+    /// <param name="accessToken">Current access token to validate</param>
     /// <returns>New authentication result</returns>
-    Task<IServiceResult<AuthResultDto>> RefreshTokenAsync(string refreshToken);
+    Task<IServiceResult<AuthResultDto>> RefreshTokenAsync(string refreshToken, string accessToken);
 
     /// <summary>
     /// Revoke refresh token
@@ -44,4 +45,11 @@ public interface IAuthService
     /// <param name="refreshToken">Refresh token to revoke</param>
     /// <returns>Success status</returns>
     Task<IServiceResult<bool>> RevokeTokenAsync(string refreshToken);
+
+    /// <summary>
+    /// Revoke all refresh tokens for a user
+    /// </summary>
+    /// <param name="userId">User ID</param>
+    /// <returns>Success status</returns>
+    Task<IServiceResult<bool>> RevokeAllUserTokensAsync(Guid userId);
 }

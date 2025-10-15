@@ -3,8 +3,10 @@ using EV_SCMMS.Core.Application.Interfaces;
 using EV_SCMMS.Core.Application.Interfaces.Services;
 using EV_SCMMS.Infrastructure.Persistence;
 using EV_SCMMS.Infrastructure.Services;
+using EV_SCMMS.WebAPI.Authorization;
 using EV_SCMMS.WebAPI.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -64,11 +66,40 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    // Default policy: JWT validation + refresh token validation (ensures token not revoked)
+    options.DefaultPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .AddRequirements(new ValidRefreshTokenRequirement())
+        .Build();
+        
+    // JwtOnly policy for token management endpoints (login, refresh, revoke)
+    options.AddPolicy("JwtOnly", new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build());
+        
+    // Role-based policies (still include refresh token validation by default)
+    options.AddPolicy("AdminOnly", new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .RequireRole("ADMIN")
+        .AddRequirements(new ValidRefreshTokenRequirement())
+        .Build());
+        
+    options.AddPolicy("TechnicianAndStaff", new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .RequireRole("TECHNICIAN", "STAFF")
+        .AddRequirements(new ValidRefreshTokenRequirement())
+        .Build());
+});
 
 
 // Register Application Services
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+// Register Authorization Services
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IAuthorizationHandler, ValidRefreshTokenHandler>();
 
 // Register Authentication Services
 builder.Services.AddScoped<IAuthService, AuthService>();

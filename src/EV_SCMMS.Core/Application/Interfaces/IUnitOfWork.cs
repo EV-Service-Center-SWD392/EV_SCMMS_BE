@@ -1,4 +1,5 @@
 using EV_SCMMS.Core.Application.Interfaces.Repositories;
+using EV_SCMMS.Core.Domain.Services;
 
 namespace EV_SCMMS.Core.Application.Interfaces;
 
@@ -51,6 +52,11 @@ public interface IUnitOfWork : IDisposable
     /// Sparepart Usage History repository
     /// </summary>
     ISparepartUsageHistoryRepository SparepartUsageHistoryRepository { get; }
+
+    /// <summary>
+    /// Refresh Token service
+    /// </summary>
+    IRefreshTokenService RefreshTokenService { get; }
 
     /// <summary>
     /// Save all changes made in this context to the database

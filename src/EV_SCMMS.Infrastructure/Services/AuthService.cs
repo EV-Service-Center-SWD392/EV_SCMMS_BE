@@ -146,18 +146,9 @@ public class AuthService : IAuthService
       await _unitOfWork.SaveChangesAsync();
 
       // Generate tokens
-      //var accessToken = _tokenService.GenerateAccessToken(newUser.Userid, newUser.Email, role.Name);
-      //var refreshToken = _tokenService.GenerateRefreshToken();
       var expiresAt = _tokenService.GetTokenExpiration();
 
       // Create auth result
-      //var authResult = new UserDto
-      //{
-      //  UserId = newUser.Userid,
-      //  Email = newUser.Email,
-      //  FullName = $"{newUser.Firstname} {newUser.Lastname}".Trim(),
-      //  Role = role.Name
-      //};
 
         var authResult = newUser.ToDto();
       _logger?.LogInformation("User registered successfully: {Email}", registerDto.Email);
@@ -198,24 +189,9 @@ public class AuthService : IAuthService
       // Hash password
       var hashedPassword = _passwordHashService.HashPassword(createStaffDto.Password);
 
-      // Create new staff user
-      //var newUser = new User
-      //{
-      //  Userid = Guid.NewGuid(),
-      //  Email = createStaffDto.Email.ToLower(),
-      //  Password = hashedPassword,
-      //  Firstname = createStaffDto.FirstName,
-      //  Lastname = createStaffDto.LastName,
-      //  Phonenumber = createStaffDto.PhoneNumber,
-      //  Address = createStaffDto.Address,
-      //  Birthday = createStaffDto.Birthday,
-      //  Roleid = role.Roleid,
-      //  Status = "ACTIVE",
-      //  Isactive = true
-      //};
 
-      //Map
-      var newUser= createStaffDto.CreateStaffToEntity();
+      // Create new staff user
+      var newUser = createStaffDto.CreateStaffToEntity();
       newUser.Roleid = role.Roleid;
       newUser.Password = hashedPassword;
       // Save user to database
@@ -223,18 +199,7 @@ public class AuthService : IAuthService
       await _unitOfWork.SaveChangesAsync();
 
       // Generate tokens
-      //var accessToken = _tokenService.GenerateAccessToken(newUser.Userid, newUser.Email, role.Name);
-      //var refreshToken = _tokenService.GenerateRefreshToken();
       var expiresAt = _tokenService.GetTokenExpiration();
-
-      // Create auth result
-      //var authResult = new UserDto
-      //{
-      //  UserId = newUser.Userid,
-      //  Email = newUser.Email,
-      //  FullName = $"{newUser.Firstname} {newUser.Lastname}".Trim(),
-      //  Role = role.Name,
-      //};
 
       var authResult = newUser.ToDto();
       _logger?.LogInformation("Staff member created successfully: {Email} with role: {Role}", createStaffDto.Email, createStaffDto.Role);

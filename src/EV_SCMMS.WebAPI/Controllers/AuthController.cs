@@ -1,5 +1,6 @@
 using EV_SCMMS.Core.Application.DTOs.Auth;
 using EV_SCMMS.Core.Application.Interfaces.Services;
+using EV_SCMMS.Core.Domain.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -104,7 +105,7 @@ public class AuthController : ControllerBase
     /// <response code="403">Not authorized (Admin role required)</response>
     /// <response code="409">Email already exists</response>
     [HttpPost("create-staff")]
-    [Authorize(Roles = "ADMIN")]
+    [Authorize(Policy = "AdminOnly")]
     [ProducesResponseType(typeof(AuthResultDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -139,7 +140,7 @@ public class AuthController : ControllerBase
     /// <summary>
     /// Refresh JWT access token using refresh token
     /// </summary>
-    /// <param name="refreshToken">Valid refresh token</param>
+    /// <param name="request">Refresh token request containing the refresh token and access token</param>
     /// <returns>New authentication result with fresh JWT token</returns>
     /// <response code="200">Token refreshed successfully</response>
     /// <response code="400">Invalid refresh token</response>
@@ -149,14 +150,17 @@ public class AuthController : ControllerBase
     [ProducesResponseType(typeof(AuthResultDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> RefreshTokenAsync([FromBody] string refreshToken)
+    public async Task<IActionResult> RefreshTokenAsync([FromBody] RefreshTokenRequest request)
     {
-        if (string.IsNullOrWhiteSpace(refreshToken))
+        if (!ModelState.IsValid || string.IsNullOrWhiteSpace(request.RefreshToken) || string.IsNullOrWhiteSpace(request.AccessToken))
         {
-            return BadRequest("Refresh token is required");
+            return BadRequest("Both refresh token and access token are required");
         }
 
-        var result = await _authService.RefreshTokenAsync(refreshToken);
+        _logger.LogDebug("Refresh token request - RefreshToken: {RefreshToken}, AccessToken preview: {AccessTokenPreview}", 
+            request.RefreshToken, request.AccessToken[..Math.Min(10, request.AccessToken.Length)] + "...");
+
+        var result = await _authService.RefreshTokenAsync(request.RefreshToken, request.AccessToken);
         
         if (result.IsSuccess)
         {
@@ -171,22 +175,22 @@ public class AuthController : ControllerBase
     /// <summary>
     /// Revoke refresh token (logout)
     /// </summary>
-    /// <param name="refreshToken">Refresh token to revoke</param>
+    /// <param name="request">Revoke token request containing the refresh token</param>
     /// <returns>Success status</returns>
     /// <response code="200">Token revoked successfully</response>
     /// <response code="400">Invalid refresh token</response>
     [HttpPost("revoke-token")]
-    [Authorize]
+    [Authorize] 
     [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> RevokeTokenAsync([FromBody] string refreshToken)
+    public async Task<IActionResult> RevokeTokenAsync([FromBody] RevokeTokenRequest request)
     {
-        if (string.IsNullOrWhiteSpace(refreshToken))
+        if (!ModelState.IsValid || string.IsNullOrWhiteSpace(request.RefreshToken))
         {
             return BadRequest("Refresh token is required");
         }
 
-        var result = await _authService.RevokeTokenAsync(refreshToken);
+        var result = await _authService.RevokeTokenAsync(request.RefreshToken);
         
         if (result.IsSuccess)
         {
@@ -195,6 +199,39 @@ public class AuthController : ControllerBase
         }
 
         _logger.LogWarning("Token revocation failed - {Error}", result.Message);
+        return BadRequest(result);
+    }
+
+    /// <summary>
+    /// Revoke all refresh tokens for current user (logout from all devices)
+    /// </summary>
+    /// <returns>Success status</returns>
+    /// <response code="200">All tokens revoked successfully</response>
+    /// <response code="400">Invalid request</response>
+    /// <response code="401">User not authenticated</response>
+    [HttpPost("revoke-all-tokens")]
+    [Authorize] // Uses default JwtOnly policy
+    [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> RevokeAllTokensAsync()
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        
+        if (!Guid.TryParse(userIdClaim, out var userId))
+        {
+            return BadRequest("Invalid user ID in token");
+        }
+
+        var result = await _authService.RevokeAllUserTokensAsync(userId);
+        
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("All tokens revoked successfully for user: {UserId}", userId);
+            return Ok(result);
+        }
+
+        _logger.LogWarning("Failed to revoke all tokens for user: {UserId} - {Error}", userId, result.Message);
         return BadRequest(result);
     }
 
