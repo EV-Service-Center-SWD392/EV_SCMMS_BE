@@ -14,6 +14,13 @@ public class UnitOfWork : IUnitOfWork
     private IDbContextTransaction? _transaction;
     private IUserRepository? _userRepository;
 
+    private IMaintenanceHistoryDungVmRepository? _maintenanceHistoryDungVmRepository;
+    private IMaintenanceTaskDungVmRepository? _maintenanceTaskDungVmRepository;
+    private IVehicleConditionDungVmRepository? _vehicleConditionDungVmRepository;
+    private IOrderServiceThaoNttRepository? _orderServiceThaoNttRepository;
+    private IOrderThaoNttRepository? _orderThaoNttRepository;
+
+
     public IUserRepository UserRepository => throw new NotImplementedException();
 
     public UnitOfWork(AppDbContext context)
@@ -29,6 +36,49 @@ public class UnitOfWork : IUnitOfWork
     //         return _userRepository;
     //     }
     // }
+
+
+    public IMaintenanceHistoryDungVmRepository MaintenanceHistoryDungVmRepository
+    {
+        get
+        {
+            _maintenanceHistoryDungVmRepository ??= new MaintenanceHistoryDungVmRepository(_context);
+            return _maintenanceHistoryDungVmRepository;
+        }
+    }
+    public IMaintenanceTaskDungVmRepository MaintenanceTaskDungVmRepository
+    {
+        get
+        {
+            _maintenanceTaskDungVmRepository ??= new MaintenanceTaskDungVmRepository(_context);
+            return _maintenanceTaskDungVmRepository;
+        }
+    }
+    public IVehicleConditionDungVmRepository VehicleConditionDungVmRepository
+    {
+        get
+        {
+            _vehicleConditionDungVmRepository ??= new VehicleConditionDungVmRepository(_context);
+            return _vehicleConditionDungVmRepository;
+        }
+    }   
+    public IOrderServiceThaoNttRepository OrderServiceThaoNttRepository 
+    {
+        get
+        {
+            _orderServiceThaoNttRepository ??= new OrderServiceThaoNttRepository(_context);
+            return _orderServiceThaoNttRepository;
+        }
+    }
+    public IOrderThaoNttRepository orderThaoNttRepository
+    {
+        get
+        {
+            _orderThaoNttRepository ??= new OrderThaoNttRepository(_context);
+            return _orderThaoNttRepository;
+        }
+    }
+
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

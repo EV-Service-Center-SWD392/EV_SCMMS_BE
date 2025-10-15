@@ -1,5 +1,8 @@
 ﻿using EV_SCMMS.Core.Domain.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using System;
+using System.Collections.Generic;
 
 namespace EV_SCMMS.Infrastructure.Persistence;
 
@@ -28,6 +31,10 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<InventoryTuHt> InventoryTuHts { get; set; }
 
+    public virtual DbSet<MaintenanceHistoryDungVm> MaintenanceHistoryDungVms { get; set; }
+
+    public virtual DbSet<MaintenanceTaskDungVm> MaintenanceTaskDungVms { get; set; }
+
     public virtual DbSet<OrderServiceThaoNtt> OrderServiceThaoNtts { get; set; }
 
     public virtual DbSet<OrderThaoNtt> OrderThaoNtts { get; set; }
@@ -50,7 +57,26 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<Vehicle> Vehicles { get; set; }
 
+    public virtual DbSet<VehicleConditionDungVm> VehicleConditionDungVms { get; set; }
+
     public virtual DbSet<WorkOrderApprovalThaoNtt> WorkOrderApprovalThaoNtts { get; set; }
+
+    public static string GetConnectionString(string connectionStringName)
+    {
+        var config = new ConfigurationBuilder()
+            .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+            .AddJsonFile("appsettings.json")
+            //.AddJsonFile("appsettings.Development.json")
+            .Build();
+
+        string connectionString = config.GetConnectionString(connectionStringName);
+        return connectionString;
+    }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        => optionsBuilder.UseNpgsql(GetConnectionString("DefaultConnection"))
+        .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -308,6 +334,79 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.Center).WithMany(p => p.InventoryTuHts)
                 .HasForeignKey(d => d.CenterId)
                 .HasConstraintName("Inventory_TuHT_CenterID_fkey");
+        });
+
+        modelBuilder.Entity<MaintenanceHistoryDungVm>(entity =>
+        {
+            entity.HasKey(e => e.MaintenanceHistoryDungVmid).HasName("MaintenanceHistoryDungVM_pkey");
+
+            entity.ToTable("MaintenanceHistoryDungVM");
+
+            entity.HasIndex(e => e.OrderId, "idx_mhdungvm_order");
+
+            entity.HasIndex(e => e.VehicleId, "idx_mhdungvm_vehicle");
+
+            entity.Property(e => e.MaintenanceHistoryDungVmid)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("MaintenanceHistoryDungVMId");
+            entity.Property(e => e.CompletedDate).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("createdAt");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.Summary).HasMaxLength(1000);
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("updatedAt");
+
+            entity.HasOne(d => d.Order).WithMany(p => p.MaintenanceHistoryDungVms)
+                .HasForeignKey(d => d.OrderId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("MaintenanceHistoryDungVM_OrderId_fkey");
+
+            entity.HasOne(d => d.Vehicle).WithMany(p => p.MaintenanceHistoryDungVms)
+                .HasForeignKey(d => d.VehicleId)
+                .HasConstraintName("MaintenanceHistoryDungVM_VehicleId_fkey");
+        });
+
+        modelBuilder.Entity<MaintenanceTaskDungVm>(entity =>
+        {
+            entity.HasKey(e => e.MaintenanceTaskDungVmid).HasName("MaintenanceTaskDungVM_pkey");
+
+            entity.ToTable("MaintenanceTaskDungVM");
+
+            entity.HasIndex(e => e.OrderServiceId, "idx_mtdungvm_order_service");
+
+            entity.HasIndex(e => e.Status, "idx_mtdungvm_status");
+
+            entity.HasIndex(e => e.TechnicianId, "idx_mtdungvm_technician");
+
+            entity.Property(e => e.MaintenanceTaskDungVmid)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("MaintenanceTaskDungVMId");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("createdAt");
+            entity.Property(e => e.Description).HasMaxLength(1000);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.Status).HasMaxLength(100);
+            entity.Property(e => e.Task).HasMaxLength(500);
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("updatedAt");
+
+            entity.HasOne(d => d.OrderService).WithMany(p => p.MaintenanceTaskDungVms)
+                .HasForeignKey(d => d.OrderServiceId)
+                .HasConstraintName("MaintenanceTaskDungVM_OrderServiceId_fkey");
+
+            entity.HasOne(d => d.Technician).WithMany(p => p.MaintenanceTaskDungVms)
+                .HasForeignKey(d => d.TechnicianId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("MaintenanceTaskDungVM_TechnicianId_fkey");
         });
 
         modelBuilder.Entity<OrderServiceThaoNtt>(entity =>
@@ -677,6 +776,39 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.CustomerId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("Vehicles_CustomerID_fkey");
+        });
+
+        modelBuilder.Entity<VehicleConditionDungVm>(entity =>
+        {
+            entity.HasKey(e => e.VehicleConditionDungVmid).HasName("VehicleConditionDungVM_pkey");
+
+            entity.ToTable("VehicleConditionDungVM");
+
+            entity.HasIndex(e => e.Status, "idx_vcdungvm_status");
+
+            entity.HasIndex(e => e.VehicleId, "idx_vcdungvm_vehicle");
+
+            entity.Property(e => e.VehicleConditionDungVmid)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("VehicleConditionDungVMId");
+            entity.Property(e => e.BodyStatus).HasMaxLength(200);
+            entity.Property(e => e.BrakeStatus).HasMaxLength(200);
+            entity.Property(e => e.Condition).HasMaxLength(500);
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("createdAt");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.LastMaintenance).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.Status).HasMaxLength(100);
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("updatedAt");
+
+            entity.HasOne(d => d.Vehicle).WithMany(p => p.VehicleConditionDungVms)
+                .HasForeignKey(d => d.VehicleId)
+                .HasConstraintName("VehicleConditionDungVM_VehicleId_fkey");
         });
 
         modelBuilder.Entity<WorkOrderApprovalThaoNtt>(entity =>

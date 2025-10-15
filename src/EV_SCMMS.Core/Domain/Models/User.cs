@@ -1,5 +1,4 @@
-﻿using EV_SCMMS.Core.Domain.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace EV_SCMMS.Core.Domain.Models;
@@ -27,6 +26,8 @@ public partial class User
     public virtual ICollection<AssignmentThaoNtt> AssignmentThaoNtts { get; set; } = new List<AssignmentThaoNtt>();
 
     public virtual ICollection<BookingThaoNtt> BookingThaoNtts { get; set; } = new List<BookingThaoNtt>();
+
+    public virtual ICollection<MaintenanceTaskDungVm> MaintenanceTaskDungVms { get; set; } = new List<MaintenanceTaskDungVm>();
 
     public virtual ICollection<OrderThaoNtt> OrderThaoNtts { get; set; } = new List<OrderThaoNtt>();
 

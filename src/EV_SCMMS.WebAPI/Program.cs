@@ -70,6 +70,10 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 // builder.Services.AddScoped<IVehicleService, VehicleService>(); // Uncomment when implemented
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IVehicleConditionDungVmService, VehicleConditionDungVmService>();
+builder.Services.AddScoped<IMaintenanceHistoryDungVmService, MaintenanceHistoryDungVmService>();
+builder.Services.AddScoped<IMaintenanceTaskDungVmService, MaintenanceTaskDungVmService>();
+
 
 // Add Health Checks with PostgreSQL connection check
 builder.Services.AddHealthChecks()

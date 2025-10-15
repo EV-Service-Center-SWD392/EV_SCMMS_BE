@@ -1,0 +1,17 @@
+﻿using EV_SCMMS.Core.Domain.Models;
+using EV_SCMMS.Core.Application.Interfaces.Repositories;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace EV_SCMMS.Infrastructure.Persistence.Repositories
+{
+    public class OrderThaoNttRepository : GenericRepository<OrderThaoNtt>, IOrderThaoNttRepository
+    {
+       public OrderThaoNttRepository(AppDbContext dbContext) : base(dbContext) { }
+    
+
+    }
+}

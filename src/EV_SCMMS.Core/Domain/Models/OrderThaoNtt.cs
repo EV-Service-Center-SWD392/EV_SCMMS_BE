@@ -1,4 +1,7 @@
-﻿namespace EV_SCMMS.Core.Domain.Models;
+﻿using System;
+using System.Collections.Generic;
+
+namespace EV_SCMMS.Core.Domain.Models;
 
 public partial class OrderThaoNtt
 {
@@ -23,6 +26,8 @@ public partial class OrderThaoNtt
     public virtual BookingThaoNtt? Booking { get; set; }
 
     public virtual User? Customer { get; set; }
+
+    public virtual ICollection<MaintenanceHistoryDungVm> MaintenanceHistoryDungVms { get; set; } = new List<MaintenanceHistoryDungVm>();
 
     public virtual ICollection<OrderServiceThaoNtt> OrderServiceThaoNtts { get; set; } = new List<OrderServiceThaoNtt>();
 

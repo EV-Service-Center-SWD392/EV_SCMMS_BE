@@ -1,4 +1,7 @@
-﻿namespace EV_SCMMS.Core.Domain.Models;
+﻿using System;
+using System.Collections.Generic;
+
+namespace EV_SCMMS.Core.Domain.Models;
 
 public partial class OrderServiceThaoNtt
 {
@@ -15,6 +18,8 @@ public partial class OrderServiceThaoNtt
     public DateTime? CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
+
+    public virtual ICollection<MaintenanceTaskDungVm> MaintenanceTaskDungVms { get; set; } = new List<MaintenanceTaskDungVm>();
 
     public virtual OrderThaoNtt Order { get; set; } = null!;
 

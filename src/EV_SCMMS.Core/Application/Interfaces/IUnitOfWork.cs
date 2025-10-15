@@ -13,6 +13,32 @@ public interface IUnitOfWork : IDisposable
     IUserRepository UserRepository { get; }
 
     /// <summary>
+    /// Gets the maintenance history repository.
+    /// </summary>
+    IMaintenanceHistoryDungVmRepository MaintenanceHistoryDungVmRepository { get; }
+
+    /// <summary>
+    /// Gets the maintenance task repository.
+    /// </summary>
+    IMaintenanceTaskDungVmRepository MaintenanceTaskDungVmRepository { get; }
+
+    /// <summary>
+    /// Gets the vehicle condition repository.
+    /// </summary>
+    IVehicleConditionDungVmRepository VehicleConditionDungVmRepository { get; }
+
+    /// <summary>
+    /// Gets the order service repository.
+    /// </summary>
+    IOrderServiceThaoNttRepository OrderServiceThaoNttRepository { get; }
+
+    /// <summary>
+    /// Gets the order repository.
+    /// </summary>
+    IOrderThaoNttRepository orderThaoNttRepository { get; }
+
+
+    /// <summary>
     /// Save all changes made in this context to the database
     /// </summary>
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
