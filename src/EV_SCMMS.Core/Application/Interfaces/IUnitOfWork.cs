@@ -1,4 +1,5 @@
 using EV_SCMMS.Core.Application.Interfaces.Repositories;
+using EV_SCMMS.Core.Application.Services;
 
 namespace EV_SCMMS.Core.Application.Interfaces;
 
@@ -7,6 +8,15 @@ namespace EV_SCMMS.Core.Application.Interfaces;
 /// </summary>
 public interface IUnitOfWork : IDisposable
 {
+    /// <summary>
+    /// User repository
+    /// </summary>
+    IUserRepository UserRepository { get; }
+
+    /// <summary>
+    /// Role repository
+    /// </summary>
+    IRoleRepository RoleRepository { get; }
 
     /// <summary>
     /// Center repository
@@ -42,6 +52,11 @@ public interface IUnitOfWork : IDisposable
     /// Sparepart Usage History repository
     /// </summary>
     ISparepartUsageHistoryRepository SparepartUsageHistoryRepository { get; }
+
+    /// <summary>
+    /// Refresh Token service
+    /// </summary>
+    IRefreshTokenService RefreshTokenService { get; }
 
     /// <summary>
     /// Save all changes made in this context to the database
