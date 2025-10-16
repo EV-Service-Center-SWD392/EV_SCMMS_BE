@@ -44,8 +44,10 @@ namespace EV_SCMMS.Infrastructure.Services
             }
         }
 
-        public async Task<IServiceResult<MaintenanceTaskDungVmDto>> UpdateAsync(Guid maintenanceTaskId, MaintenanceTaskDungVmUpdateDto maintenanceTaskDto)
-        {
+
+        public async Task<IServiceResult<MaintenanceTaskDungVmDto>> UpdateAsync
+            (Guid maintenanceTaskId, MaintenanceTaskDungVmUpdateDto maintenanceTaskDto)
+        {       
             try
             {
                 var existingTask = await _unitOfWork.MaintenanceTaskDungVmRepository.GetByIdAsync(maintenanceTaskId);
@@ -153,7 +155,7 @@ namespace EV_SCMMS.Infrastructure.Services
             }
         }
 
-
+        
 
 
     }

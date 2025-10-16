@@ -10,6 +10,8 @@ namespace EV_SCMMS.Core.Application.Interfaces.Repositories
     public interface IVehicleConditionDungVmRepository : IGenericRepository<VehicleConditionDungVm>
     {
 
+        Task<IEnumerable<VehicleConditionDungVm>> GetByVehicleIdAsync(Guid vehicleId, CancellationToken cancellationToken = default);
+
 
     }
 }

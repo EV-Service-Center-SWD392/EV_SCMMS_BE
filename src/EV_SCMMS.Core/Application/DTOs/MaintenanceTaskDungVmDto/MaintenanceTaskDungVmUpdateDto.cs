@@ -20,6 +20,6 @@ namespace EV_SCMMS.Core.Application.DTOs.MaintenanceTaskDungVmDto
 
         [StringLength(50)]
         [EnumDataType(typeof(TaskEnum))]
-        public string Status { get; set; } = "Pending";
+        public string Status { get; set; } 
     }
 }

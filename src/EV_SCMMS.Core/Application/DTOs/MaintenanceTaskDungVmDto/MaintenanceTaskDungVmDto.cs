@@ -30,6 +30,5 @@ namespace EV_SCMMS.Core.Application.DTOs.MaintenanceTaskDungVmDto
         public bool IsActive { get; set; }
         public DateTime? CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
-
     }
 }

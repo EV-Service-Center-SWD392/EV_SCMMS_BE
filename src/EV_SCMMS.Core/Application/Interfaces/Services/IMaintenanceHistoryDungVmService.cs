@@ -31,7 +31,7 @@ namespace EV_SCMMS.Core.Application.Interfaces.Services
         /// </summary>
         /// <param name="maintenanceHistoryDto">The maintenance history dto.</param>
         /// <returns>Create Maintenance History</returns>
-        Task<IServiceResult<MaintenanceHistoryDungVmDto>> CreateAsync(MaintenanceHistoryDungVmDto maintenanceHistoryDto);
+        Task<IServiceResult<MaintenanceHistoryDungVmDto>> CreateAsync(MaintenanceHistoryDungVmCreateDto maintenanceHistoryDto);
 
         /// <summary>
         /// Updates the Maintenance History.
@@ -39,7 +39,7 @@ namespace EV_SCMMS.Core.Application.Interfaces.Services
         /// <param name="maintenanceHistoryId">The maintenance history identifier.</param>
         /// <param name="maintenanceHistoryDto">The maintenance history dto.</param>
         /// <returns>Update result</returns>
-        Task<IServiceResult<MaintenanceHistoryDungVmDto>> UpdateAsync(Guid maintenanceHistoryId, MaintenanceHistoryDungVmDto maintenanceHistoryDto);
+        Task<IServiceResult<MaintenanceHistoryDungVmDto>> UpdateAsync(Guid maintenanceHistoryId, MaintenanceHistoryDungVmUpdateDto maintenanceHistoryDto);
 
         /// <summary>
         /// Deletes the Maintenance History.

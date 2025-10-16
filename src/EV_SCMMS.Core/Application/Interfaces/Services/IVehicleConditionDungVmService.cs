@@ -30,7 +30,7 @@ namespace EV_SCMMS.Core.Application.Interfaces.Services
         /// </summary>
         /// <param name="vehicleConditionDto">The vehicle condition dto.</param>
         /// <returns>Create Vehicle Condition</returns>
-        Task<IServiceResult<VehicleConditionDungVmDto>> CreateAsync(VehicleConditionDungVmDto vehicleConditionDto);
+        Task<IServiceResult<VehicleConditionDungVmDto>> CreateAsync(VehicleConditionDungVmCreateDto vehicleConditionDto);
 
         /// <summary>
         /// Updates the asynchronous.
@@ -38,7 +38,7 @@ namespace EV_SCMMS.Core.Application.Interfaces.Services
         /// <param name="vehicleConditionId">The vehicle condition identifier.</param>
         /// <param name="vehicleConditionDto">The vehicle condition dto.</param>
         /// <returns>Update Vehicle Condition</returns>
-        Task<IServiceResult<VehicleConditionDungVmDto>> UpdateAsync(Guid vehicleConditionId, VehicleConditionDungVmDto vehicleConditionDto);
+        Task<IServiceResult<VehicleConditionDungVmDto>> UpdateAsync(Guid vehicleConditionId, VehicleConditionDungVmUpdateDto vehicleConditionDto);
 
         /// <summary>
         /// Deletes the asynchronous.
