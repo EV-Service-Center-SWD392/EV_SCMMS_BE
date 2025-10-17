@@ -1,6 +1,6 @@
 using System.Text;
 using EV_SCMMS.Core.Application.Interfaces;
-using EV_SCMMS.Core.Application.Interfaces.Services;
+using EV_SCMMS.Application.Interfaces;
 using EV_SCMMS.Infrastructure.Identity;
 using EV_SCMMS.Infrastructure.Persistence;
 using EV_SCMMS.Infrastructure.Services;
@@ -11,6 +11,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using EV_SCMMS.Core.Application.Interfaces.Services;
+using EV_SCMMS.Application.Bookings.Commands.CreateBooking;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -70,6 +72,15 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 // builder.Services.AddScoped<IVehicleService, VehicleService>(); // Uncomment when implemented
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+// ===> ADDED THIS: Configure MediatR and register the new repository
+// 1. Add MediatR and tell it to scan the Application project for handlers
+builder.Services.AddMediatR(cfg => 
+    cfg.RegisterServicesFromAssembly(typeof(EV_SCMMS.Application.Bookings.Commands.CreateBooking.CreateBookingCommand).Assembly));
+
+// 2. Register the Booking Repository for Dependency Injection
+builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+
 
 // Add Health Checks with PostgreSQL connection check
 builder.Services.AddHealthChecks()

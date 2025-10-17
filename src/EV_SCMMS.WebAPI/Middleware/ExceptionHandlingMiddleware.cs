@@ -31,7 +31,19 @@ public class ExceptionHandlingMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An unhandled exception occurred: {Message}", ex.Message);
+            _logger.LogError(ex, "An unhandled exception occurred");
+            var errorMessages = new List<string> { ex.Message };
+    if (ex.InnerException != null)
+    {
+        // This adds the REAL error message from the database!
+        errorMessages.Add($"Inner Exception: {ex.InnerException.Message}");
+    }
+
+    var response = new { 
+        isSuccess = false, 
+        message = "An error occurred while processing your request.",
+        errors = errorMessages // <--- NOW RETURNS THE DETAILED ERROR
+    };
             await HandleExceptionAsync(context, ex);
         }
     }

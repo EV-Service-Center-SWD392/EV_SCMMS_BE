@@ -19,6 +19,7 @@
   <ItemGroup>
     <ProjectReference Include="..\EV_SCMMS.Core\EV_SCMMS.Core.csproj" />
     <ProjectReference Include="..\EV_SCMMS.Infrastructure\EV_SCMMS.Infrastructure.csproj" />
+    <ProjectReference Include="..\EV_SCMMS.Application\EV_SCMMS.Application.csproj" />
   </ItemGroup>
 
 </Project>

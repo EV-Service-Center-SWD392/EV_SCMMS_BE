@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EV_SCMMS.Core\EV_SCMMS.Core.csproj" />
+    <ProjectReference Include="..\EV_SCMMS.Application\EV_SCMMS.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>
