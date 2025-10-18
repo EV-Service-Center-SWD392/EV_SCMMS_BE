@@ -4,6 +4,8 @@ using EV_SCMMS.Core.Application.Interfaces.Services;
 using EV_SCMMS.Infrastructure.Persistence;
 using EV_SCMMS.Infrastructure.Services;
 using EV_SCMMS.WebAPI.Middleware;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -30,7 +32,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
                 maxRetryDelay: TimeSpan.FromSeconds(30),
                 errorCodesToAdd: null);
         });
-    
+
     // Configure EF Core options
     options.EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
     options.EnableDetailedErrors(builder.Environment.IsDevelopment());
@@ -82,7 +84,7 @@ builder.Services.AddScoped<ISparepartUsageHistoryService, SparepartUsageHistoryS
 // Add Health Checks with PostgreSQL connection check
 builder.Services.AddHealthChecks()
     .AddNpgSql(
-        builder.Configuration.GetConnectionString("DefaultConnection") ?? 
+        builder.Configuration.GetConnectionString("DefaultConnection") ??
         throw new InvalidOperationException("DefaultConnection is not configured"),
         name: "postgresql",
         tags: new[] { "db", "postgresql", "ready" })
@@ -136,6 +138,11 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 });
+
+// Add fluent validation
+
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+builder.Services.AddFluentValidationAutoValidation();
 
 // Add CORS
 builder.Services.AddCors(options =>

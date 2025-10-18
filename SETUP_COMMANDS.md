@@ -268,6 +268,13 @@ dotnet ef migrations add InitialCreate --startup-project ../EV_SCMMS.WebAPI
 
 # Apply migration vào database
 dotnet ef database update --startup-project ../EV_SCMMS.WebAPI
+
+# Rollback migration sau khi applied vào database
+dotnet ef database update "[Tên Class Migration]" --startup-project ../EV_SCMMS.WebAPI
+
+# Xoá mỉgration đã rollback (hoặc không dùng) -> chỉ làm sau khi đã rollback migration
+dotnet ef migrations remove --startup-project ../EV_SCMMS.WebAPI
+
 ```
 
 ## Cài lại/Cập nhật NuGet Packages
