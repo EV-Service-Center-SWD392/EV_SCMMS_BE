@@ -1,7 +1,11 @@
 using EV_SCMMS.Core.Application.Interfaces;
 using EV_SCMMS.Core.Application.Interfaces.Repositories;
+using EV_SCMMS.Core.Application.Services;
 using EV_SCMMS.Infrastructure.Persistence.Repositories;
+using EV_SCMMS.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace EV_SCMMS.Infrastructure.Persistence;
 
@@ -11,9 +15,13 @@ namespace EV_SCMMS.Infrastructure.Persistence;
 public class UnitOfWork : IUnitOfWork
 {
     private readonly AppDbContext _context;
+    private readonly IConfiguration _configuration;
+    private readonly ILoggerFactory _loggerFactory;
     private IDbContextTransaction? _transaction;
     
     // Repository instances
+    private IUserRepository? _userRepository;
+    private IRoleRepository? _roleRepository;
     private ICenterRepository? _centerRepository;
     private IInventoryRepository? _inventoryRepository;
     private ISparepartRepository? _sparepartRepository;
@@ -21,10 +29,33 @@ public class UnitOfWork : IUnitOfWork
     private ISparepartForecastRepository? _sparepartForecastRepository;
     private ISparepartReplenishmentRequestRepository? _sparepartReplenishmentRequestRepository;
     private ISparepartUsageHistoryRepository? _sparepartUsageHistoryRepository;
+    
+    // Service instances
+    private IRefreshTokenService? _refreshTokenService;
 
-    public UnitOfWork(AppDbContext context)
+    public UnitOfWork(AppDbContext context, IConfiguration configuration, ILoggerFactory loggerFactory)
     {
         _context = context;
+        _configuration = configuration;
+        _loggerFactory = loggerFactory;
+    }
+
+    public IUserRepository UserRepository
+    {
+        get
+        {
+            _userRepository ??= new UserRepository(_context);
+            return _userRepository;
+        }
+    }
+
+    public IRoleRepository RoleRepository
+    {
+        get
+        {
+            _roleRepository ??= new RoleRepository(_context);
+            return _roleRepository;
+        }
     }
 
     public ICenterRepository CenterRepository
@@ -87,6 +118,15 @@ public class UnitOfWork : IUnitOfWork
         {
             _sparepartUsageHistoryRepository ??= new SparepartUsageHistoryRepository(_context);
             return _sparepartUsageHistoryRepository;
+        }
+    }
+
+    public IRefreshTokenService RefreshTokenService
+    {
+        get
+        {
+            _refreshTokenService ??= new RefreshTokenService(_context, _configuration, _loggerFactory.CreateLogger<RefreshTokenService>());
+            return _refreshTokenService;
         }
     }
 

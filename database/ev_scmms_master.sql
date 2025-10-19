@@ -137,3 +137,74 @@ FOR EACH ROW EXECUTE FUNCTION update_updatedAt();
 CREATE TRIGGER trg_update_replenishment_updatedAt
 BEFORE UPDATE ON SparePartReplenishmentRequest
 FOR EACH ROW EXECUTE FUNCTION update_updatedAt();
+
+DROP TABLE IF EXISTS Role CASCADE;
+
+CREATE TABLE Role (
+    RoleId      UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    Name        VARCHAR(128) NOT NULL,         -- tên role (ví dụ: Admin, Staff)
+    Description VARCHAR(500)
+);
+
+
+-- Bảng AppUser (User)
+DROP TABLE IF EXISTS AppUser CASCADE;
+
+CREATE TABLE AppUser (
+    UserId      UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    Email       VARCHAR(256) NOT NULL UNIQUE,     -- duy nhất
+    Password    VARCHAR(256) NOT NULL,            -- lưu hashed password (không lưu plaintext)
+    LastName    VARCHAR(128),
+    FirstName   VARCHAR(128),
+    Birthday    DATE,
+    Address     VARCHAR(256),
+    PhoneNumber VARCHAR(32) UNIQUE,
+    RoleId      UUID NOT NULL REFERENCES Role(RoleId) ON DELETE RESTRICT, -- 1-n Role -> AppUser
+    Status      VARCHAR(50) DEFAULT 'ACTIVE',
+    IsActive    BOOLEAN DEFAULT TRUE,
+    createdAt   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Trigger cập nhật updatedAt cho AppUser
+DROP TRIGGER IF EXISTS trg_update_updatedAt_appuser ON AppUser;
+CREATE TRIGGER trg_update_updatedAt_appuser
+BEFORE UPDATE ON AppUser
+FOR EACH ROW
+EXECUTE PROCEDURE update_updatedAt();
+
+INSERT INTO Role (Name, Description)
+VALUES
+    ('ADMIN', 'Quản trị viên hệ thống — có toàn quyền quản lý người dùng, trung tâm, kho và dữ liệu hệ thống.'),
+    ('STAFF', 'Nhân viên điều phối hoặc hỗ trợ quản lý nghiệp vụ, có quyền xem và cập nhật dữ liệu nghiệp vụ trong phạm vi cho phép.'),
+    ('TECHNICIAN', 'Kỹ thuật viên — chịu trách nhiệm bảo trì, thay thế và cập nhật lịch sử sử dụng phụ tùng tại trung tâm.'),
+    ('CUSTOMER', 'Khách hàng hoặc người dùng cuối — có thể gửi yêu cầu, xem trạng thái dịch vụ và lịch sử bảo trì.');
+
+drop table if exists refreshtoken cascade;
+CREATE TABLE IF NOT EXISTS refreshtoken (
+    tokenid UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    userid UUID NOT NULL,
+    token VARCHAR(512) UNIQUE NOT NULL,
+    expiresat TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    createdat TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT refreshtoken_userid_fkey FOREIGN KEY (userid) 
+        REFERENCES appuser(userid) ON DELETE CASCADE
+);
+
+-- Create indexes for better performance
+CREATE INDEX IF NOT EXISTS idx_refreshtoken_userid ON refreshtoken(userid);
+CREATE INDEX IF NOT EXISTS idx_refreshtoken_token ON refreshtoken(token);
+CREATE INDEX IF NOT EXISTS idx_refreshtoken_expiresat ON refreshtoken(expiresat);
+
+-- Optional: Create a view to get active (non-expired) refresh tokens\
+drop view if exists activerefreshtokens; 
+CREATE OR REPLACE VIEW activerefreshtokens AS
+SELECT 
+    tokenid,
+    userid,
+    token,
+    expiresat,
+    createdat
+FROM refreshtoken
+WHERE expiresat > CURRENT_TIMESTAMP;
+
