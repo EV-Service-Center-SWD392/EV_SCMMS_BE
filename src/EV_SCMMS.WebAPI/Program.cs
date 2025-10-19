@@ -1,18 +1,17 @@
 using System.Text;
 using EV_SCMMS.Core.Application.Interfaces;
-using EV_SCMMS.Application.Interfaces;
-using EV_SCMMS.Infrastructure.Identity;
+using EV_SCMMS.Core.Application.Interfaces.Services;
 using EV_SCMMS.Infrastructure.Persistence;
 using EV_SCMMS.Infrastructure.Services;
 using EV_SCMMS.WebAPI.Middleware;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using EV_SCMMS.Core.Application.Interfaces.Services;
-using EV_SCMMS.Application.Bookings.Commands.CreateBooking;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,18 +20,24 @@ builder.Services.AddControllers();
 
 // Configure Database
 builder.Services.AddDbContext<AppDbContext>(options =>
+{
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection"),
-        b => b.MigrationsAssembly("EV_SCMMS.Infrastructure")
-    ));
+        npgsqlOptions =>
+        {
+            npgsqlOptions.MigrationsAssembly("EV_SCMMS.Infrastructure");
+            npgsqlOptions.CommandTimeout(120); // 2 minutes timeout
+            npgsqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 3,
+                maxRetryDelay: TimeSpan.FromSeconds(30),
+                errorCodesToAdd: null);
+        });
 
-// Configure Identity
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
-    {
-        options.ConfigureIdentity();
-    })
-    .AddEntityFrameworkStores<AppDbContext>()
-    .AddDefaultTokenProviders();
+    // Configure EF Core options
+    options.EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
+    options.EnableDetailedErrors(builder.Environment.IsDevelopment());
+    options.LogTo(message => Console.WriteLine(message), LogLevel.Warning);
+});
 
 // Configure JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -63,29 +68,23 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-// Configure AutoMapper
-builder.Services.AddAutoMapper(typeof(EV_SCMMS.Infrastructure.Mappings.MappingProfile).Assembly);
 
 // Register Application Services
-builder.Services.AddScoped<ITokenService, TokenService>();
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IUserService, UserService>();
-// builder.Services.AddScoped<IVehicleService, VehicleService>(); // Uncomment when implemented
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-// ===> ADDED THIS: Configure MediatR and register the new repository
-// 1. Add MediatR and tell it to scan the Application project for handlers
-builder.Services.AddMediatR(cfg => 
-    cfg.RegisterServicesFromAssembly(typeof(EV_SCMMS.Application.Bookings.Commands.CreateBooking.CreateBookingCommand).Assembly));
-
-// 2. Register the Booking Repository for Dependency Injection
-builder.Services.AddScoped<IBookingRepository, BookingRepository>();
-
+// Register Business Services for Spare Parts Management
+builder.Services.AddScoped<ICenterService, CenterService>();
+builder.Services.AddScoped<IInventoryService, InventoryService>();
+builder.Services.AddScoped<ISparepartService, SparepartService>();
+builder.Services.AddScoped<ISparepartTypeService, SparepartTypeService>();
+builder.Services.AddScoped<ISparepartForecastService, SparepartForecastService>();
+builder.Services.AddScoped<ISparepartReplenishmentRequestService, SparepartReplenishmentRequestService>();
+builder.Services.AddScoped<ISparepartUsageHistoryService, SparepartUsageHistoryService>();
 
 // Add Health Checks with PostgreSQL connection check
 builder.Services.AddHealthChecks()
     .AddNpgSql(
-        builder.Configuration.GetConnectionString("DefaultConnection") ?? 
+        builder.Configuration.GetConnectionString("DefaultConnection") ??
         throw new InvalidOperationException("DefaultConnection is not configured"),
         name: "postgresql",
         tags: new[] { "db", "postgresql", "ready" })
@@ -140,6 +139,11 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+// Add fluent validation
+
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+builder.Services.AddFluentValidationAutoValidation();
+
 // Add CORS
 builder.Services.AddCors(options =>
 {
@@ -186,55 +190,5 @@ app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.Health
 
 app.MapControllers();
 
-// Seed default roles and admin user
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    try
-    {
-        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-        var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
-
-        // Create default roles
-        string[] roleNames = { "Admin", "User", "Manager" };
-        foreach (var roleName in roleNames)
-        {
-            if (!await roleManager.RoleExistsAsync(roleName))
-            {
-                await roleManager.CreateAsync(new IdentityRole(roleName));
-            }
-        }
-
-        // Create default admin user (only if not exists)
-        var adminEmail = "admin@evscmms.com";
-        var adminUser = await userManager.FindByEmailAsync(adminEmail);
-
-        if (adminUser == null)
-        {
-            var admin = new ApplicationUser
-            {
-                UserName = "admin",
-                Email = adminEmail,
-                FullName = "System Administrator",
-                EmailConfirmed = true,
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            var result = await userManager.CreateAsync(admin, "Admin@123");
-            if (result.Succeeded)
-            {
-                await userManager.AddToRoleAsync(admin, "Admin");
-                Console.WriteLine("Default admin user created successfully");
-                Console.WriteLine($"Email: {adminEmail}");
-                Console.WriteLine("Password: Admin@123");
-            }
-        }
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"An error occurred while seeding the database: {ex.Message}");
-    }
-}
 
 app.Run();
