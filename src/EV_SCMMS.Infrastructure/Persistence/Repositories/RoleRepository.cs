@@ -22,7 +22,7 @@ public class RoleRepository : GenericRepository<Userrole>, IRoleRepository
     /// <returns>Role entity if found</returns>
     public async Task<Userrole?> GetByNameAsync(string roleName, CancellationToken cancellationToken = default)
     {
-        return await _context.Set<Userrole>()
+        return await _dbSet.Userroles
             .Where(r => r.Name.ToLower() == roleName.ToLower())
             .FirstOrDefaultAsync(cancellationToken);
     }
@@ -34,7 +34,8 @@ public class RoleRepository : GenericRepository<Userrole>, IRoleRepository
     /// <returns>List of active roles</returns>
     public async Task<IEnumerable<Userrole>> GetActiveRolesAsync(CancellationToken cancellationToken = default)
     {
-        return await _context.Set<Userrole>()
+        return await _dbSet.Userroles
+            .Where(r => r.Isactive == true)
             .ToListAsync(cancellationToken);
     }
 
@@ -45,7 +46,7 @@ public class RoleRepository : GenericRepository<Userrole>, IRoleRepository
     /// <returns>Default user role</returns>
     public async Task<Userrole?> GetDefaultUserRoleAsync(CancellationToken cancellationToken = default)
     {
-        return await _context.Set<Userrole>()
+        return await _dbSet.Userroles
             .Where(r => r.Name.ToLower() == "customer")
             .FirstOrDefaultAsync(cancellationToken);
     }

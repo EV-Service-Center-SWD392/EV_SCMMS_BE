@@ -7,8 +7,10 @@ namespace EV_SCMMS.Core.Application.Interfaces.Repositories;
 /// </summary>
 public interface IInventoryRepository : IGenericRepository<InventoryTuht>
 {
+    Task<IEnumerable<InventoryTuht>> GetAllWithProperties(CancellationToken cancellationToken = default);
     Task<IEnumerable<InventoryTuht>> GetByCenterIdAsync(Guid centerId, CancellationToken cancellationToken = default);
     Task<IEnumerable<InventoryTuht>> GetActiveInventoriesAsync(CancellationToken cancellationToken = default);
     Task<IEnumerable<InventoryTuht>> GetLowStockInventoriesAsync(CancellationToken cancellationToken = default);
     Task<IEnumerable<InventoryTuht>> GetByStatusAsync(string status, CancellationToken cancellationToken = default);
+    Task SoftDeleteAsync(Guid id);
 }

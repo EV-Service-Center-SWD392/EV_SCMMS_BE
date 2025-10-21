@@ -11,4 +11,5 @@ public interface ISparepartTypeRepository : IGenericRepository<SpareparttypeTuht
     Task<IEnumerable<SpareparttypeTuht>> GetActiveSparepartTypesAsync(CancellationToken cancellationToken = default);
     Task<IEnumerable<SpareparttypeTuht>> GetByStatusAsync(string status, CancellationToken cancellationToken = default);
     Task<bool> IsNameExistsAsync(string name, Guid? excludeId = null, CancellationToken cancellationToken = default);
+    Task SoftDeleteAsync(Guid id);
 }

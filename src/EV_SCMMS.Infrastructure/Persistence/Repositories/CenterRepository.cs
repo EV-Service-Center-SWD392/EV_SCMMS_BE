@@ -14,10 +14,16 @@ public class CenterRepository : GenericRepository<Centertuantm>, ICenterReposito
     {
     }
 
+
     public async Task<IEnumerable<Centertuantm>> GetActiveCentersAsync(CancellationToken cancellationToken = default)
     {
-        return await _dbSet
+        return await _dbSet.Centertuantms
             .Where(x => x.Isactive == true)
             .ToListAsync(cancellationToken);
+    }
+
+    public Task SoftDeleteAsync(Guid id)
+    {
+        throw new NotImplementedException();
     }
 }

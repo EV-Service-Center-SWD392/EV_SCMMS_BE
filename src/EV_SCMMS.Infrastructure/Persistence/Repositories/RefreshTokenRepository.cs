@@ -22,7 +22,7 @@ public class RefreshTokenRepository : GenericRepository<Refreshtoken>, IRefreshT
     /// <returns>Refresh token if found and not expired</returns>
     public async Task<Refreshtoken?> GetByTokenIdAsync(Guid tokenId, CancellationToken cancellationToken = default)
     {
-        return await _context.Set<Refreshtoken>()
+        return await _dbSet.Refreshtokens
             .FirstOrDefaultAsync(rt => rt.Tokenid == tokenId && rt.Expiresat > DateTime.Now, cancellationToken);
     }
 
@@ -34,7 +34,7 @@ public class RefreshTokenRepository : GenericRepository<Refreshtoken>, IRefreshT
     /// <returns>Refresh token with user if found and not expired</returns>
     public async Task<Refreshtoken?> GetByTokenIdWithUserAsync(Guid tokenId, CancellationToken cancellationToken = default)
     {
-        return await _context.Set<Refreshtoken>()
+        return await _dbSet.Refreshtokens
             .Include(rt => rt.User)
             .FirstOrDefaultAsync(rt => rt.Tokenid == tokenId && rt.Expiresat > DateTime.Now, cancellationToken);
     }
@@ -48,7 +48,7 @@ public class RefreshTokenRepository : GenericRepository<Refreshtoken>, IRefreshT
     /// <returns>Refresh token with user if found and not expired</returns>
     public async Task<Refreshtoken?> GetByTokenIdAndAccessTokenHashAsync(Guid tokenId, string accessTokenHash, CancellationToken cancellationToken = default)
     {
-        return await _context.Set<Refreshtoken>()
+        return await _dbSet.Refreshtokens
             .Include(rt => rt.User)
             .FirstOrDefaultAsync(rt => rt.Tokenid == tokenId && 
                                rt.Token == accessTokenHash && 
@@ -63,7 +63,7 @@ public class RefreshTokenRepository : GenericRepository<Refreshtoken>, IRefreshT
     /// <returns>List of user's refresh tokens</returns>
     public async Task<IEnumerable<Refreshtoken>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        return await _context.Set<Refreshtoken>()
+        return await _dbSet.Refreshtokens
             .Where(rt => rt.Userid == userId)
             .ToListAsync(cancellationToken);
     }
@@ -77,7 +77,7 @@ public class RefreshTokenRepository : GenericRepository<Refreshtoken>, IRefreshT
     /// <returns>True if valid</returns>
     public async Task<bool> ValidateAccessTokenHashAsync(Guid userId, string accessTokenHash, CancellationToken cancellationToken = default)
     {
-        return await _context.Set<Refreshtoken>()
+        return await _dbSet.Refreshtokens
             .AnyAsync(rt => rt.Userid == userId && 
                            rt.Token == accessTokenHash && 
                            rt.Expiresat > DateTime.Now, cancellationToken);
@@ -90,7 +90,7 @@ public class RefreshTokenRepository : GenericRepository<Refreshtoken>, IRefreshT
     /// <returns>List of expired tokens</returns>
     public async Task<IEnumerable<Refreshtoken>> GetExpiredTokensAsync(CancellationToken cancellationToken = default)
     {
-        return await _context.Set<Refreshtoken>()
+        return await _dbSet.Refreshtokens
             .Where(rt => rt.Expiresat <= DateTime.Now)
             .ToListAsync(cancellationToken);
     }

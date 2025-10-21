@@ -22,7 +22,7 @@ public class UserRepository : GenericRepository<Useraccount>, IUserRepository
     /// <returns>User entity if found</returns>
     public async Task<Useraccount?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
     {
-        return await _context.Set<Useraccount>()
+        return await _dbSet.Useraccounts
             .Where(u => u.Email.ToLower() == email.ToLower() && u.Isactive == true)
             .FirstOrDefaultAsync(cancellationToken);
     }
@@ -35,7 +35,7 @@ public class UserRepository : GenericRepository<Useraccount>, IUserRepository
     /// <returns>True if email exists</returns>
     public async Task<bool> EmailExistsAsync(string email, CancellationToken cancellationToken = default)
     {
-        return await _context.Set<Useraccount>()
+        return await _dbSet.Useraccounts
             .AnyAsync(u => u.Email.ToLower() == email.ToLower(), cancellationToken);
     }
 
@@ -47,7 +47,7 @@ public class UserRepository : GenericRepository<Useraccount>, IUserRepository
     /// <returns>User with role</returns>
     public async Task<Useraccount?> GetUserWithRoleAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        return await _context.Set<Useraccount>()
+        return await _dbSet.Useraccounts
             .Include(u => u.Role)
             .Where(u => u.Userid == userId && u.Isactive == true)
             .FirstOrDefaultAsync(cancellationToken);
@@ -61,7 +61,7 @@ public class UserRepository : GenericRepository<Useraccount>, IUserRepository
     /// <returns>User with role</returns>
     public async Task<Useraccount?> GetByIdWithRoleAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        return await _context.Set<Useraccount>()
+        return await _dbSet.Useraccounts
             .Include(u => u.Role)
             .Where(u => u.Userid == userId && u.Isactive == true)
             .FirstOrDefaultAsync(cancellationToken);
@@ -75,7 +75,7 @@ public class UserRepository : GenericRepository<Useraccount>, IUserRepository
     /// <returns>User with role</returns>
     public async Task<Useraccount?> GetByEmailWithRoleAsync(string email, CancellationToken cancellationToken = default)
     {
-        return await _context.Set<Useraccount>()
+        return await _dbSet.Useraccounts
             .Include(u => u.Role)
             .Where(u => u.Email.ToLower() == email.ToLower() && u.Isactive == true)
             .FirstOrDefaultAsync(cancellationToken);
@@ -83,7 +83,7 @@ public class UserRepository : GenericRepository<Useraccount>, IUserRepository
 
   public async Task<bool> PhoneExistsAsync(string phone, CancellationToken cancellationToken = default)
   {
-    return await _context.Set<Useraccount>()
+    return await _dbSet.Useraccounts
            .AnyAsync(u => u.Phonenumber == phone.ToLower(), cancellationToken);
   }
 }

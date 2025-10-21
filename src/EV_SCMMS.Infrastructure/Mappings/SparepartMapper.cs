@@ -33,7 +33,7 @@ public static class SparepartMapperExtensions
             CreatedAt = sparepart.Createdat,
             UpdatedAt = sparepart.Updatedat,
             InventoryName = null, // Will need to be loaded separately
-            TypeName = sparepart.Type?.Name
+            TypeName = null
         };
     }
 
@@ -60,17 +60,12 @@ public static class SparepartMapperExtensions
 
         return new SparepartTuht
         {
-            Sparepartid = Guid.NewGuid(),
             Vehiclemodelid = createDto.VehicleModelId,
             Inventoryid = createDto.InventoryId,
             Typeid = createDto.TypeId,
             Name = createDto.Name,
             Unitprice = createDto.UnitPrice,
-            Manufacture = createDto.Manufacturer,
-            Status = createDto.Status ?? "Active",
-            Isactive = true,
-            Createdat = DateTime.UtcNow,
-            Updatedat = null
+            Manufacture = createDto.Manufacturer
         };
     }
 

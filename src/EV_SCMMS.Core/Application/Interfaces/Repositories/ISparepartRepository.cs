@@ -16,4 +16,5 @@ public interface ISparepartRepository : IGenericRepository<SparepartTuht>
     Task<IEnumerable<SparepartTuht>> GetByStatusAsync(string status, CancellationToken cancellationToken = default);
     Task<IEnumerable<SparepartTuht>> GetByPriceRangeAsync(decimal minPrice, decimal maxPrice, CancellationToken cancellationToken = default);
     Task<bool> IsNameExistsAsync(string name, Guid? excludeId = null, CancellationToken cancellationToken = default);
+    Task SoftDeleteAsync(Guid id);
 }
