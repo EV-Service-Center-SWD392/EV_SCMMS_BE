@@ -15,7 +15,6 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Environment.IsDevelopment();
 
 // Add services to the container
 builder.Services.AddControllers();
@@ -88,19 +87,19 @@ builder.Services.AddAuthorization(options =>
         .RequireAuthenticatedUser()
         .AddRequirements(new ValidRefreshTokenRequirement())
         .Build();
-        
+
     // JwtOnly policy for token management endpoints (login, refresh, revoke)
     options.AddPolicy("JwtOnly", new AuthorizationPolicyBuilder()
         .RequireAuthenticatedUser()
         .Build());
-        
+
     // Role-based policies (still include refresh token validation by default)
     options.AddPolicy("AdminOnly", new AuthorizationPolicyBuilder()
         .RequireAuthenticatedUser()
         .RequireRole("ADMIN")
         .AddRequirements(new ValidRefreshTokenRequirement())
         .Build());
-        
+
     options.AddPolicy("TechnicianAndStaff", new AuthorizationPolicyBuilder()
         .RequireAuthenticatedUser()
         .RequireRole("TECHNICIAN", "STAFF")
@@ -200,15 +199,12 @@ var app = builder.Build();
 // app.UseMiddleware<RequestLoggingMiddleware>();
 // app.UseMiddleware<PerformanceMonitoringMiddleware>();
 
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "EV_SCMMS API V1");
-        c.RoutePrefix = string.Empty; // Set Swagger UI at app's root
-    });
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "EV_SCMMS API V1");
+    c.RoutePrefix = string.Empty; // Set Swagger UI at app's root
+});
 
 app.UseHttpsRedirection();
 
