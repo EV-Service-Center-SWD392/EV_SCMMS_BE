@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  # EV SCMMS Web API (using Supabase as external database)
+  ev_scmms_api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ev_scmms_api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5020
+      - ConnectionStrings__DefaultConnection=Host=db.sxevedgnmakrccaqsdfq.supabase.co;Database=postgres;Username=postgres;Password=Huynhthaitu1;SSL Mode=Require;Trust Server Certificate=true
+      - JwtSettings__SecretKey=YourSuperSecretKeyForJWTTokenGeneration2024!@#$$%^&*()
+      - JwtSettings__Issuer=EV_SCMMS
+      - JwtSettings__Audience=EV_SCMMS_API
+      - JwtSettings__ExpiryMinutes=60
+      - JwtSettings__RefreshTokenExpiryDays=7
+    ports:
+      - "5020:5020"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5020/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+networks:
+  default:
+    driver: bridge
