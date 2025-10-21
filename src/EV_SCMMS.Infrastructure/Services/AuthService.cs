@@ -122,27 +122,13 @@ public class AuthService : IAuthService
       // Hash password
       var hashedPassword = _passwordHashService.HashPassword(registerDto.Password);
 
-      // Create new user
-      //var newUser = new Useraccount
-      //{
-      //  Userid = Guid.NewGuid(),
-      //  Email = registerDto.Email.ToLower(),
-      //  Password = hashedPassword,
-      //  Firstname = registerDto.FirstName,
-      //  Lastname = registerDto.LastName,
-      //  Phonenumber = registerDto.PhoneNumber,
-      //  Address = registerDto.Address,
-      //  Birthday = registerDto.Birthday,
-      //  Roleid = role.Roleid,
-      //  Status = "ACTIVE",
-      //  Isactive = true
-      //};
       var newUser = registerDto.ToEntity();
       newUser.Roleid = role.Roleid;
       newUser.Password = hashedPassword;
 
       // Save user to database
       await _unitOfWork.UserRepository.AddAsync(newUser);
+      await _unitOfWork.SaveChangesAsync();
 
       // Generate tokens
       var expiresAt = _tokenService.GetTokenExpiration();
@@ -156,7 +142,7 @@ public class AuthService : IAuthService
     catch (Exception ex)
     {
       _logger?.LogError(ex, "Error during registration for email: {Email}", registerDto.Email);
-      return ServiceResult<UserDto>.Failure($"Error during registration: {ex.Message}");
+      return ServiceResult<UserDto>.Failure($"Error during registration: {ex.InnerException?.Message}");
     }
   }
 
