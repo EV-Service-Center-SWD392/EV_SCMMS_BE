@@ -196,9 +196,9 @@ var app = builder.Build();
 // Configure the HTTP request pipeline
 
 // Use custom middleware in correct order (ExceptionHandling -> Logging -> Performance)
-app.UseMiddleware<ExceptionHandlingMiddleware>();
-app.UseMiddleware<RequestLoggingMiddleware>();
-app.UseMiddleware<PerformanceMonitoringMiddleware>();
+// app.UseMiddleware<ExceptionHandlingMiddleware>();
+// app.UseMiddleware<RequestLoggingMiddleware>();
+// app.UseMiddleware<PerformanceMonitoringMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {

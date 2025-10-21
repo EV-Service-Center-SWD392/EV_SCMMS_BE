@@ -86,10 +86,6 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<Workscheduletuantm> Workscheduletuantms { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseNpgsql("User Id=postgres.sxevedgnmakrccaqsdfq;Password=Huynhthaitu1;Server=aws-1-ap-southeast-1.pooler.supabase.com;Port=6543;Database=postgres;SSL Mode=Require;Trust Server Certificate=true");
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder

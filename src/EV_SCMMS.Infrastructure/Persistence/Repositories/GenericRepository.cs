@@ -66,69 +66,14 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
         return true;
     }
 
-    public T GetById(int id)
-    {
-        var entity = _dbSet.Set<T>().Find(id);
-        if (entity != null)
-        {
-            _dbSet.Entry(entity).State = EntityState.Detached;
-        }
-
-        return entity;
-    }
-
-    public async Task<T> GetByIdAsync(int id)
+    public async Task<T?> GetByIdAsync(object id)
     {
         var entity = await _dbSet.Set<T>().FindAsync(id);
         if (entity != null)
         {
+            // Đảm bảo không bị tracking lại
             _dbSet.Entry(entity).State = EntityState.Detached;
         }
-
-        return entity;
-    }
-
-    public T GetById(string code)
-    {
-        var entity = _dbSet.Set<T>().Find(code);
-        if (entity != null)
-        {
-            _dbSet.Entry(entity).State = EntityState.Detached;
-        }
-
-        return entity;
-    }
-
-    public async Task<T> GetByIdAsync(string code)
-    {
-        var entity = await _dbSet.Set<T>().FindAsync(code);
-        if (entity != null)
-        {
-            _dbSet.Entry(entity).State = EntityState.Detached;
-        }
-
-        return entity;
-    }
-
-    public T GetById(Guid code)
-    {
-        var entity = _dbSet.Set<T>().Find(code);
-        if (entity != null)
-        {
-            _dbSet.Entry(entity).State = EntityState.Detached;
-        }
-
-        return entity;
-    }
-
-    public async Task<T> GetByIdAsync(Guid code)
-    {
-        var entity = await _dbSet.Set<T>().FindAsync(code);
-        if (entity != null)
-        {
-            _dbSet.Entry(entity).State = EntityState.Detached;
-        }
-
         return entity;
     }
 
