@@ -23,7 +23,7 @@ public class InventoryService : IInventoryService
     {
         try
         {
-            var inventories = await _unitOfWork.InventoryRepository.GetAllAsync();
+            var inventories = await _unitOfWork.InventoryRepository.GetAllWithProperties();
 
             if (inventories == null || !inventories.Any())
             {

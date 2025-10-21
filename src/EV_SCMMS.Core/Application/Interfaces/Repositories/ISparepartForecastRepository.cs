@@ -15,4 +15,5 @@ public interface ISparepartForecastRepository : IGenericRepository<Sparepartfore
     Task<IEnumerable<SparepartforecastTuht>> GetByDateRangeAsync(DateTime startDate, DateTime endDate, CancellationToken cancellationToken = default);
     Task<IEnumerable<SparepartforecastTuht>> GetPendingApprovalsAsync(CancellationToken cancellationToken = default);
     Task<IEnumerable<SparepartforecastTuht>> GetLowReorderPointForecastsAsync(CancellationToken cancellationToken = default);
+    Task SoftDeleteAsync(Guid id);
 }

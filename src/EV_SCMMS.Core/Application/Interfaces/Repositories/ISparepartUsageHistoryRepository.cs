@@ -15,4 +15,5 @@ public interface ISparepartUsageHistoryRepository : IGenericRepository<Sparepart
     Task<int> GetTotalUsageAsync(Guid sparepartId, DateTime? startDate = null, DateTime? endDate = null, CancellationToken cancellationToken = default);
     Task<IEnumerable<SparepartusagehistoryTuht>> GetUsageStatisticsAsync(Guid? centerId = null, Guid? sparepartId = null, CancellationToken cancellationToken = default);
     Task<IEnumerable<SparepartusagehistoryTuht>> GetByVehicleIdAsync(string vehicleId, CancellationToken cancellationToken = default);
+    Task SoftDeleteAsync(Guid id);
 }

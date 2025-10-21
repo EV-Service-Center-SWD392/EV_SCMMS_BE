@@ -36,7 +36,7 @@ public class RefreshTokenService : IRefreshTokenService
             Createdat = DateTime.Now
         };
 
-        await _unitOfWork.RefreshTokenRepository.Add(refreshToken);
+        await _unitOfWork.RefreshTokenRepository.AddAsync(refreshToken);
         await _unitOfWork.SaveChangesAsync();
 
         _logger.LogDebug("Refresh token created with ID: {TokenId}", refreshToken.Tokenid);
@@ -80,7 +80,7 @@ public class RefreshTokenService : IRefreshTokenService
         if (refreshToken == null)
             return false;
 
-        _unitOfWork.RefreshTokenRepository.Delete(refreshToken);
+        await _unitOfWork.RefreshTokenRepository.RemoveAsync(refreshToken);
         await _unitOfWork.SaveChangesAsync();
 
         return true;
@@ -95,7 +95,7 @@ public class RefreshTokenService : IRefreshTokenService
 
         foreach (var token in userTokens)
         {
-            _unitOfWork.RefreshTokenRepository.Delete(token);
+            await _unitOfWork.RefreshTokenRepository.RemoveAsync(token);
         }
         await _unitOfWork.SaveChangesAsync();
 
@@ -126,7 +126,7 @@ public class RefreshTokenService : IRefreshTokenService
         {
             foreach (var token in expiredTokens)
             {
-                _unitOfWork.RefreshTokenRepository.Delete(token);
+                await _unitOfWork.RefreshTokenRepository.RemoveAsync(token);
             }
             await _unitOfWork.SaveChangesAsync();
         }

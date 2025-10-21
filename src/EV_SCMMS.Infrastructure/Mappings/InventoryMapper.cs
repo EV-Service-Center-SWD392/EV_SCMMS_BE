@@ -21,15 +21,12 @@ public static class InventoryMapperExtensions
         {
             InventoryId = inventory.Inventoryid,
             CenterId = inventory.Centerid,
-            Name = null, // Not available in InventoryTuht model
-            Description = null, // Not available in InventoryTuht model
-            Location = null, // Not available in InventoryTuht model
             MinimumStockLevel = inventory.Minimumstocklevel,
             Status = inventory.Status,
             IsActive = inventory.Isactive ?? false,
             CreatedAt = inventory.Createdat,
             UpdatedAt = inventory.Updatedat,
-            CenterName = null // Remove navigation property access to prevent lazy loading
+            CenterName = null
         };
     }
 

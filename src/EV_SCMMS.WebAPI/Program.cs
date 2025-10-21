@@ -15,29 +15,44 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Environment.IsDevelopment();
+
 // Add services to the container
 builder.Services.AddControllers();
 
 // Configure Database
-builder.Services.AddDbContext<AppDbContext>(options =>
-{
-    options.UseNpgsql(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        npgsqlOptions =>
+builder.Services.AddDbContext<AppDbContext>(
+    options =>
+    {
+        // Cấu hình PostgreSQL
+        options.UseNpgsql(
+            builder.Configuration.GetConnectionString("DefaultConnection"),
+            npgsqlOptions =>
+            {
+                npgsqlOptions.MigrationsAssembly("EV_SCMMS.Infrastructure");
+                npgsqlOptions.CommandTimeout(60); // timeout 60s để tránh request treo lâu
+                npgsqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 1,
+                    maxRetryDelay: TimeSpan.FromSeconds(15),
+                    errorCodesToAdd: null);
+            });
+
+        // Logging & debugging — chỉ bật khi đang ở môi trường dev
+        if (builder.Environment.IsDevelopment())
         {
-            npgsqlOptions.MigrationsAssembly("EV_SCMMS.Infrastructure");
-            npgsqlOptions.CommandTimeout(120); // 2 minutes timeout
-            npgsqlOptions.EnableRetryOnFailure(
-                maxRetryCount: 3,
-                maxRetryDelay: TimeSpan.FromSeconds(30),
-                errorCodesToAdd: null);
-        });
-    
-    // Configure EF Core options
-    options.EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
-    options.EnableDetailedErrors(builder.Environment.IsDevelopment());
-    options.LogTo(message => Console.WriteLine(message), LogLevel.Warning);
-});
+            options.EnableSensitiveDataLogging(); // hiển thị parameter trong query
+            options.EnableDetailedErrors();       // hiển thị lỗi chi tiết
+            options.LogTo(Console.WriteLine, LogLevel.Information);
+        }
+        else
+        {
+            // Trong production chỉ log cảnh báo trở lên để tiết kiệm hiệu năng
+            options.LogTo(Console.WriteLine, LogLevel.Warning);
+        }
+    },
+    ServiceLifetime.Scoped // 🔒 Scoped để mỗi request có 1 DbContext riêng
+);
+
 
 // Configure JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");

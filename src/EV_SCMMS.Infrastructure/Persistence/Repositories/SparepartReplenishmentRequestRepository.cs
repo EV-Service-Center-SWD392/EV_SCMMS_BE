@@ -15,7 +15,7 @@ public class SparepartReplenishmentRequestRepository : GenericRepository<Sparepa
 
     public async Task<IEnumerable<Sparepartreplenishmentrequest>> GetByCenterIdAsync(Guid centerId, CancellationToken cancellationToken = default)
     {
-        return await _dbSet
+        return await _dbSet.Sparepartreplenishmentrequests
             .AsNoTracking()
             .Include(x => x.Sparepart)
             .ThenInclude(s => s!.Inventory)
@@ -25,7 +25,7 @@ public class SparepartReplenishmentRequestRepository : GenericRepository<Sparepa
 
     public async Task<IEnumerable<Sparepartreplenishmentrequest>> GetBySparepartIdAsync(Guid sparepartId, CancellationToken cancellationToken = default)
     {
-        return await _dbSet
+        return await _dbSet.Sparepartreplenishmentrequests
             .Where(x => x.Sparepartid == sparepartId && x.Isactive == true)
             .ToListAsync(cancellationToken);
     }
@@ -33,43 +33,48 @@ public class SparepartReplenishmentRequestRepository : GenericRepository<Sparepa
     public async Task<IEnumerable<Sparepartreplenishmentrequest>> GetByForecastIdAsync(Guid forecastId, CancellationToken cancellationToken = default)
     {
         // Assuming there's a relationship or foreign key - implementing as placeholder
-        return await _dbSet
-            .Where(x => x.Isactive == true)
+        return await _dbSet.Sparepartreplenishmentrequests
+            .Where(x => x.Forecastid == forecastId)
             .ToListAsync(cancellationToken);
     }
 
     public async Task<IEnumerable<Sparepartreplenishmentrequest>> GetByApprovedByAsync(Guid approvedBy, CancellationToken cancellationToken = default)
     {
-        return await _dbSet
-            .Where(x => x.Approvedby == approvedBy && x.Isactive == true)
+        return await _dbSet.Sparepartreplenishmentrequests
+            .Where(x => x.Approvedby == approvedBy)
             .ToListAsync(cancellationToken);
     }
 
     public async Task<IEnumerable<Sparepartreplenishmentrequest>> GetByStatusAsync(string status, CancellationToken cancellationToken = default)
     {
-        return await _dbSet
-            .Where(x => x.Status == status && x.Isactive == true)
+        return await _dbSet.Sparepartreplenishmentrequests
+            .Where(x => x.Status == status)
             .ToListAsync(cancellationToken);
     }
 
     public async Task<IEnumerable<Sparepartreplenishmentrequest>> GetByDateRangeAsync(DateTime startDate, DateTime endDate, CancellationToken cancellationToken = default)
     {
-        return await _dbSet
-            .Where(x => x.Createdat >= startDate && x.Createdat <= endDate && x.Isactive == true)
+        return await _dbSet.Sparepartreplenishmentrequests
+            .Where(x => x.Createdat >= startDate && x.Createdat <= endDate)
             .ToListAsync(cancellationToken);
     }
 
     public async Task<IEnumerable<Sparepartreplenishmentrequest>> GetActiveRequestsAsync(CancellationToken cancellationToken = default)
     {
-        return await _dbSet
+        return await _dbSet.Sparepartreplenishmentrequests
             .Where(x => x.Isactive == true)
             .ToListAsync(cancellationToken);
     }
 
     public async Task<IEnumerable<Sparepartreplenishmentrequest>> GetPendingRequestsAsync(CancellationToken cancellationToken = default)
     {
-        return await _dbSet
-            .Where(x => x.Status == "Pending" && x.Isactive == true)
+        return await _dbSet.Sparepartreplenishmentrequests
+            .Where(x => x.Status == "Pending")
             .ToListAsync(cancellationToken);
+    }
+
+    public Task SoftDeleteAsync(Guid id)
+    {
+        throw new NotImplementedException();
     }
 }
