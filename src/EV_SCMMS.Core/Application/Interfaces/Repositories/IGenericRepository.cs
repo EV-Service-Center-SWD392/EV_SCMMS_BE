@@ -15,6 +15,12 @@ public interface IGenericRepository<T> where T : class
     Task UpdateAsync(T entity, CancellationToken cancellationToken = default);
     Task DeleteAsync(T entity, CancellationToken cancellationToken = default);
     Task SoftDeleteAsync(Guid id, CancellationToken cancellationToken = default);
+    
+    // CRUD methods without SaveChanges
+    Task<T> Add(T entity, CancellationToken cancellationToken = default);
+    void Update(T entity);
+    void Delete(T entity);
+    Task SoftDelete(Guid id, CancellationToken cancellationToken = default);
     Task<int> CountAsync(Expression<Func<T, bool>>? predicate = null, CancellationToken cancellationToken = default);
     Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default);
 }

@@ -54,6 +54,11 @@ public interface IUnitOfWork : IDisposable
     ISparepartUsageHistoryRepository SparepartUsageHistoryRepository { get; }
 
     /// <summary>
+    /// Refresh Token repository
+    /// </summary>
+    IRefreshTokenRepository RefreshTokenRepository { get; }
+
+    /// <summary>
     /// Refresh Token service
     /// </summary>
     IRefreshTokenService RefreshTokenService { get; }

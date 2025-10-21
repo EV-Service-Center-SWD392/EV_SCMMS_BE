@@ -73,7 +73,6 @@ public class InventoryService : IInventoryService
             var inventory = createDto.ToEntity();
 
             var createdInventory = await _unitOfWork.InventoryRepository.AddAsync(inventory);
-            await _unitOfWork.SaveChangesAsync();
 
             var inventoryDto = createdInventory.ToDto();
             return ServiceResult<InventoryDto>.Success(inventoryDto, "Inventory created successfully");
@@ -97,7 +96,6 @@ public class InventoryService : IInventoryService
             inventory.UpdateFromDto(updateDto);
 
             await _unitOfWork.InventoryRepository.UpdateAsync(inventory);
-            await _unitOfWork.SaveChangesAsync();
 
             var inventoryDto = inventory.ToDto();
             return ServiceResult<InventoryDto>.Success(inventoryDto, "Inventory updated successfully");

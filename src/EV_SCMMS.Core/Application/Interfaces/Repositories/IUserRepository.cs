@@ -5,7 +5,7 @@ namespace EV_SCMMS.Core.Application.Interfaces.Repositories;
 /// <summary>
 /// Repository interface for User entity operations
 /// </summary>
-public interface IUserRepository : IGenericRepository<User>
+public interface IUserRepository : IGenericRepository<Useraccount>
 {
     /// <summary>
     /// Get user by email address
@@ -13,7 +13,7 @@ public interface IUserRepository : IGenericRepository<User>
     /// <param name="email">User email</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>User entity if found</returns>
-    Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
+    Task<Useraccount?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Check if email already exists
@@ -30,7 +30,7 @@ public interface IUserRepository : IGenericRepository<User>
     /// <param name="userId">User ID</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>User with role</returns>
-  Task<User?> GetUserWithRoleAsync(Guid userId, CancellationToken cancellationToken = default);
+  Task<Useraccount?> GetUserWithRoleAsync(Guid userId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Get user by ID with role information
@@ -38,7 +38,7 @@ public interface IUserRepository : IGenericRepository<User>
     /// <param name="userId">User ID</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>User with role</returns>
-    Task<User?> GetByIdWithRoleAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<Useraccount?> GetByIdWithRoleAsync(Guid userId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Get user by email with role information
@@ -46,5 +46,5 @@ public interface IUserRepository : IGenericRepository<User>
     /// <param name="email">User email</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>User with role</returns>
-    Task<User?> GetByEmailWithRoleAsync(string email, CancellationToken cancellationToken = default);
+    Task<Useraccount?> GetByEmailWithRoleAsync(string email, CancellationToken cancellationToken = default);
 }

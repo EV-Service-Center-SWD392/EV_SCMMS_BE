@@ -50,7 +50,6 @@ public class CenterService : ICenterService
             var center = createDto.ToEntity();
 
             var createdCenter = await _unitOfWork.CenterRepository.AddAsync(center);
-            await _unitOfWork.SaveChangesAsync();
 
             var centerDto = createdCenter.ToDto();
             return ServiceResult<CenterDto>.Success(centerDto, "Center created successfully");
@@ -101,7 +100,6 @@ public class CenterService : ICenterService
             }
 
             await _unitOfWork.CenterRepository.SoftDeleteAsync(id);
-            await _unitOfWork.SaveChangesAsync();
 
             return ServiceResult<bool>.Success(true, "Center deleted successfully");
         }

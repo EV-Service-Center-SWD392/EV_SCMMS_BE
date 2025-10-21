@@ -87,7 +87,6 @@ public class SparepartForecastService : ISparepartForecastService
             forecast.Isactive = true;
 
             var createdForecast = await _unitOfWork.SparepartForecastRepository.AddAsync(forecast);
-            await _unitOfWork.SaveChangesAsync();
 
             var forecastDto = createdForecast.ToDto();
             return ServiceResult<SparepartForecastDto>.Success(forecastDto, "Sparepart forecast created successfully");
@@ -126,7 +125,6 @@ public class SparepartForecastService : ISparepartForecastService
             forecast.Updatedat = DateTime.UtcNow;
 
             await _unitOfWork.SparepartForecastRepository.UpdateAsync(forecast);
-            await _unitOfWork.SaveChangesAsync();
 
             var forecastDto = forecast.ToDto();
             return ServiceResult<SparepartForecastDto>.Success(forecastDto, "Sparepart forecast updated successfully");
@@ -148,7 +146,6 @@ public class SparepartForecastService : ISparepartForecastService
             }
 
             await _unitOfWork.SparepartForecastRepository.SoftDeleteAsync(id);
-            await _unitOfWork.SaveChangesAsync();
 
             return ServiceResult<bool>.Success(true, "Sparepart forecast deleted successfully");
         }
@@ -220,7 +217,6 @@ public class SparepartForecastService : ISparepartForecastService
             forecast.Updatedat = DateTime.UtcNow;
 
             await _unitOfWork.SparepartForecastRepository.UpdateAsync(forecast);
-            await _unitOfWork.SaveChangesAsync();
 
             var forecastDto = forecast.ToDto();
             return ServiceResult<SparepartForecastDto>.Success(forecastDto, "Sparepart forecast approved successfully");

@@ -11,6 +11,8 @@ public partial class SparepartusagehistoryTuht
 
     public Guid Centerid { get; set; }
 
+    public Guid? Ordersparepartid { get; set; }
+
     public int Quantityused { get; set; }
 
     public DateTime? Useddate { get; set; }
@@ -23,7 +25,9 @@ public partial class SparepartusagehistoryTuht
 
     public DateTime? Updatedat { get; set; }
 
-    public virtual Center Center { get; set; } = null!;
+    public virtual Centertuantm Center { get; set; } = null!;
+
+    public virtual Ordersparepart? Ordersparepart { get; set; }
 
     public virtual SparepartTuht Sparepart { get; set; } = null!;
 }

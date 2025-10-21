@@ -13,7 +13,7 @@ public static class CenterMapperExtensions
     /// </summary>
     /// <param name="center">Center entity</param>
     /// <returns>CenterDto</returns>
-    public static CenterDto ToDto(this Center center)
+    public static CenterDto ToDto(this Centertuantm center)
     {
         if (center == null) return null;
 
@@ -36,7 +36,7 @@ public static class CenterMapperExtensions
     /// </summary>
     /// <param name="centers">List of Center entities</param>
     /// <returns>List of CenterDto</returns>
-    public static List<CenterDto> ToDto(this IEnumerable<Center> centers)
+    public static List<CenterDto> ToDto(this IEnumerable<Centertuantm> centers)
     {
         if (centers == null) return new List<CenterDto>();
         
@@ -48,11 +48,11 @@ public static class CenterMapperExtensions
     /// </summary>
     /// <param name="createDto">CreateCenterDto</param>
     /// <returns>Center entity</returns>
-    public static Center ToEntity(this CreateCenterDto createDto)
+    public static Centertuantm ToEntity(this CreateCenterDto createDto)
     {
         if (createDto == null) return null;
 
-        return new Center
+        return new Centertuantm
         {
             Centerid = Guid.NewGuid(),
             Name = createDto.Name,
@@ -69,7 +69,7 @@ public static class CenterMapperExtensions
     /// </summary>
     /// <param name="entity">Existing Center entity</param>
     /// <param name="updateDto">UpdateCenterDto</param>
-    public static void UpdateFromDto(this Center entity, UpdateCenterDto updateDto)
+    public static void UpdateFromDto(this Centertuantm entity, UpdateCenterDto updateDto)
     {
         if (entity == null || updateDto == null) return;
 
