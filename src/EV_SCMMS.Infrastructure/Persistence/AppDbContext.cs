@@ -32,7 +32,15 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<Checklistresponsethaontt> Checklistresponsethaontts { get; set; }
 
-    public virtual DbSet<InventoryTuht> InventoryTuhts { get; set; }
+    public virtual DbSet<ChecklistItemThaoNtt> ChecklistItemThaoNtts { get; set; }
+
+    public virtual DbSet<ChecklistResponseThaoNtt> ChecklistResponseThaoNtts { get; set; }
+
+    public virtual DbSet<InventoryTuHt> InventoryTuHts { get; set; }
+
+    public virtual DbSet<OrderServiceThaoNtt> OrderServiceThaoNtts { get; set; }
+
+    public virtual DbSet<OrderThaoNtt> OrderThaoNtts { get; set; }
 
     public virtual DbSet<Maintenancehistorydungvm> Maintenancehistorydungvms { get; set; }
 
@@ -58,13 +66,13 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<SparepartTuht> SparepartTuhts { get; set; }
 
-    public virtual DbSet<SparepartforecastTuht> SparepartforecastTuhts { get; set; }
+    public virtual DbSet<ServiceIntakeThaoNtt> ServiceIntakeThaoNtts { get; set; }
 
-    public virtual DbSet<Sparepartreplenishmentrequest> Sparepartreplenishmentrequests { get; set; }
+    public virtual DbSet<SparePartForecastTuHt> SparePartForecastTuHts { get; set; }
 
-    public virtual DbSet<SpareparttypeTuht> SpareparttypeTuhts { get; set; }
+    public virtual DbSet<SparePartReplenishmentRequest> SparePartReplenishmentRequests { get; set; }
 
-    public virtual DbSet<SparepartusagehistoryTuht> SparepartusagehistoryTuhts { get; set; }
+    public virtual DbSet<SparePartTuHt> SparePartTuHts { get; set; }
 
     public virtual DbSet<Useraccount> Useraccounts { get; set; }
 
@@ -263,7 +271,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Updatedat)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp without time zone")
-                .HasColumnName("updatedat");
+                .HasColumnName("updatedAt");
 
             entity.HasOne(d => d.Booking).WithMany(p => p.Bookingstatusloghuykts)
                 .HasForeignKey(d => d.Bookingid)
@@ -367,7 +375,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Updatedat)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp without time zone")
-                .HasColumnName("updatedat");
+                .HasColumnName("updatedAt");
         });
 
         modelBuilder.Entity<Checklistresponsethaontt>(entity =>
@@ -1166,9 +1174,9 @@ public partial class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("sparepartusagehistory_tuht_ordersparepartid_fkey");
 
-            entity.HasOne(d => d.Sparepart).WithMany(p => p.SparepartusagehistoryTuhts)
-                .HasForeignKey(d => d.Sparepartid)
-                .HasConstraintName("sparepartusagehistory_tuht_sparepartid_fkey");
+            entity.HasOne(d => d.Order).WithOne(p => p.WorkOrderApprovalThaoNtt)
+                .HasForeignKey<WorkOrderApprovalThaoNtt>(d => d.OrderId)
+                .HasConstraintName("WorkOrderApprovalThaoNTT_OrderId_fkey");
         });
 
         modelBuilder.Entity<Useraccount>(entity =>
