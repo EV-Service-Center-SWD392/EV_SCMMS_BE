@@ -78,5 +78,32 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
         return await _dbSet.AnyAsync(predicate, cancellationToken);
     }
 
+    // CRUD methods without SaveChanges
+    public virtual async Task<T> Add(T entity, CancellationToken cancellationToken = default)
+    {
+        await _dbSet.AddAsync(entity, cancellationToken);
+        return entity;
+    }
+
+    public virtual void Update(T entity)
+    {
+        _dbSet.Update(entity);
+    }
+
+    public virtual void Delete(T entity)
+    {
+        _dbSet.Remove(entity);
+    }
+
+    public virtual async Task SoftDelete(Guid id, CancellationToken cancellationToken = default)
+    {
+        var entity = await GetByIdAsync(id, cancellationToken);
+        if (entity != null)
+        {
+            // Basic soft delete - specific logic should be in concrete repository
+            Delete(entity);
+        }
+    }
+
     // Removed HasProperty method as we now use EF.Property directly
 }

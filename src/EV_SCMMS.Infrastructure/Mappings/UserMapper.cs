@@ -14,7 +14,7 @@ public static class UserMapper
     /// </summary>
     /// <param name="user">User entity</param>
     /// <returns>UserDto</returns>
-    public static UserDto ToDto(this User user)
+    public static UserDto ToDto(this Useraccount user)
     {
         return new UserDto
         {
@@ -24,11 +24,8 @@ public static class UserMapper
             LastName = user.Lastname,
             PhoneNumber = user.Phonenumber,
             Address = user.Address,
-            Birthday = user.Birthday,
             RoleId = user.Roleid,
-            RoleName = user.Role?.Name ?? string.Empty,
-            Status = user.Status,
-            IsActive = user.Isactive,
+            RoleName = user.Role?.Name ?? string.Empty
         };
     }
 
@@ -37,7 +34,7 @@ public static class UserMapper
     /// </summary>
     /// <param name="users">List of User entities</param>
     /// <returns>List of UserDto</returns>
-    public static List<UserDto> ToDto(this IEnumerable<User> users)
+    public static List<UserDto> ToDto(this IEnumerable<Useraccount> users)
     {
         return users.Select(user => user.ToDto()).ToList();
     }
@@ -47,19 +44,15 @@ public static class UserMapper
     /// </summary>
     /// <param name="registerDto">RegisterDto</param>
     /// <returns>User entity</returns>
-    public static User ToEntity(this RegisterDto registerDto)
+    public static Useraccount ToEntity(this RegisterDto registerDto)
     {
-        return new User
+        return new Useraccount
         {
-            Userid = Guid.NewGuid(),
             Email = registerDto.Email.ToLower(),
             Firstname = registerDto.FirstName,
             Lastname = registerDto.LastName,
             Phonenumber = registerDto.PhoneNumber,
-            Address = registerDto.Address,
-            Birthday = registerDto.Birthday,
-            Status = "ACTIVE",
-            Isactive = true
+            Address = registerDto.Address
         };
     }
 
@@ -68,14 +61,13 @@ public static class UserMapper
     /// </summary>
     /// <param name="user">User entity to update</param>
     /// <param name="registerDto">RegisterDto with new data</param>
-    public static void UpdateFromDto(this User user, RegisterDto registerDto)
+    public static void UpdateFromDto(this Useraccount user, RegisterDto registerDto)
     {
         user.Email = registerDto.Email.ToLower();
         user.Firstname = registerDto.FirstName;
         user.Lastname = registerDto.LastName;
         user.Phonenumber = registerDto.PhoneNumber;
         user.Address = registerDto.Address;
-        user.Birthday = registerDto.Birthday;
     }
 
   /// <summary>
@@ -83,19 +75,15 @@ public static class UserMapper
   /// </summary>
   /// <param name="user">User entity to update</param>
   /// <param name="registerDto">RegisterDto with new data</param>
-  public static User CreateStaffToEntity(this CreateStaffDto registerDto)
+  public static Useraccount CreateStaffToEntity(this CreateStaffDto registerDto)
   {
-    return new User
+    return new Useraccount
     {
-      Userid = Guid.NewGuid(),
       Email = registerDto.Email.ToLower(),
       Firstname = registerDto.FirstName,
       Lastname = registerDto.LastName,
       Phonenumber = registerDto.PhoneNumber,
-      Address = registerDto.Address,
-      Birthday = registerDto.Birthday,
-      Status = "ACTIVE",
-      Isactive = true
+      Address = registerDto.Address
     };
   }
 }

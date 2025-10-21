@@ -3,15 +3,15 @@ using System.Collections.Generic;
 
 namespace EV_SCMMS.Core.Domain.Models;
 
-public partial class InventoryTuht
+public partial class Vehiclemodel
 {
-    public Guid Inventoryid { get; set; }
+    public int Modelid { get; set; }
 
-    public Guid Centerid { get; set; }
+    public string Name { get; set; } = null!;
 
-    public int? Quantity { get; set; }
+    public string? Brand { get; set; }
 
-    public int? Minimumstocklevel { get; set; }
+    public string? Enginetype { get; set; }
 
     public string? Status { get; set; }
 
@@ -21,7 +21,7 @@ public partial class InventoryTuht
 
     public DateTime? Updatedat { get; set; }
 
-    public virtual Centertuantm Center { get; set; } = null!;
-
     public virtual ICollection<SparepartTuht> SparepartTuhts { get; set; } = new List<SparepartTuht>();
+
+    public virtual ICollection<Vehicle> Vehicles { get; set; } = new List<Vehicle>();
 }

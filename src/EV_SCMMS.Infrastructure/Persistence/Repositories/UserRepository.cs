@@ -8,7 +8,7 @@ namespace EV_SCMMS.Infrastructure.Persistence.Repositories;
 /// <summary>
 /// Repository implementation for User entity
 /// </summary>
-public class UserRepository : GenericRepository<User>, IUserRepository
+public class UserRepository : GenericRepository<Useraccount>, IUserRepository
 {
     public UserRepository(AppDbContext context) : base(context)
     {
@@ -20,9 +20,9 @@ public class UserRepository : GenericRepository<User>, IUserRepository
     /// <param name="email">User email</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>User entity if found</returns>
-    public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
+    public async Task<Useraccount?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
     {
-        return await _context.Set<User>()
+        return await _context.Set<Useraccount>()
             .Where(u => u.Email.ToLower() == email.ToLower() && u.Isactive == true)
             .FirstOrDefaultAsync(cancellationToken);
     }
@@ -35,7 +35,7 @@ public class UserRepository : GenericRepository<User>, IUserRepository
     /// <returns>True if email exists</returns>
     public async Task<bool> EmailExistsAsync(string email, CancellationToken cancellationToken = default)
     {
-        return await _context.Set<User>()
+        return await _context.Set<Useraccount>()
             .AnyAsync(u => u.Email.ToLower() == email.ToLower(), cancellationToken);
     }
 
@@ -45,9 +45,9 @@ public class UserRepository : GenericRepository<User>, IUserRepository
     /// <param name="userId">User ID</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>User with role</returns>
-    public async Task<User?> GetUserWithRoleAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<Useraccount?> GetUserWithRoleAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        return await _context.Set<User>()
+        return await _context.Set<Useraccount>()
             .Include(u => u.Role)
             .Where(u => u.Userid == userId && u.Isactive == true)
             .FirstOrDefaultAsync(cancellationToken);
@@ -59,9 +59,9 @@ public class UserRepository : GenericRepository<User>, IUserRepository
     /// <param name="userId">User ID</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>User with role</returns>
-    public async Task<User?> GetByIdWithRoleAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<Useraccount?> GetByIdWithRoleAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        return await _context.Set<User>()
+        return await _context.Set<Useraccount>()
             .Include(u => u.Role)
             .Where(u => u.Userid == userId && u.Isactive == true)
             .FirstOrDefaultAsync(cancellationToken);
@@ -73,9 +73,9 @@ public class UserRepository : GenericRepository<User>, IUserRepository
     /// <param name="email">User email</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>User with role</returns>
-    public async Task<User?> GetByEmailWithRoleAsync(string email, CancellationToken cancellationToken = default)
+    public async Task<Useraccount?> GetByEmailWithRoleAsync(string email, CancellationToken cancellationToken = default)
     {
-        return await _context.Set<User>()
+        return await _context.Set<Useraccount>()
             .Include(u => u.Role)
             .Where(u => u.Email.ToLower() == email.ToLower() && u.Isactive == true)
             .FirstOrDefaultAsync(cancellationToken);
@@ -83,7 +83,7 @@ public class UserRepository : GenericRepository<User>, IUserRepository
 
   public async Task<bool> PhoneExistsAsync(string phone, CancellationToken cancellationToken = default)
   {
-    return await _context.Set<User>()
+    return await _context.Set<Useraccount>()
            .AnyAsync(u => u.Phonenumber == phone.ToLower(), cancellationToken);
   }
 }

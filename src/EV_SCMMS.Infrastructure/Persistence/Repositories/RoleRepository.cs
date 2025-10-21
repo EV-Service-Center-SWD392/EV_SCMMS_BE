@@ -8,7 +8,7 @@ namespace EV_SCMMS.Infrastructure.Persistence.Repositories;
 /// <summary>
 /// Repository implementation for Role entity
 /// </summary>
-public class RoleRepository : GenericRepository<Role>, IRoleRepository
+public class RoleRepository : GenericRepository<Userrole>, IRoleRepository
 {
     public RoleRepository(AppDbContext context) : base(context)
     {
@@ -20,9 +20,9 @@ public class RoleRepository : GenericRepository<Role>, IRoleRepository
     /// <param name="roleName">Role name</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Role entity if found</returns>
-    public async Task<Role?> GetByNameAsync(string roleName, CancellationToken cancellationToken = default)
+    public async Task<Userrole?> GetByNameAsync(string roleName, CancellationToken cancellationToken = default)
     {
-        return await _context.Set<Role>()
+        return await _context.Set<Userrole>()
             .Where(r => r.Name.ToLower() == roleName.ToLower())
             .FirstOrDefaultAsync(cancellationToken);
     }
@@ -32,9 +32,9 @@ public class RoleRepository : GenericRepository<Role>, IRoleRepository
     /// </summary>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>List of active roles</returns>
-    public async Task<IEnumerable<Role>> GetActiveRolesAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Userrole>> GetActiveRolesAsync(CancellationToken cancellationToken = default)
     {
-        return await _context.Set<Role>()
+        return await _context.Set<Userrole>()
             .ToListAsync(cancellationToken);
     }
 
@@ -43,9 +43,9 @@ public class RoleRepository : GenericRepository<Role>, IRoleRepository
     /// </summary>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Default user role</returns>
-    public async Task<Role?> GetDefaultUserRoleAsync(CancellationToken cancellationToken = default)
+    public async Task<Userrole?> GetDefaultUserRoleAsync(CancellationToken cancellationToken = default)
     {
-        return await _context.Set<Role>()
+        return await _context.Set<Userrole>()
             .Where(r => r.Name.ToLower() == "customer")
             .FirstOrDefaultAsync(cancellationToken);
     }

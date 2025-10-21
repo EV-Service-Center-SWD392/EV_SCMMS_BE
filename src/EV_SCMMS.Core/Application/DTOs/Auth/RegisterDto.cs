@@ -54,11 +54,4 @@ public class RegisterDto
     /// </summary>
     [MaxLength(256, ErrorMessage = "Address cannot exceed 256 characters")]
     public string? Address { get; set; }
-
-    /// <summary>
-    /// User birthday
-    /// </summary>
-    public DateOnly? Birthday { get; set; }
-
-
 }

@@ -82,7 +82,6 @@ public class SparepartUsageHistoryService : ISparepartUsageHistoryService
             usageHistory.Isactive = true;
 
             var createdUsageHistory = await _unitOfWork.SparepartUsageHistoryRepository.AddAsync(usageHistory);
-            await _unitOfWork.SaveChangesAsync();
 
             var usageHistoryDto = createdUsageHistory.ToDto();
             return ServiceResult<SparepartUsageHistoryDto>.Success(usageHistoryDto, "Usage history created successfully");
@@ -121,7 +120,6 @@ public class SparepartUsageHistoryService : ISparepartUsageHistoryService
             usageHistory.Updatedat = DateTime.UtcNow;
 
             await _unitOfWork.SparepartUsageHistoryRepository.UpdateAsync(usageHistory);
-            await _unitOfWork.SaveChangesAsync();
 
             var usageHistoryDto = usageHistory.ToDto();
             return ServiceResult<SparepartUsageHistoryDto>.Success(usageHistoryDto, "Usage history updated successfully");

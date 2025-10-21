@@ -74,7 +74,6 @@ public class SparepartTypeService : ISparepartTypeService
             sparepartType.Isactive = true;
 
             var createdSparepartType = await _unitOfWork.SparepartTypeRepository.AddAsync(sparepartType);
-            await _unitOfWork.SaveChangesAsync();
 
             var sparepartTypeDto = createdSparepartType.ToDto();
             return ServiceResult<SparepartTypeDto>.Success(sparepartTypeDto, "Sparepart type created successfully");
@@ -105,7 +104,6 @@ public class SparepartTypeService : ISparepartTypeService
             sparepartType.Updatedat = DateTime.UtcNow;
 
             await _unitOfWork.SparepartTypeRepository.UpdateAsync(sparepartType);
-            await _unitOfWork.SaveChangesAsync();
 
             var sparepartTypeDto = sparepartType.ToDto();
             return ServiceResult<SparepartTypeDto>.Success(sparepartTypeDto, "Sparepart type updated successfully");

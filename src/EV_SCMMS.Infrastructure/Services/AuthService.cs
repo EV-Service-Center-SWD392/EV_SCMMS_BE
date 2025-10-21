@@ -45,14 +45,14 @@ public class AuthService : IAuthService
 
       if (user == null)
       {
-        _logger?.LogWarning("Login attempt failed for email: {Email} - User not found", loginDto.Email);
+        _logger?.LogWarning("Login attempt failed for email: {Email} - Useraccount not found", loginDto.Email);
         return ServiceResult<AuthResultDto>.Failure("Invalid email or password");
       }
 
       if (user.Isactive != true)
       {
-        _logger?.LogWarning("Login attempt failed for email: {Email} - User is inactive", loginDto.Email);
-        return ServiceResult<AuthResultDto>.Failure("User account is inactive");
+        _logger?.LogWarning("Login attempt failed for email: {Email} - Useraccount is inactive", loginDto.Email);
+        return ServiceResult<AuthResultDto>.Failure("Useraccount account is inactive");
       }
 
       // Verify password
@@ -79,7 +79,7 @@ public class AuthService : IAuthService
         ExpiresAt = expiresAt
       };
 
-      _logger?.LogInformation("User logged in successfully: {Email}", loginDto.Email);
+      _logger?.LogInformation("Useraccount logged in successfully: {Email}", loginDto.Email);
       return ServiceResult<AuthResultDto>.Success(authResult, "Login successful");
     }
     catch (Exception ex)
@@ -123,7 +123,7 @@ public class AuthService : IAuthService
       var hashedPassword = _passwordHashService.HashPassword(registerDto.Password);
 
       // Create new user
-      //var newUser = new User
+      //var newUser = new Useraccount
       //{
       //  Userid = Guid.NewGuid(),
       //  Email = registerDto.Email.ToLower(),
@@ -143,7 +143,6 @@ public class AuthService : IAuthService
 
       // Save user to database
       await _unitOfWork.UserRepository.AddAsync(newUser);
-      await _unitOfWork.SaveChangesAsync();
 
       // Generate tokens
       var expiresAt = _tokenService.GetTokenExpiration();
@@ -151,7 +150,7 @@ public class AuthService : IAuthService
       // Create auth result
 
         var authResult = newUser.ToDto();
-      _logger?.LogInformation("User registered successfully: {Email}", registerDto.Email);
+      _logger?.LogInformation("Useraccount registered successfully: {Email}", registerDto.Email);
       return ServiceResult<UserDto>.Success(authResult, "Registration successful");
     }
     catch (Exception ex)
@@ -196,7 +195,6 @@ public class AuthService : IAuthService
       newUser.Password = hashedPassword;
       // Save user to database
       await _unitOfWork.UserRepository.AddAsync(newUser);
-      await _unitOfWork.SaveChangesAsync();
 
       // Generate tokens
       var expiresAt = _tokenService.GetTokenExpiration();
@@ -236,9 +234,9 @@ public class AuthService : IAuthService
       
       if (user == null || user.Isactive != true)
       {
-        _logger?.LogWarning("User not found or inactive for refresh token: {UserId}", refreshTokenEntity.Userid);
+        _logger?.LogWarning("Useraccount not found or inactive for refresh token: {UserId}", refreshTokenEntity.Userid);
         await _unitOfWork.RefreshTokenService.RevokeRefreshTokenAsync(refreshToken);
-        return ServiceResult<AuthResultDto>.Failure("User account is not active");
+        return ServiceResult<AuthResultDto>.Failure("Useraccount account is not active");
       }
 
       // Generate new tokens
@@ -301,7 +299,7 @@ public class AuthService : IAuthService
   /// <summary>
   /// Revoke all refresh tokens for a user
   /// </summary>
-  /// <param name="userId">User ID</param>
+  /// <param name="userId">Useraccount ID</param>
   /// <returns>Success status</returns>
   public async Task<IServiceResult<bool>> RevokeAllUserTokensAsync(Guid userId)
   {

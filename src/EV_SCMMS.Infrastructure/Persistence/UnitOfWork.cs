@@ -29,6 +29,7 @@ public class UnitOfWork : IUnitOfWork
     private ISparepartForecastRepository? _sparepartForecastRepository;
     private ISparepartReplenishmentRequestRepository? _sparepartReplenishmentRequestRepository;
     private ISparepartUsageHistoryRepository? _sparepartUsageHistoryRepository;
+    private IRefreshTokenRepository? _refreshTokenRepository;
     
     // Service instances
     private IRefreshTokenService? _refreshTokenService;
@@ -121,11 +122,20 @@ public class UnitOfWork : IUnitOfWork
         }
     }
 
+    public IRefreshTokenRepository RefreshTokenRepository
+    {
+        get
+        {
+            _refreshTokenRepository ??= new RefreshTokenRepository(_context);
+            return _refreshTokenRepository;
+        }
+    }
+
     public IRefreshTokenService RefreshTokenService
     {
         get
         {
-            _refreshTokenService ??= new RefreshTokenService(_context, _configuration, _loggerFactory.CreateLogger<RefreshTokenService>());
+            _refreshTokenService ??= new RefreshTokenService(this, _configuration, _loggerFactory.CreateLogger<RefreshTokenService>());
             return _refreshTokenService;
         }
     }

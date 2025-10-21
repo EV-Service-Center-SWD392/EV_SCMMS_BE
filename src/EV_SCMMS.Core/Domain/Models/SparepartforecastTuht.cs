@@ -29,12 +29,13 @@ public partial class SparepartforecastTuht
 
     public string? Status { get; set; }
 
+    public bool? Isactive { get; set; }
+
     public DateTime? Createdat { get; set; }
 
     public DateTime? Updatedat { get; set; }
-    public bool? Isactive { get; set; }
 
-    public virtual Center Center { get; set; } = null!;
+    public virtual Centertuantm Center { get; set; } = null!;
 
     public virtual SparepartTuht Sparepart { get; set; } = null!;
 
