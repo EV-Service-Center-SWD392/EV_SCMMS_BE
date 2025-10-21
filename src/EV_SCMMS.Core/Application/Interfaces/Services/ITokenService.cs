@@ -1,3 +1,5 @@
+using System.Security.Claims;
+
 namespace EV_SCMMS.Core.Application.Interfaces.Services;
 
 /// <summary>
@@ -5,7 +7,38 @@ namespace EV_SCMMS.Core.Application.Interfaces.Services;
 /// </summary>
 public interface ITokenService
 {
-    string GenerateAccessToken(string userId, string username, string email, IEnumerable<string> roles);
+    /// <summary>
+    /// Generate JWT access token
+    /// </summary>
+    /// <param name="userId">User ID</param>
+    /// <param name="email">User email</param>
+    /// <param name="role">User role</param>
+    /// <returns>JWT token</returns>
+    string GenerateAccessToken(Guid userId, string email, string role);
+
+    /// <summary>
+    /// Generate refresh token
+    /// </summary>
+    /// <returns>Refresh token</returns>
     string GenerateRefreshToken();
-    DateTime GetTokenExpiryTime();
+
+    /// <summary>
+    /// Get principal from expired token
+    /// </summary>
+    /// <param name="token">Expired JWT token</param>
+    /// <returns>Claims principal</returns>
+    ClaimsPrincipal? GetPrincipalFromExpiredToken(string token);
+
+    /// <summary>
+    /// Validate token
+    /// </summary>
+    /// <param name="token">JWT token to validate</param>
+    /// <returns>True if valid</returns>
+    bool ValidateToken(string token);
+
+    /// <summary>
+    /// Get token expiration time
+    /// </summary>
+    /// <returns>Token expiration datetime</returns>
+    DateTime GetTokenExpiration();
 }

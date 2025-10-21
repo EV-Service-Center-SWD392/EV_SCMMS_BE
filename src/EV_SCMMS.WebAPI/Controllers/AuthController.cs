@@ -1,12 +1,17 @@
-using EV_SCMMS.Core.Application.DTOs;
+using EV_SCMMS.Core.Application.DTOs.Auth;
 using EV_SCMMS.Core.Application.Interfaces.Services;
+using EV_SCMMS.Core.Domain.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EV_SCMMS.WebAPI.Controllers;
 
+/// <summary>
+/// Authentication controller for login, register, and token management
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Produces("application/json")]
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
@@ -19,150 +24,245 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Register a new user
+    /// Authenticate user with email and password
     /// </summary>
-    /// <param name="registerDto">Registration data</param>
-    /// <param name="cancellationToken">Cancellation token</param>
+    /// <param name="loginDto">Login credentials containing email and password</param>
     /// <returns>Authentication result with JWT token</returns>
-    [HttpPost("register")]
-    [AllowAnonymous]
-    public async Task<IActionResult> Register([FromBody] RegisterDto registerDto, CancellationToken cancellationToken)
-    {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
-        var result = await _authService.RegisterAsync(registerDto, cancellationToken);
-
-        if (!result.IsSuccess)
-            return BadRequest(new { message = result.Message, errors = result.Errors });
-
-        return Ok(new { message = result.Message, data = result.Data });
-    }
-
-    /// <summary>
-    /// Login user
-    /// </summary>
-    /// <param name="loginDto">Login credentials</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Authentication result with JWT token</returns>
+    /// <response code="200">Login successful</response>
+    /// <response code="400">Invalid login credentials</response>
+    /// <response code="401">Authentication failed</response>
     [HttpPost("login")]
     [AllowAnonymous]
-    public async Task<IActionResult> Login([FromBody] LoginDto loginDto, CancellationToken cancellationToken)
+    [ProducesResponseType(typeof(AuthResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> LoginAsync([FromBody] LoginDto loginDto)
     {
         if (!ModelState.IsValid)
+        {
             return BadRequest(ModelState);
+        }
 
-        var result = await _authService.LoginAsync(loginDto, cancellationToken);
+        var result = await _authService.LoginAsync(loginDto);
+        
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("User logged in successfully: {Email}", loginDto.Email);
+            return Ok(result);
+        }
 
-        if (!result.IsSuccess)
-            return Unauthorized(new { message = result.Message, errors = result.Errors });
-
-        return Ok(new { message = result.Message, data = result.Data });
+        _logger.LogWarning("Login failed for user: {Email} - {Error}", loginDto.Email, result.Message);
+        return Unauthorized(result);
     }
 
     /// <summary>
-    /// Refresh access token
+    /// Register a new user account
     /// </summary>
-    /// <param name="refreshTokenDto">Refresh token data</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>New authentication tokens</returns>
+    /// <param name="registerDto">Registration data including user details and credentials</param>
+    /// <returns>Authentication result with JWT token for the new user</returns>
+    /// <response code="200">Registration successful</response>
+    /// <response code="400">Invalid registration data</response>
+    /// <response code="409">Email already exists</response>
+    [HttpPost("register")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(AuthResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> RegisterAsync([FromBody] RegisterDto registerDto)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var result = await _authService.RegisterAsync(registerDto);
+        
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("User registered successfully: {Email}", registerDto.Email);
+            return Ok(result);
+        }
+
+        _logger.LogWarning("Registration failed for user: {Email} - {Error}", registerDto.Email, result.Message);
+        
+        // Return conflict status for email already exists
+        if (result.Message.Contains("already exists"))
+        {
+            return Conflict(result);
+        }
+        
+        return BadRequest(result);
+    }
+
+    /// <summary>
+    /// Create a new staff member (Admin only)
+    /// </summary>
+    /// <param name="createStaffDto">Staff creation data including role specification</param>
+    /// <returns>Authentication result with JWT token for the new staff member</returns>
+    /// <response code="200">Staff creation successful</response>
+    /// <response code="400">Invalid staff creation data</response>
+    /// <response code="401">Not authenticated</response>
+    /// <response code="403">Not authorized (Admin role required)</response>
+    /// <response code="409">Email already exists</response>
+    [HttpPost("create-staff")]
+    [Authorize(Policy = "AdminOnly")]
+    [ProducesResponseType(typeof(AuthResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> CreateStaffAsync([FromBody] CreateStaffDto createStaffDto)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var result = await _authService.CreateStaffAsync(createStaffDto);
+        
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Staff member created successfully by admin: {Email} with role: {Role}", createStaffDto.Email, createStaffDto.Role);
+            return Ok(result);
+        }
+
+        _logger.LogWarning("Staff creation failed: {Email} - {Error}", createStaffDto.Email, result.Message);
+        
+        // Return conflict status for email already exists
+        if (result.Message.Contains("already exists"))
+        {
+            return Conflict(result);
+        }
+        
+        return BadRequest(result);
+    }
+
+    /// <summary>
+    /// Refresh JWT access token using refresh token
+    /// </summary>
+    /// <param name="request">Refresh token request containing the refresh token and access token</param>
+    /// <returns>New authentication result with fresh JWT token</returns>
+    /// <response code="200">Token refreshed successfully</response>
+    /// <response code="400">Invalid refresh token</response>
+    /// <response code="401">Refresh token expired or invalid</response>
     [HttpPost("refresh-token")]
     [AllowAnonymous]
-    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenDto refreshTokenDto, CancellationToken cancellationToken)
+    [ProducesResponseType(typeof(AuthResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> RefreshTokenAsync([FromBody] RefreshTokenRequest request)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
+        if (!ModelState.IsValid || string.IsNullOrWhiteSpace(request.RefreshToken) || string.IsNullOrWhiteSpace(request.AccessToken))
+        {
+            return BadRequest("Both refresh token and access token are required");
+        }
 
-        var result = await _authService.RefreshTokenAsync(refreshTokenDto, cancellationToken);
+        _logger.LogDebug("Refresh token request - RefreshToken: {RefreshToken}, AccessToken preview: {AccessTokenPreview}", 
+            request.RefreshToken, request.AccessToken[..Math.Min(10, request.AccessToken.Length)] + "...");
 
-        if (!result.IsSuccess)
-            return Unauthorized(new { message = result.Message, errors = result.Errors });
+        var result = await _authService.RefreshTokenAsync(request.RefreshToken, request.AccessToken);
+        
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Token refreshed successfully");
+            return Ok(result);
+        }
 
-        return Ok(new { message = result.Message, data = result.Data });
+        _logger.LogWarning("Token refresh failed - {Error}", result.Message);
+        return Unauthorized(result);
     }
 
     /// <summary>
-    /// Logout user (revoke refresh token)
+    /// Revoke refresh token (logout)
     /// </summary>
-    /// <param name="cancellationToken">Cancellation token</param>
+    /// <param name="request">Revoke token request containing the refresh token</param>
     /// <returns>Success status</returns>
-    [HttpPost("logout")]
-    [Authorize]
-    public async Task<IActionResult> Logout(CancellationToken cancellationToken)
+    /// <response code="200">Token revoked successfully</response>
+    /// <response code="400">Invalid refresh token</response>
+    [HttpPost("revoke-token")]
+    [Authorize] 
+    [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> RevokeTokenAsync([FromBody] RevokeTokenRequest request)
     {
-        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!ModelState.IsValid || string.IsNullOrWhiteSpace(request.RefreshToken))
+        {
+            return BadRequest("Refresh token is required");
+        }
 
-        if (string.IsNullOrEmpty(userId))
-            return Unauthorized(new { message = "User not found" });
+        var result = await _authService.RevokeTokenAsync(request.RefreshToken);
+        
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Token revoked successfully");
+            return Ok(result);
+        }
 
-        var result = await _authService.RevokeTokenAsync(userId, cancellationToken);
-
-        if (!result.IsSuccess)
-            return BadRequest(new { message = result.Message, errors = result.Errors });
-
-        return Ok(new { message = result.Message });
+        _logger.LogWarning("Token revocation failed - {Error}", result.Message);
+        return BadRequest(result);
     }
 
     /// <summary>
-    /// Change user password
+    /// Revoke all refresh tokens for current user (logout from all devices)
     /// </summary>
-    /// <param name="changePasswordDto">Password change data</param>
-    /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Success status</returns>
-    [HttpPost("change-password")]
-    [Authorize]
-    public async Task<IActionResult> ChangePassword(
-        [FromBody] ChangePasswordDto changePasswordDto,
-        CancellationToken cancellationToken)
+    /// <response code="200">All tokens revoked successfully</response>
+    /// <response code="400">Invalid request</response>
+    /// <response code="401">User not authenticated</response>
+    [HttpPost("revoke-all-tokens")]
+    [Authorize] // Uses default JwtOnly policy
+    [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> RevokeAllTokensAsync()
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        
+        if (!Guid.TryParse(userIdClaim, out var userId))
+        {
+            return BadRequest("Invalid user ID in token");
+        }
 
-        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        var result = await _authService.RevokeAllUserTokensAsync(userId);
+        
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("All tokens revoked successfully for user: {UserId}", userId);
+            return Ok(result);
+        }
 
-        if (string.IsNullOrEmpty(userId))
-            return Unauthorized(new { message = "User not found" });
-
-        var result = await _authService.ChangePasswordAsync(
-            userId,
-            changePasswordDto.CurrentPassword,
-            changePasswordDto.NewPassword,
-            cancellationToken);
-
-        if (!result.IsSuccess)
-            return BadRequest(new { message = result.Message, errors = result.Errors });
-
-        return Ok(new { message = result.Message });
+        _logger.LogWarning("Failed to revoke all tokens for user: {UserId} - {Error}", userId, result.Message);
+        return BadRequest(result);
     }
 
     /// <summary>
-    /// Get current user info (test authentication)
+    /// Get current user information from JWT token
     /// </summary>
     /// <returns>Current user information</returns>
+    /// <response code="200">User information retrieved successfully</response>
+    /// <response code="401">User not authenticated</response>
     [HttpGet("me")]
     [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public IActionResult GetCurrentUser()
     {
         var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        var username = User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
         var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
-        var roles = User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(c => c.Value);
+        var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
 
-        return Ok(new
+        if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(email))
         {
-            id = userId,
-            username,
-            email,
-            roles
-        });
-    }
-}
+            return Unauthorized("Invalid token claims");
+        }
 
-/// <summary>
-/// DTO for password change
-/// </summary>
-public class ChangePasswordDto
-{
-    public string CurrentPassword { get; set; } = string.Empty;
-    public string NewPassword { get; set; } = string.Empty;
+        var userInfo = new
+        {
+            UserId = userId,
+            Email = email,
+            Role = role
+        };
+
+        return Ok(new { IsSuccess = true, Data = userInfo, Message = "User information retrieved successfully" });
+    }
 }

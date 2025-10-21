@@ -1,4 +1,5 @@
 using EV_SCMMS.Core.Application.Interfaces.Repositories;
+using EV_SCMMS.Core.Application.Services;
 
 namespace EV_SCMMS.Core.Application.Interfaces;
 
@@ -11,6 +12,56 @@ public interface IUnitOfWork : IDisposable
     /// User repository
     /// </summary>
     IUserRepository UserRepository { get; }
+
+    /// <summary>
+    /// Role repository
+    /// </summary>
+    IRoleRepository RoleRepository { get; }
+
+    /// <summary>
+    /// Center repository
+    /// </summary>
+    ICenterRepository CenterRepository { get; }
+
+    /// <summary>
+    /// Inventory repository
+    /// </summary>
+    IInventoryRepository InventoryRepository { get; }
+
+    /// <summary>
+    /// Sparepart repository
+    /// </summary>
+    ISparepartRepository SparepartRepository { get; }
+
+    /// <summary>
+    /// Sparepart Type repository
+    /// </summary>
+    ISparepartTypeRepository SparepartTypeRepository { get; }
+
+    /// <summary>
+    /// Sparepart Forecast repository
+    /// </summary>
+    ISparepartForecastRepository SparepartForecastRepository { get; }
+
+    /// <summary>
+    /// Sparepart Replenishment Request repository
+    /// </summary>
+    ISparepartReplenishmentRequestRepository SparepartReplenishmentRequestRepository { get; }
+
+    /// <summary>
+    /// Sparepart Usage History repository
+    /// </summary>
+    ISparepartUsageHistoryRepository SparepartUsageHistoryRepository { get; }
+
+    /// <summary>
+    /// Refresh Token repository
+    /// </summary>
+    IRefreshTokenRepository RefreshTokenRepository { get; }
+
+    /// <summary>
+    /// Refresh Token service
+    /// </summary>
+    IRefreshTokenService RefreshTokenService { get; }
 
     /// <summary>
     /// Save all changes made in this context to the database

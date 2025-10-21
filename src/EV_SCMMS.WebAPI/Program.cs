@@ -1,11 +1,12 @@
 using System.Text;
 using EV_SCMMS.Core.Application.Interfaces;
 using EV_SCMMS.Core.Application.Interfaces.Services;
-using EV_SCMMS.Infrastructure.Identity;
 using EV_SCMMS.Infrastructure.Persistence;
 using EV_SCMMS.Infrastructure.Services;
+using EV_SCMMS.WebAPI.Authorization;
 using EV_SCMMS.WebAPI.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -14,23 +15,44 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Environment.IsDevelopment();
+
 // Add services to the container
 builder.Services.AddControllers();
 
 // Configure Database
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        b => b.MigrationsAssembly("EV_SCMMS.Infrastructure")
-    ));
-
-// Configure Identity
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+builder.Services.AddDbContext<AppDbContext>(
+    options =>
     {
-        options.ConfigureIdentity();
-    })
-    .AddEntityFrameworkStores<AppDbContext>()
-    .AddDefaultTokenProviders();
+        // Cấu hình PostgreSQL
+        options.UseNpgsql(
+            builder.Configuration.GetConnectionString("DefaultConnection"),
+            npgsqlOptions =>
+            {
+                npgsqlOptions.MigrationsAssembly("EV_SCMMS.Infrastructure");
+                npgsqlOptions.CommandTimeout(60); // timeout 60s để tránh request treo lâu
+                npgsqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 1,
+                    maxRetryDelay: TimeSpan.FromSeconds(15),
+                    errorCodesToAdd: null);
+            });
+
+        // Logging & debugging — chỉ bật khi đang ở môi trường dev
+        if (builder.Environment.IsDevelopment())
+        {
+            options.EnableSensitiveDataLogging(); // hiển thị parameter trong query
+            options.EnableDetailedErrors();       // hiển thị lỗi chi tiết
+            options.LogTo(Console.WriteLine, LogLevel.Information);
+        }
+        else
+        {
+            // Trong production chỉ log cảnh báo trở lên để tiết kiệm hiệu năng
+            options.LogTo(Console.WriteLine, LogLevel.Warning);
+        }
+    },
+    ServiceLifetime.Scoped // 🔒 Scoped để mỗi request có 1 DbContext riêng
+);
+
 
 // Configure JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -59,28 +81,57 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    // Default policy: JWT validation + refresh token validation (ensures token not revoked)
+    options.DefaultPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .AddRequirements(new ValidRefreshTokenRequirement())
+        .Build();
+        
+    // JwtOnly policy for token management endpoints (login, refresh, revoke)
+    options.AddPolicy("JwtOnly", new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build());
+        
+    // Role-based policies (still include refresh token validation by default)
+    options.AddPolicy("AdminOnly", new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .RequireRole("ADMIN")
+        .AddRequirements(new ValidRefreshTokenRequirement())
+        .Build());
+        
+    options.AddPolicy("TechnicianAndStaff", new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .RequireRole("TECHNICIAN", "STAFF")
+        .AddRequirements(new ValidRefreshTokenRequirement())
+        .Build());
+});
 
-// Configure AutoMapper
-builder.Services.AddAutoMapper(typeof(EV_SCMMS.Infrastructure.Mappings.MappingProfile).Assembly);
 
 // Register Application Services
-builder.Services.AddScoped<ITokenService, TokenService>();
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IUserService, UserService>();
-// builder.Services.AddScoped<IVehicleService, VehicleService>(); // Uncomment when implemented
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-// Add Health Checks with PostgreSQL connection check
-builder.Services.AddHealthChecks()
-    .AddNpgSql(
-        builder.Configuration.GetConnectionString("DefaultConnection") ?? 
-        throw new InvalidOperationException("DefaultConnection is not configured"),
-        name: "postgresql",
-        tags: new[] { "db", "postgresql", "ready" })
-    .AddDbContextCheck<AppDbContext>(
-        name: "dbcontext",
-        tags: new[] { "db", "ef", "ready" });
+// Register Authorization Services
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IAuthorizationHandler, ValidRefreshTokenHandler>();
+
+// Register Authentication Services
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IPasswordHashService, PasswordHashService>();
+
+// Register Business Services for Spare Parts Management
+builder.Services.AddScoped<ICenterService, CenterService>();
+builder.Services.AddScoped<IInventoryService, InventoryService>();
+builder.Services.AddScoped<ISparepartService, SparepartService>();
+builder.Services.AddScoped<ISparepartTypeService, SparepartTypeService>();
+builder.Services.AddScoped<ISparepartForecastService, SparepartForecastService>();
+builder.Services.AddScoped<ISparepartReplenishmentRequestService, SparepartReplenishmentRequestService>();
+builder.Services.AddScoped<ISparepartUsageHistoryService, SparepartUsageHistoryService>();
+
+// Add Basic Health Checks
+builder.Services.AddHealthChecks();
 
 // Configure Swagger/OpenAPI with JWT support
 builder.Services.AddEndpointsApiExplorer();
@@ -145,9 +196,9 @@ var app = builder.Build();
 // Configure the HTTP request pipeline
 
 // Use custom middleware in correct order (ExceptionHandling -> Logging -> Performance)
-app.UseMiddleware<ExceptionHandlingMiddleware>();
-app.UseMiddleware<RequestLoggingMiddleware>();
-app.UseMiddleware<PerformanceMonitoringMiddleware>();
+// app.UseMiddleware<ExceptionHandlingMiddleware>();
+// app.UseMiddleware<RequestLoggingMiddleware>();
+// app.UseMiddleware<PerformanceMonitoringMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
@@ -168,62 +219,8 @@ app.UseAuthorization();
 
 // Add Health Check endpoints
 app.MapHealthChecks("/health");
-app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
-{
-    Predicate = check => check.Tags.Contains("ready")
-});
 
 app.MapControllers();
 
-// Seed default roles and admin user
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    try
-    {
-        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-        var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
-
-        // Create default roles
-        string[] roleNames = { "Admin", "User", "Manager" };
-        foreach (var roleName in roleNames)
-        {
-            if (!await roleManager.RoleExistsAsync(roleName))
-            {
-                await roleManager.CreateAsync(new IdentityRole(roleName));
-            }
-        }
-
-        // Create default admin user (only if not exists)
-        var adminEmail = "admin@evscmms.com";
-        var adminUser = await userManager.FindByEmailAsync(adminEmail);
-
-        if (adminUser == null)
-        {
-            var admin = new ApplicationUser
-            {
-                UserName = "admin",
-                Email = adminEmail,
-                FullName = "System Administrator",
-                EmailConfirmed = true,
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            var result = await userManager.CreateAsync(admin, "Admin@123");
-            if (result.Succeeded)
-            {
-                await userManager.AddToRoleAsync(admin, "Admin");
-                Console.WriteLine("Default admin user created successfully");
-                Console.WriteLine($"Email: {adminEmail}");
-                Console.WriteLine("Password: Admin@123");
-            }
-        }
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"An error occurred while seeding the database: {ex.Message}");
-    }
-}
 
 app.Run();

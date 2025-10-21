@@ -1,14 +1,50 @@
-
+using EV_SCMMS.Core.Domain.Models;
 
 namespace EV_SCMMS.Core.Application.Interfaces.Repositories;
 
 /// <summary>
-/// User repository interface extending generic repository
+/// Repository interface for User entity operations
 /// </summary>
-public interface IUserRepository : IGenericRepository<Object>
+public interface IUserRepository : IGenericRepository<Useraccount>
 {
-    // Add user-specific repository methods here
-    // Example:
-    Task<Object?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
-    Task<IEnumerable<Object>> GetActiveUsersAsync(CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Get user by email address
+    /// </summary>
+    /// <param name="email">User email</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>User entity if found</returns>
+    Task<Useraccount?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Check if email already exists
+    /// </summary>
+    /// <param name="email">Email to check</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>True if email exists</returns>
+    Task<bool> EmailExistsAsync(string email, CancellationToken cancellationToken = default);
+
+  Task<bool> PhoneExistsAsync(string phone, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Get user with role information
+    /// </summary>
+    /// <param name="userId">User ID</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>User with role</returns>
+  Task<Useraccount?> GetUserWithRoleAsync(Guid userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Get user by ID with role information
+    /// </summary>
+    /// <param name="userId">User ID</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>User with role</returns>
+    Task<Useraccount?> GetByIdWithRoleAsync(Guid userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Get user by email with role information
+    /// </summary>
+    /// <param name="email">User email</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>User with role</returns>
+    Task<Useraccount?> GetByEmailWithRoleAsync(string email, CancellationToken cancellationToken = default);
 }
