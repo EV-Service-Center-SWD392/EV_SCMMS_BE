@@ -129,6 +129,10 @@ builder.Services.AddScoped<ISparepartForecastService, SparepartForecastService>(
 builder.Services.AddScoped<ISparepartReplenishmentRequestService, SparepartReplenishmentRequestService>();
 builder.Services.AddScoped<ISparepartUsageHistoryService, SparepartUsageHistoryService>();
 
+// Register ChatBot AI Service
+builder.Services.AddHttpClient<IChatBotService, ChatBotService>();
+builder.Services.AddScoped<IChatBotService, ChatBotService>();
+
 // Add Basic Health Checks
 builder.Services.AddHealthChecks();
 
