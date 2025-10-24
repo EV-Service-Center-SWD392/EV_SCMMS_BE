@@ -685,7 +685,6 @@ public partial class AppDbContext : DbContext
       entity.ToTable("paymentmethodcuongtq");
 
       entity.Property(e => e.Paymentmethodid)
-          .HasDefaultValueSql("uuid_generate_v4()")
           .HasColumnName("paymentmethodid");
       entity.Property(e => e.Createdat)
           .HasDefaultValueSql("now()")
