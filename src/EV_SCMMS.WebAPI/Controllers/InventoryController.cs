@@ -14,12 +14,10 @@ namespace EV_SCMMS.WebAPI.Controllers;
 public class InventoryController : ControllerBase
 {
     private readonly IInventoryService _inventoryService;
-    private readonly AppDbContext _context;
 
-    public InventoryController(IInventoryService inventoryService, AppDbContext context)
+    public InventoryController(IInventoryService inventoryService)
     {
         _inventoryService = inventoryService;
-        _context = context;
     }
 
     /// <summary>
