@@ -29,6 +29,8 @@ public class UnitOfWork : IUnitOfWork
     private ISparepartForecastRepository? _sparepartForecastRepository;
     private ISparepartReplenishmentRequestRepository? _sparepartReplenishmentRequestRepository;
     private ISparepartUsageHistoryRepository? _sparepartUsageHistoryRepository;
+    private IBookingRepository? _bookingRepository;
+    private IBookingScheduleRepository? _bookingScheduleRepository;
     private IRefreshTokenRepository? _refreshTokenRepository;
     
     // Service instances
@@ -119,6 +121,24 @@ public class UnitOfWork : IUnitOfWork
         {
             _sparepartUsageHistoryRepository ??= new SparepartUsageHistoryRepository(_context);
             return _sparepartUsageHistoryRepository;
+        }
+    }
+
+    public IBookingRepository BookingRepository
+    {
+        get
+        {
+            _bookingRepository ??= new BookingRepository(_context);
+            return _bookingRepository;
+        }
+    }
+
+    public IBookingScheduleRepository BookingScheduleRepository
+    {
+        get
+        {
+            _bookingScheduleRepository ??= new BookingScheduleRepository(_context);
+            return _bookingScheduleRepository;
         }
     }
 

@@ -54,6 +54,16 @@ public interface IUnitOfWork : IDisposable
     ISparepartUsageHistoryRepository SparepartUsageHistoryRepository { get; }
 
     /// <summary>
+    /// Booking repository
+    /// </summary>
+    IBookingRepository BookingRepository { get; }
+
+    /// <summary>
+    /// Booking Schedule repository
+    /// </summary>
+    IBookingScheduleRepository BookingScheduleRepository { get; }
+
+    /// <summary>
     /// Refresh Token repository
     /// </summary>
     IRefreshTokenRepository RefreshTokenRepository { get; }
