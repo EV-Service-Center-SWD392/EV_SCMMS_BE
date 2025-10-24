@@ -383,16 +383,18 @@ CREATE TABLE OrderThaoNTT (
 
 -- BẢNG 26/34
 CREATE TABLE WorkOrderApprovalThaoNTT (
-    WOA_ID          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    OrderID         UUID NOT NULL REFERENCES OrderThaoNTT(OrderID) ON DELETE CASCADE,
-    Status          VARCHAR(50) DEFAULT 'AWAITING', -- AWAITING, APPROVED, REJECTED
-    ApprovedAt      TIMESTAMP,
-    Method          VARCHAR(20), -- App, InPerson, ESign
-    Note            VARCHAR(500),
-    IsActive        BOOLEAN DEFAULT TRUE,
-    createdAt       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updatedAt       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    WOA_Id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    IntakeId         UUID NOT NULL REFERENCES ServiceIntakeThaoNTT(IntakeID) ON DELETE CASCADE,
+    TechnicianId     UUID NOT NULL REFERENCES UserAccount(UserID) ON DELETE RESTRICT,
+    Status           SMALLINT NOT NULL DEFAULT 0,  -- 0: AwaitingApproval, 1: Approved, 2: Rejected
+    EstimatedAmount  DECIMAL(18,2),
+    ApprovedAt       TIMESTAMP,
+    Note             VARCHAR(500),
+    IsActive         BOOLEAN DEFAULT TRUE,
+    createdAt        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt        TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
 
 -- BẢNG 27/34
 CREATE TABLE OrderServiceThaoNTT (
