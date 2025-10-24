@@ -32,6 +32,7 @@ public class UnitOfWork : IUnitOfWork
     private IBookingRepository? _bookingRepository;
     private IBookingScheduleRepository? _bookingScheduleRepository;
     private IRefreshTokenRepository? _refreshTokenRepository;
+    private IWorkScheduleRepository? _workScheduleRepository;
     
     // Service instances
     private IRefreshTokenService? _refreshTokenService;
@@ -148,6 +149,15 @@ public class UnitOfWork : IUnitOfWork
         {
             _refreshTokenRepository ??= new RefreshTokenRepository(_context);
             return _refreshTokenRepository;
+        }
+    }
+
+    public IWorkScheduleRepository WorkScheduleRepository
+    {
+        get
+        {
+            _workScheduleRepository ??= new WorkScheduleRepository(_context);
+            return _workScheduleRepository;
         }
     }
 
