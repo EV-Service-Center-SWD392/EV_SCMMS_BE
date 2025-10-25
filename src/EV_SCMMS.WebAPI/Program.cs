@@ -130,6 +130,7 @@ builder.Services.AddScoped<ISparepartReplenishmentRequestService, SparepartReple
 builder.Services.AddScoped<ISparepartUsageHistoryService, SparepartUsageHistoryService>();
 builder.Services.AddScoped<IWorkScheduleService, WorkScheduleService>();
 builder.Services.AddScoped<IAssignmentService, AssignmentService>();
+builder.Services.AddScoped<IBookingApprovalService, BookingApprovalService>();
 
 // Register ChatBot AI Service
 builder.Services.AddHttpClient<IChatBotService, ChatBotService>();
