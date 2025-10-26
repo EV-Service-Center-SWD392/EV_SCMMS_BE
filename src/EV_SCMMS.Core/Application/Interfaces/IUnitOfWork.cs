@@ -79,6 +79,16 @@ public interface IUnitOfWork : IDisposable
     IAssignmentRepository AssignmentRepository { get; }
 
     /// <summary>
+    /// Service intake repository
+    /// </summary>
+    IServiceIntakeRepository ServiceIntakeRepository { get; }
+
+    /// <summary>
+    /// Checklist repository
+    /// </summary>
+    IChecklistRepository ChecklistRepository { get; }
+
+    /// <summary>
     /// Refresh Token service
     /// </summary>
     IRefreshTokenService RefreshTokenService { get; }
