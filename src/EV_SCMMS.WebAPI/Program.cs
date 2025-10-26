@@ -133,6 +133,7 @@ builder.Services.AddScoped<IAssignmentService, AssignmentService>();
 builder.Services.AddScoped<IBookingApprovalService, BookingApprovalService>();
 builder.Services.AddScoped<IServiceIntakeService, ServiceIntakeService>();
 builder.Services.AddScoped<IChecklistService, ChecklistService>();
+builder.Services.AddScoped<IWorkOrderService, WorkOrderService>();
 
 // Register ChatBot AI Service
 builder.Services.AddHttpClient<IChatBotService, ChatBotService>();
