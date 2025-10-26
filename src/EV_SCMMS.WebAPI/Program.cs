@@ -189,16 +189,15 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// Add CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
-    {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
-    });
+    options.AddPolicy("AllowVercel",
+        policy => policy
+            .WithOrigins("https://ev-web-fe.vercel.app")
+            .AllowAnyHeader()
+            .AllowAnyMethod());
 });
+
 
 var app = builder.Build();
 
@@ -218,7 +217,7 @@ app.UseSwaggerUI(c =>
 
 app.UseHttpsRedirection();
 
-app.UseCors("AllowAll");
+app.UseCors("AllowVercel");
 
 app.UseAuthentication();
 app.UseAuthorization();
