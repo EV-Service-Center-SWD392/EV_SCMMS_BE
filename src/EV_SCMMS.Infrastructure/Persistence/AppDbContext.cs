@@ -1,4 +1,4 @@
-﻿using EV_SCMMS.Core.Domain.Models;
+using EV_SCMMS.Core.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -131,6 +131,9 @@ public partial class AppDbContext : DbContext
       entity.Property(e => e.Plannedstartutc)
               .HasColumnType("timestamp without time zone")
               .HasColumnName("plannedstartutc");
+      entity.Property(e => e.Note)
+              .HasColumnType("text")
+              .HasColumnName("note");
       entity.Property(e => e.Queueno).HasColumnName("queueno");
       entity.Property(e => e.Status)
               .HasMaxLength(50)
@@ -891,7 +894,7 @@ public partial class AppDbContext : DbContext
       entity.Property(e => e.Intakeid)
               .HasDefaultValueSql("uuid_generate_v4()")
               .HasColumnName("intakeid");
-      entity.Property(e => e.Advisorid).HasColumnName("advisorid");
+      entity.Property(e => e.CheckedInBy).HasColumnName("advisorid");
       entity.Property(e => e.Batterysoc).HasColumnName("batterysoc");
       entity.Property(e => e.Bookingid).HasColumnName("bookingid");
       entity.Property(e => e.Checkintimeutc)
@@ -917,7 +920,7 @@ public partial class AppDbContext : DbContext
               .HasColumnName("updatedat");
 
       entity.HasOne(d => d.Advisor).WithMany(p => p.Serviceintakethaontts)
-              .HasForeignKey(d => d.Advisorid)
+              .HasForeignKey(d => d.CheckedInBy)
               .OnDelete(DeleteBehavior.Restrict)
               .HasConstraintName("serviceintakethaontt_advisorid_fkey");
 
@@ -1048,6 +1051,7 @@ public partial class AppDbContext : DbContext
       entity.Property(e => e.Requestid)
               .HasDefaultValueSql("uuid_generate_v4()")
               .HasColumnName("requestid");
+      entity.Property(e => e.Approvedby).HasColumnName("approvedby");
       entity.Property(e => e.Approvedat)
               .HasColumnType("timestamp without time zone")
               .HasColumnName("approvedat");
@@ -1504,6 +1508,7 @@ public partial class AppDbContext : DbContext
       entity.Property(e => e.WoaId)
               .HasDefaultValueSql("uuid_generate_v4()")
               .HasColumnName("woa_id");
+      entity.Property(e => e.Approvedby).HasColumnName("approvedby");
       entity.Property(e => e.Approvedat)
               .HasColumnType("timestamp without time zone")
               .HasColumnName("approvedat");

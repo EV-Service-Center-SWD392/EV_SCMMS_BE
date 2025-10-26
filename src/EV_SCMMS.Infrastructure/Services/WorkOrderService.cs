@@ -200,7 +200,7 @@ public class WorkOrderService : IWorkOrderService
         }
     }
 
-    public async Task<IServiceResult<WorkOrderDto>> ApproveAsync(Guid id, ApproveWorkOrderDto dto, CancellationToken ct = default)
+    public async Task<IServiceResult<WorkOrderDto>> ApproveAsync(Guid id, ApproveWorkOrderDto dto, Guid approvedBy, CancellationToken ct = default)
     {
         try
         {
@@ -213,6 +213,7 @@ public class WorkOrderService : IWorkOrderService
             }
 
             entity.Status = "APPROVED";
+            entity.Approvedby = approvedBy;
             entity.Approvedat = DateTime.UtcNow;
             entity.Updatedat = entity.Approvedat;
             if (!string.IsNullOrWhiteSpace(dto.Note))
@@ -223,6 +224,10 @@ public class WorkOrderService : IWorkOrderService
             await _unitOfWork.SaveChangesAsync(ct);
 
             var dtoOut = (await _unitOfWork.WorkOrderRepository.GetByIdAsync(id, ct) ?? entity).ToDto();
+            if (dtoOut != null)
+            {
+                dtoOut.ApprovedBy = approvedBy;
+            }
             return ServiceResult<WorkOrderDto>.Success(dtoOut, "Work Order approved");
         }
         catch (Exception ex)
@@ -393,7 +398,7 @@ public class WorkOrderService : IWorkOrderService
 
             if (string.Equals(role, "TECHNICIAN", StringComparison.OrdinalIgnoreCase))
             {
-                query = query.Where(x => x.Order.Booking != null && x.Order.Booking.Serviceintakethaontt != null && x.Order.Booking.Serviceintakethaontt.Advisorid == currentUserId);
+                query = query.Where(x => x.Order.Booking != null && x.Order.Booking.Serviceintakethaontt != null && x.Order.Booking.Serviceintakethaontt.CheckedInBy == currentUserId);
             }
             else if (string.Equals(role, "CUSTOMER", StringComparison.OrdinalIgnoreCase))
             {

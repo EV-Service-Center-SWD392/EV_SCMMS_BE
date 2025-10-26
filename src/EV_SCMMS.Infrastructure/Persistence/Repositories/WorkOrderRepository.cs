@@ -81,7 +81,7 @@ public class WorkOrderRepository : GenericRepository<Workorderapprovalthaontt>, 
         if (technicianId.HasValue)
         {
             var tid = technicianId.Value;
-            query = query.Where(wo => wo.Order.Booking != null && wo.Order.Booking.Serviceintakethaontt != null && wo.Order.Booking.Serviceintakethaontt.Advisorid == tid);
+            query = query.Where(wo => wo.Order.Booking != null && wo.Order.Booking.Serviceintakethaontt != null && wo.Order.Booking.Serviceintakethaontt.CheckedInBy == tid);
         }
 
         if (date.HasValue)

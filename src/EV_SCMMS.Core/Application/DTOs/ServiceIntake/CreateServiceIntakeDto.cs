@@ -4,21 +4,12 @@ namespace EV_SCMMS.Core.Application.DTOs.ServiceIntake;
 
 /// <summary>
 /// Create request DTO for vehicle service intake workflow (ServiceIntakeThaoNTT)
+/// Simplified to avoid duplicating data derived from Booking/Assignment.
 /// </summary>
 public class CreateServiceIntakeDto
 {
     [Required]
-    public Guid CenterId { get; set; }
-
-    [Required]
-    public Guid VehicleId { get; set; }
-
-    [Required]
-    public Guid TechnicianId { get; set; }
-
-    public Guid? AssignmentId { get; set; }
-
-    public Guid? BookingId { get; set; }
+    public Guid BookingId { get; set; }
 
     public int? Odometer { get; set; }
 

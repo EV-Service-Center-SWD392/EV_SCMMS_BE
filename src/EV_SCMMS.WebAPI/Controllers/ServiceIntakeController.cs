@@ -2,6 +2,7 @@ using EV_SCMMS.Core.Application.DTOs.ServiceIntake;
 using EV_SCMMS.Core.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace EV_SCMMS.WebAPI.Controllers;
 
@@ -24,7 +25,13 @@ public class ServiceIntakeController : ControllerBase
     public async Task<IActionResult> Create([FromBody] CreateServiceIntakeDto dto, CancellationToken ct)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
-        var result = await _serviceIntakeService.CreateAsync(dto, ct);
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrWhiteSpace(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+        {
+            return Unauthorized("Invalid user context");
+        }
+
+        var result = await _serviceIntakeService.CreateAsync(dto, userId, ct);
         if (result.IsSuccess && result.Data != null)
         {
             return CreatedAtAction(nameof(GetById), new { id = result.Data.Id }, result.Data);

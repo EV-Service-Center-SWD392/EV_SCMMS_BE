@@ -8,7 +8,7 @@ namespace EV_SCMMS.Core.Application.Interfaces.Services;
 /// </summary>
 public interface IServiceIntakeService
 {
-    Task<IServiceResult<ServiceIntakeDto>> CreateAsync(CreateServiceIntakeDto dto, CancellationToken ct = default);
+    Task<IServiceResult<ServiceIntakeDto>> CreateAsync(CreateServiceIntakeDto dto, Guid checkedInBy, CancellationToken ct = default);
     Task<IServiceResult<ServiceIntakeDto>> UpdateAsync(Guid id, UpdateServiceIntakeDto dto, CancellationToken ct = default);
     Task<IServiceResult<ServiceIntakeDto>> VerifyAsync(Guid id, CancellationToken ct = default);
     Task<IServiceResult<ServiceIntakeDto>> FinalizeAsync(Guid id, CancellationToken ct = default);

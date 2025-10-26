@@ -330,7 +330,8 @@ CREATE TABLE AssignmentThaoNTT (
     PlannedStartUtc TIMESTAMP,
     PlannedEndUtc   TIMESTAMP,
     QueueNo         INT,
-    Status          VARCHAR(50) DEFAULT 'PENDING',
+    Note            TEXT,
+    Status          VARCHAR(50) DEFAULT 'PENDING' CHECK (Status IN ('PENDING','ASSIGNED','ACTIVE','DONE')),
     IsActive        BOOLEAN DEFAULT TRUE,
     createdAt       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updatedAt       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -340,7 +341,7 @@ CREATE TABLE AssignmentThaoNTT (
 CREATE TABLE ServiceIntakeThaoNTT (
     IntakeID        UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     BookingID       UUID NOT NULL UNIQUE REFERENCES BookingHuykt(BookingID) ON DELETE CASCADE,
-    AdvisorID       UUID NOT NULL REFERENCES UserAccount(UserID) ON DELETE RESTRICT,
+    AdvisorID       UUID NOT NULL REFERENCES UserAccount(UserID) ON DELETE RESTRICT, -- Checked-in-by actor
     CheckinTimeUtc  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     OdometerKm      INT,
     BatterySoC      INT,
@@ -383,16 +384,16 @@ CREATE TABLE OrderThaoNTT (
 
 -- BẢNG 26/34
 CREATE TABLE WorkOrderApprovalThaoNTT (
-    WOA_Id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    IntakeId         UUID NOT NULL REFERENCES ServiceIntakeThaoNTT(IntakeID) ON DELETE CASCADE,
-    TechnicianId     UUID NOT NULL REFERENCES UserAccount(UserID) ON DELETE RESTRICT,
-    Status           SMALLINT NOT NULL DEFAULT 0,  -- 0: AwaitingApproval, 1: Approved, 2: Rejected
-    EstimatedAmount  DECIMAL(18,2),
-    ApprovedAt       TIMESTAMP,
-    Note             VARCHAR(500),
-    IsActive         BOOLEAN DEFAULT TRUE,
-    createdAt        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updatedAt        TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    WOA_Id         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    OrderID        UUID NOT NULL REFERENCES OrderThaoNTT(OrderID) ON DELETE CASCADE,
+    Status         VARCHAR(50) DEFAULT 'AWAITING',
+    ApprovedBy     UUID REFERENCES UserAccount(UserID),
+    ApprovedAt     TIMESTAMP,
+    Method         VARCHAR(20),
+    Note           VARCHAR(500),
+    IsActive       BOOLEAN DEFAULT TRUE,
+    createdAt      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 

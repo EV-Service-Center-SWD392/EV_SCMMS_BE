@@ -18,6 +18,7 @@ public static class WorkOrderMapper
             Description = null, // Not persisted
             EstimatedAmount = null, // Not available in current entity model in this repository
             CreatedAt = e.Createdat ?? DateTime.MinValue,
+            ApprovedBy = e.Approvedby,
             ApprovedAt = e.Approvedat,
             StartedAt = null, // Not persisted
             CompletedAt = null, // Not persisted
