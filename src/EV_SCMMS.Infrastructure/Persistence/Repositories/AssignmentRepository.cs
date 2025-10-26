@@ -49,6 +49,47 @@ public class AssignmentRepository : GenericRepository<Assignmentthaontt>, IAssig
         return await query.AnyAsync(ct);
     }
 
+    public async Task<bool> ExistsOverlapWithStatusesAsync(
+        Guid technicianId,
+        DateTime startUtc,
+        DateTime endUtc,
+        IEnumerable<string> statuses,
+        Guid? excludeAssignmentId = null,
+        CancellationToken ct = default)
+    {
+        var statusSet = new HashSet<string>(statuses ?? Array.Empty<string>(), StringComparer.OrdinalIgnoreCase);
+        var query = _dbSet.Assignmentthaontts
+            .AsNoTracking()
+            .Where(a => a.Isactive == true && a.Technicianid == technicianId)
+            .Where(a => a.Status != null && statusSet.Contains(a.Status))
+            .Where(a => a.Plannedstartutc != null && a.Plannedendutc != null)
+            .Where(a => a.Plannedstartutc! < endUtc && startUtc < a.Plannedendutc!);
+
+        if (excludeAssignmentId.HasValue)
+        {
+            query = query.Where(a => a.Assignmentid != excludeAssignmentId.Value);
+        }
+
+        return await query.AnyAsync(ct);
+    }
+
+    public async Task<int> CountAssignmentsWithStatusesByTechnicianAndRangeAsync(
+        Guid technicianId,
+        DateTime startUtc,
+        DateTime endUtc,
+        IEnumerable<string> statuses,
+        CancellationToken ct = default)
+    {
+        var statusSet = new HashSet<string>(statuses ?? Array.Empty<string>(), StringComparer.OrdinalIgnoreCase);
+        return await _dbSet.Assignmentthaontts
+            .AsNoTracking()
+            .Where(a => a.Isactive == true && a.Technicianid == technicianId)
+            .Where(a => a.Status != null && statusSet.Contains(a.Status))
+            .Where(a => a.Plannedstartutc != null && a.Plannedendutc != null)
+            .Where(a => a.Plannedstartutc! < endUtc && startUtc < a.Plannedendutc!)
+            .CountAsync(ct);
+    }
+
     public async Task<List<Assignmentthaontt>> GetRangeAsync(
         Guid? centerId,
         DateOnly? date,

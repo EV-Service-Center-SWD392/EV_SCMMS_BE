@@ -37,6 +37,7 @@ public class UnitOfWork : IUnitOfWork
     private IServiceIntakeRepository? _serviceIntakeRepository;
     private IChecklistRepository? _checklistRepository;
     private IWorkOrderRepository? _workOrderRepository;
+    private IUserCenterRepository? _userCenterRepository;
     
     // Service instances
     private IRefreshTokenService? _refreshTokenService;
@@ -198,6 +199,15 @@ public class UnitOfWork : IUnitOfWork
         {
             _workOrderRepository ??= new WorkOrderRepository(_context);
             return _workOrderRepository;
+        }
+    }
+
+    public IUserCenterRepository UserCenterRepository
+    {
+        get
+        {
+            _userCenterRepository ??= new UserCenterRepository(_context);
+            return _userCenterRepository;
         }
     }
 

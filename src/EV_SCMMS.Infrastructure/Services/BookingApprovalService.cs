@@ -58,18 +58,13 @@ public class BookingApprovalService : IBookingApprovalService
         }
     }
 
-    public async Task<IServiceResult<BookingApprovalDto>> ApproveAsync(ApproveBookingDto dto, CancellationToken ct = default)
+    public async Task<IServiceResult<BookingApprovalDto>> ApproveAsync(ApproveBookingDto dto, Guid staffId, CancellationToken ct = default)
     {
         try
         {
             if (dto.BookingId == Guid.Empty)
             {
                 return ServiceResult<BookingApprovalDto>.Failure("BookingId is required");
-            }
-
-            if (dto.StaffId == Guid.Empty)
-            {
-                return ServiceResult<BookingApprovalDto>.Failure("StaffId is required");
             }
 
             var booking = await LoadBookingForUpdateAsync(dto.BookingId, ct);
@@ -121,9 +116,12 @@ public class BookingApprovalService : IBookingApprovalService
 
             await _unitOfWork.SaveChangesAsync(ct);
 
-            // Optional queue integration could be placed here when available
+            // Build response and include actor if applicable
+            var response = booking.ToBookingApprovalDto();
+            response.ApprovedBy = staffId;
+            response.ApprovedAt = now;
 
-            return ServiceResult<BookingApprovalDto>.Success(booking.ToBookingApprovalDto(), "Booking approved successfully");
+            return ServiceResult<BookingApprovalDto>.Success(response, "Booking approved successfully");
         }
         catch (Exception ex)
         {
@@ -131,18 +129,13 @@ public class BookingApprovalService : IBookingApprovalService
         }
     }
 
-    public async Task<IServiceResult<BookingApprovalDto>> RejectAsync(RejectBookingDto dto, CancellationToken ct = default)
+    public async Task<IServiceResult<BookingApprovalDto>> RejectAsync(RejectBookingDto dto, Guid staffId, CancellationToken ct = default)
     {
         try
         {
             if (dto.BookingId == Guid.Empty)
             {
                 return ServiceResult<BookingApprovalDto>.Failure("BookingId is required");
-            }
-
-            if (dto.StaffId == Guid.Empty)
-            {
-                return ServiceResult<BookingApprovalDto>.Failure("StaffId is required");
             }
 
             if (string.IsNullOrWhiteSpace(dto.Reason))
@@ -168,13 +161,19 @@ public class BookingApprovalService : IBookingApprovalService
 
             await _unitOfWork.SaveChangesAsync(ct);
 
-            return ServiceResult<BookingApprovalDto>.Success(booking.ToBookingApprovalDto(), "Booking rejected successfully");
+            var response = booking.ToBookingApprovalDto();
+            response.RejectedBy = staffId;
+            response.RejectedAt = now;
+
+            return ServiceResult<BookingApprovalDto>.Success(response, "Booking rejected successfully");
         }
         catch (Exception ex)
         {
             return ServiceResult<BookingApprovalDto>.Failure($"Error rejecting booking: {ex.Message}");
         }
     }
+
+    
 
     private async Task<Bookinghuykt?> LoadBookingForUpdateAsync(Guid bookingId, CancellationToken ct)
     {

@@ -28,6 +28,25 @@ public class AssignmentService : IAssignmentService
             }
 
             var technicianId = dto.TechnicianId;
+            // Derive center from booking
+            var booking = await _unitOfWork.BookingRepository.GetByIdAsync(dto.BookingId, ct);
+            if (booking == null)
+            {
+                return ServiceResult<AssignmentDto>.Failure("Booking not found");
+            }
+
+            var centerId = booking.Slot?.Centerid;
+            if (!centerId.HasValue || centerId.Value == Guid.Empty)
+            {
+                return ServiceResult<AssignmentDto>.Failure("Booking does not have a valid center");
+            }
+
+            // Validate technician belongs to the same center
+            var inCenter = await _unitOfWork.UserCenterRepository.IsUserInCenterAsync(technicianId, centerId.Value, ct);
+            if (!inCenter)
+            {
+                return ServiceResult<AssignmentDto>.Failure("Technician does not belong to booking center");
+            }
             var startUtc = DateTime.SpecifyKind(dto.PlannedStartUtc, DateTimeKind.Utc);
             var endUtc = DateTime.SpecifyKind(dto.PlannedEndUtc, DateTimeKind.Utc);
             var workDate = DateOnly.FromDateTime(startUtc);
@@ -45,21 +64,22 @@ public class AssignmentService : IAssignmentService
                 return ServiceResult<AssignmentDto>.Failure("Technician not available in this time range");
             }
 
-            // Capacity check across overlapped schedules
+            // Capacity check across overlapped schedules (consider only assigned/active)
+            var relevantStatuses = new[] { "ASSIGNED", "ACTIVE" };
             var assignedCount = await _unitOfWork.AssignmentRepository
-                .CountAssignmentsByTechnicianAndRangeAsync(technicianId, startUtc, endUtc, ct);
+                .CountAssignmentsWithStatusesByTechnicianAndRangeAsync(technicianId, startUtc, endUtc, relevantStatuses, ct);
             var hasCapacity = matchingSchedules.Any(s => s.SlotCapacity - assignedCount > 0);
             if (!hasCapacity)
             {
                 return ServiceResult<AssignmentDto>.Failure("Technician slot full");
             }
 
-            // Avoid double-booking in same window
+            // Avoid double-booking in same window (consider only assigned/active)
             var hasOverlap = await _unitOfWork.AssignmentRepository
-                .ExistsOverlapAsync(technicianId, startUtc, endUtc, null, ct);
+                .ExistsOverlapWithStatusesAsync(technicianId, startUtc, endUtc, relevantStatuses, null, ct);
             if (hasOverlap)
             {
-                return ServiceResult<AssignmentDto>.Failure("Technician already assigned in this time range");
+                return ServiceResult<AssignmentDto>.Failure("Technician already assigned at this time");
             }
 
             var entity = dto.ToEntity();
@@ -70,7 +90,7 @@ public class AssignmentService : IAssignmentService
             var resultDto = entity.ToDto();
             if (resultDto != null)
             {
-                resultDto.CenterId = dto.CenterId;
+                resultDto.CenterId = centerId.Value;
             }
 
             return ServiceResult<AssignmentDto>.Success(resultDto!, "Assignment created successfully");

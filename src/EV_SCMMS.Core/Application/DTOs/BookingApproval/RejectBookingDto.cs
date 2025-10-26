@@ -6,6 +6,5 @@ namespace EV_SCMMS.Core.Application.DTOs.BookingApproval;
 public class RejectBookingDto
 {
     public Guid BookingId { get; set; }
-    public Guid StaffId { get; set; }
     public string Reason { get; set; } = string.Empty;
 }
