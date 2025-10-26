@@ -10,7 +10,7 @@ namespace EV_SCMMS.Infrastructure.Persistence.Repositories;
 /// </summary>
 public class WorkOrderRepository : GenericRepository<Workorderapprovalthaontt>, IWorkOrderRepository
 {
-    private static readonly string[] ActiveStatuses = new[] { "DRAFT", "AWAITING_APPROVAL", "APPROVED", "IN_PROGRESS" };
+    private static readonly string[] ActiveStatuses = new[] { "DRAFT", "PENDING_CUSTOMER_DECISION", "REVISED" };
 
     public WorkOrderRepository(AppDbContext context) : base(context)
     {

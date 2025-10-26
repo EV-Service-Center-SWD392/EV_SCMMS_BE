@@ -1,5 +1,13 @@
 namespace EV_SCMMS.Core.Application.DTOs.WorkOrder;
 
+public class ChecklistSummaryDto
+{
+    public string ItemName { get; set; } = string.Empty;
+    public short? Severity { get; set; }
+    public string? Comment { get; set; }
+    public string? PhotoUrl { get; set; }
+}
+
 public class WorkOrderDto
 {
     public Guid Id { get; set; }
@@ -16,4 +24,6 @@ public class WorkOrderDto
     public DateTime? CompletedAt { get; set; }
 
     public List<WorkOrderLineDto>? Lines { get; set; }
+
+    public List<ChecklistSummaryDto>? ChecklistSummary { get; set; }
 }
