@@ -34,6 +34,8 @@ public class UnitOfWork : IUnitOfWork
     private IRefreshTokenRepository? _refreshTokenRepository;
     private IWorkScheduleRepository? _workScheduleRepository;
     private IAssignmentRepository? _assignmentRepository;
+    private IServiceIntakeRepository? _serviceIntakeRepository;
+    private IChecklistRepository? _checklistRepository;
     
     // Service instances
     private IRefreshTokenService? _refreshTokenService;
@@ -168,6 +170,24 @@ public class UnitOfWork : IUnitOfWork
         {
             _assignmentRepository ??= new AssignmentRepository(_context);
             return _assignmentRepository;
+        }
+    }
+
+    public IServiceIntakeRepository ServiceIntakeRepository
+    {
+        get
+        {
+            _serviceIntakeRepository ??= new ServiceIntakeRepository(_context);
+            return _serviceIntakeRepository;
+        }
+    }
+
+    public IChecklistRepository ChecklistRepository
+    {
+        get
+        {
+            _checklistRepository ??= new ChecklistRepository(_context);
+            return _checklistRepository;
         }
     }
 
