@@ -47,6 +47,8 @@ public class ServiceIntakeRepository : GenericRepository<Serviceintakethaontt>, 
                 .ThenInclude(b => b.Slot)
             .Include(si => si.Booking)
                 .ThenInclude(b => b.Vehicle)
+            .Include(si => si.Booking)
+                .ThenInclude(b => b.Assignmentthaontts)
             .Where(si => si.Isactive != false);
 
         if (centerId.HasValue)
@@ -71,7 +73,8 @@ public class ServiceIntakeRepository : GenericRepository<Serviceintakethaontt>, 
         if (technicianId.HasValue)
         {
             var techId = technicianId.Value;
-            query = query.Where(si => si.CheckedInBy == techId);
+            // Filter by assigned technician via Booking -> Assignmentthaontts
+            query = query.Where(si => si.Booking.Assignmentthaontts.Any(a => a.Isactive == true && a.Technicianid == techId));
         }
 
         return await query

@@ -35,6 +35,11 @@ public class AssignmentService : IAssignmentService
                 return ServiceResult<AssignmentDto>.Failure("Booking not found");
             }
 
+            if (!string.Equals(booking.Status, "APPROVED", StringComparison.OrdinalIgnoreCase))
+            {
+                return ServiceResult<AssignmentDto>.Failure("Assignment allowed only for APPROVED bookings");
+            }
+
             var centerId = booking.Slot?.Centerid;
             if (!centerId.HasValue || centerId.Value == Guid.Empty)
             {
@@ -83,6 +88,8 @@ public class AssignmentService : IAssignmentService
             }
 
             var entity = dto.ToEntity();
+            // Set status to ASSIGNED on creation per lifecycle
+            entity.Status = "ASSIGNED";
             await _unitOfWork.AssignmentRepository.AddAsync(entity);
             await _unitOfWork.SaveChangesAsync(ct);
 
