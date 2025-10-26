@@ -31,6 +31,39 @@ public class WorkOrderService : IWorkOrderService
                 return ServiceResult<WorkOrderDto>.Failure("IntakeId is required");
             }
 
+            // Build response lines by always deriving PartName/UnitPrice from SparepartTuht
+            List<WorkOrderLineDto>? responseLines = null;
+            if (dto.Lines != null && dto.Lines.Any())
+            {
+                responseLines = new List<WorkOrderLineDto>();
+                foreach (var line in dto.Lines)
+                {
+                    var partObj = await _unitOfWork.SparepartRepository.GetByIdAsync(line.PartId);
+                    if (partObj is SparepartTuht part)
+                    {
+                        responseLines.Add(new WorkOrderLineDto
+                        {
+                            PartId = part.Sparepartid,
+                            PartName = part.Name,
+                            Qty = line.Qty,
+                            UnitPrice = part.Unitprice,
+                            LaborCode = line.LaborCode,
+                            LaborHours = line.LaborHours
+                        });
+                    }
+                    else
+                    {
+                        responseLines.Add(new WorkOrderLineDto
+                        {
+                            PartId = line.PartId,
+                            Qty = line.Qty,
+                            LaborCode = line.LaborCode,
+                            LaborHours = line.LaborHours
+                        });
+                    }
+                }
+            }
+
             var intake = await _unitOfWork.ServiceIntakeRepository.GetAllQueryable()
                 .Include(si => si.Booking)
                 .FirstOrDefaultAsync(si => si.Intakeid == dto.IntakeId, ct);
@@ -68,7 +101,7 @@ public class WorkOrderService : IWorkOrderService
             dtoOut.Title = dto.Title;
             dtoOut.Description = dto.Description;
             dtoOut.EstimatedAmount = dto.EstimatedAmount;
-            dtoOut.Lines = dto.Lines;
+            dtoOut.Lines = responseLines;
 
             return ServiceResult<WorkOrderDto>.Success(dtoOut, "Work Order created in DRAFT");
         }
@@ -102,7 +135,37 @@ public class WorkOrderService : IWorkOrderService
             dtoOut.Title = dto.Title;
             dtoOut.Description = dto.Description;
             dtoOut.EstimatedAmount = dto.EstimatedAmount;
-            dtoOut.Lines = dto.Lines;
+            if (dto.Lines != null && dto.Lines.Any())
+            {
+                var mapped = new List<WorkOrderLineDto>();
+                foreach (var line in dto.Lines)
+                {
+                    var partObj = await _unitOfWork.SparepartRepository.GetByIdAsync(line.PartId);
+                    if (partObj is SparepartTuht part)
+                    {
+                        mapped.Add(new WorkOrderLineDto
+                        {
+                            PartId = part.Sparepartid,
+                            PartName = part.Name,
+                            Qty = line.Qty,
+                            UnitPrice = part.Unitprice,
+                            LaborCode = line.LaborCode,
+                            LaborHours = line.LaborHours
+                        });
+                    }
+                    else
+                    {
+                        mapped.Add(new WorkOrderLineDto
+                        {
+                            PartId = line.PartId,
+                            Qty = line.Qty,
+                            LaborCode = line.LaborCode,
+                            LaborHours = line.LaborHours
+                        });
+                    }
+                }
+                dtoOut.Lines = mapped;
+            }
 
             return ServiceResult<WorkOrderDto>.Success(dtoOut, "Work Order updated");
         }
@@ -112,11 +175,11 @@ public class WorkOrderService : IWorkOrderService
         }
     }
 
-    public async Task<IServiceResult<WorkOrderDto>> SubmitAsync(SubmitWorkOrderDto dto, CancellationToken ct = default)
+    public async Task<IServiceResult<WorkOrderDto>> SubmitAsync(Guid id, CancellationToken ct = default)
     {
         try
         {
-            var entity = await LoadTrackedAsync(dto.WorkOrderId, ct);
+            var entity = await LoadTrackedAsync(id, ct);
             if (entity == null) return ServiceResult<WorkOrderDto>.Failure("Work Order not found");
 
             if (!EditableStates.Contains(entity.Status ?? string.Empty))
@@ -124,11 +187,11 @@ public class WorkOrderService : IWorkOrderService
                 return ServiceResult<WorkOrderDto>.Failure("Only DRAFT or REVISED Work Orders can be submitted");
             }
 
-            entity.Status = "AWAITING_APPROVAL";
+            entity.Status = "PENDING_CUSTOMER_DECISION";
             entity.Updatedat = DateTime.UtcNow;
             await _unitOfWork.SaveChangesAsync(ct);
 
-            var dtoOut = (await _unitOfWork.WorkOrderRepository.GetByIdAsync(dto.WorkOrderId, ct) ?? entity).ToDto();
+            var dtoOut = (await _unitOfWork.WorkOrderRepository.GetByIdAsync(id, ct) ?? entity).ToDto();
             return ServiceResult<WorkOrderDto>.Success(dtoOut, "Submitted for approval");
         }
         catch (Exception ex)
@@ -137,21 +200,16 @@ public class WorkOrderService : IWorkOrderService
         }
     }
 
-    public async Task<IServiceResult<WorkOrderDto>> ApproveAsync(ApproveWorkOrderDto dto, CancellationToken ct = default)
+    public async Task<IServiceResult<WorkOrderDto>> ApproveAsync(Guid id, ApproveWorkOrderDto dto, CancellationToken ct = default)
     {
         try
         {
-            if (dto.WorkOrderId == Guid.Empty)
-            {
-                return ServiceResult<WorkOrderDto>.Failure("WorkOrderId is required");
-            }
-
-            var entity = await LoadTrackedAsync(dto.WorkOrderId, ct);
+            var entity = await LoadTrackedAsync(id, ct);
             if (entity == null) return ServiceResult<WorkOrderDto>.Failure("Work Order not found");
 
-            if (!string.Equals(entity.Status, "AWAITING_APPROVAL", StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(entity.Status, "PENDING_CUSTOMER_DECISION", StringComparison.OrdinalIgnoreCase))
             {
-                return ServiceResult<WorkOrderDto>.Failure("Only AWAITING_APPROVAL Work Orders can be approved");
+                return ServiceResult<WorkOrderDto>.Failure("Only PENDING_CUSTOMER_DECISION Work Orders can be approved");
             }
 
             entity.Status = "APPROVED";
@@ -164,7 +222,7 @@ public class WorkOrderService : IWorkOrderService
 
             await _unitOfWork.SaveChangesAsync(ct);
 
-            var dtoOut = (await _unitOfWork.WorkOrderRepository.GetByIdAsync(dto.WorkOrderId, ct) ?? entity).ToDto();
+            var dtoOut = (await _unitOfWork.WorkOrderRepository.GetByIdAsync(id, ct) ?? entity).ToDto();
             return ServiceResult<WorkOrderDto>.Success(dtoOut, "Work Order approved");
         }
         catch (Exception ex)
@@ -173,26 +231,21 @@ public class WorkOrderService : IWorkOrderService
         }
     }
 
-    public async Task<IServiceResult<WorkOrderDto>> RejectAsync(RejectWorkOrderDto dto, CancellationToken ct = default)
+    public async Task<IServiceResult<WorkOrderDto>> RejectAsync(Guid id, RejectWorkOrderDto dto, CancellationToken ct = default)
     {
         try
         {
-            if (dto.WorkOrderId == Guid.Empty)
-            {
-                return ServiceResult<WorkOrderDto>.Failure("WorkOrderId is required");
-            }
-
             if (string.IsNullOrWhiteSpace(dto.Reason))
             {
                 return ServiceResult<WorkOrderDto>.Failure("Reject reason is required");
             }
 
-            var entity = await LoadTrackedAsync(dto.WorkOrderId, ct);
+            var entity = await LoadTrackedAsync(id, ct);
             if (entity == null) return ServiceResult<WorkOrderDto>.Failure("Work Order not found");
 
-            if (!string.Equals(entity.Status, "AWAITING_APPROVAL", StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(entity.Status, "PENDING_CUSTOMER_DECISION", StringComparison.OrdinalIgnoreCase))
             {
-                return ServiceResult<WorkOrderDto>.Failure("Only AWAITING_APPROVAL Work Orders can be rejected");
+                return ServiceResult<WorkOrderDto>.Failure("Only PENDING_CUSTOMER_DECISION Work Orders can be rejected");
             }
 
             entity.Status = "REJECTED";
@@ -201,7 +254,7 @@ public class WorkOrderService : IWorkOrderService
 
             await _unitOfWork.SaveChangesAsync(ct);
 
-            var dtoOut = (await _unitOfWork.WorkOrderRepository.GetByIdAsync(dto.WorkOrderId, ct) ?? entity).ToDto();
+            var dtoOut = (await _unitOfWork.WorkOrderRepository.GetByIdAsync(id, ct) ?? entity).ToDto();
             return ServiceResult<WorkOrderDto>.Success(dtoOut, "Work Order rejected");
         }
         catch (Exception ex)
@@ -210,16 +263,11 @@ public class WorkOrderService : IWorkOrderService
         }
     }
 
-    public async Task<IServiceResult<WorkOrderDto>> ReviseAsync(ReviseWorkOrderDto dto, CancellationToken ct = default)
+    public async Task<IServiceResult<WorkOrderDto>> ReviseAsync(Guid id, ReviseWorkOrderDto dto, CancellationToken ct = default)
     {
         try
         {
-            if (dto.WorkOrderId == Guid.Empty)
-            {
-                return ServiceResult<WorkOrderDto>.Failure("WorkOrderId is required");
-            }
-
-            var entity = await LoadTrackedAsync(dto.WorkOrderId, ct);
+            var entity = await LoadTrackedAsync(id, ct);
             if (entity == null) return ServiceResult<WorkOrderDto>.Failure("Work Order not found");
 
             if (!string.Equals(entity.Status, "REJECTED", StringComparison.OrdinalIgnoreCase))
@@ -231,12 +279,42 @@ public class WorkOrderService : IWorkOrderService
             entity.UpdateFromDto(dto.Payload);
             await _unitOfWork.SaveChangesAsync(ct);
 
-            var refreshed = await _unitOfWork.WorkOrderRepository.GetByIdAsync(dto.WorkOrderId, ct) ?? entity;
+            var refreshed = await _unitOfWork.WorkOrderRepository.GetByIdAsync(id, ct) ?? entity;
             var dtoOut = refreshed.ToDto();
             dtoOut.Title = dto.Payload.Title;
             dtoOut.Description = dto.Payload.Description;
             dtoOut.EstimatedAmount = dto.Payload.EstimatedAmount;
-            dtoOut.Lines = dto.Payload.Lines;
+            if (dto.Payload.Lines != null && dto.Payload.Lines.Any())
+            {
+                var mapped = new List<WorkOrderLineDto>();
+                foreach (var line in dto.Payload.Lines)
+                {
+                    var partObj = await _unitOfWork.SparepartRepository.GetByIdAsync(line.PartId);
+                    if (partObj is SparepartTuht part)
+                    {
+                        mapped.Add(new WorkOrderLineDto
+                        {
+                            PartId = part.Sparepartid,
+                            PartName = part.Name,
+                            Qty = line.Qty,
+                            UnitPrice = part.Unitprice,
+                            LaborCode = line.LaborCode,
+                            LaborHours = line.LaborHours
+                        });
+                    }
+                    else
+                    {
+                        mapped.Add(new WorkOrderLineDto
+                        {
+                            PartId = line.PartId,
+                            Qty = line.Qty,
+                            LaborCode = line.LaborCode,
+                            LaborHours = line.LaborHours
+                        });
+                    }
+                }
+                dtoOut.Lines = mapped;
+            }
 
             return ServiceResult<WorkOrderDto>.Success(dtoOut, "Work Order revised");
         }
@@ -246,75 +324,26 @@ public class WorkOrderService : IWorkOrderService
         }
     }
 
-    public async Task<IServiceResult<WorkOrderDto>> StartAsync(StartWorkDto dto, CancellationToken ct = default)
-    {
-        try
-        {
-            if (dto.WorkOrderId == Guid.Empty)
-            {
-                return ServiceResult<WorkOrderDto>.Failure("WorkOrderId is required");
-            }
-
-            var entity = await LoadTrackedAsync(dto.WorkOrderId, ct);
-            if (entity == null) return ServiceResult<WorkOrderDto>.Failure("Work Order not found");
-
-            if (!string.Equals(entity.Status, "APPROVED", StringComparison.OrdinalIgnoreCase))
-            {
-                return ServiceResult<WorkOrderDto>.Failure("Only APPROVED Work Orders can be started");
-            }
-
-            entity.Status = "IN_PROGRESS";
-            entity.Updatedat = DateTime.UtcNow;
-            await _unitOfWork.SaveChangesAsync(ct);
-
-            var dtoOut = (await _unitOfWork.WorkOrderRepository.GetByIdAsync(dto.WorkOrderId, ct) ?? entity).ToDto();
-            dtoOut.StartedAt = DateTime.UtcNow; // not persisted
-            return ServiceResult<WorkOrderDto>.Success(dtoOut, "Work started");
-        }
-        catch (Exception ex)
-        {
-            return ServiceResult<WorkOrderDto>.Failure($"Error starting Work Order: {ex.Message}");
-        }
-    }
-
-    public async Task<IServiceResult<WorkOrderDto>> CompleteAsync(CompleteWorkDto dto, CancellationToken ct = default)
-    {
-        try
-        {
-            if (dto.WorkOrderId == Guid.Empty)
-            {
-                return ServiceResult<WorkOrderDto>.Failure("WorkOrderId is required");
-            }
-
-            var entity = await LoadTrackedAsync(dto.WorkOrderId, ct);
-            if (entity == null) return ServiceResult<WorkOrderDto>.Failure("Work Order not found");
-
-            if (!string.Equals(entity.Status, "IN_PROGRESS", StringComparison.OrdinalIgnoreCase))
-            {
-                return ServiceResult<WorkOrderDto>.Failure("Only IN_PROGRESS Work Orders can be completed");
-            }
-
-            entity.Status = "COMPLETED";
-            entity.Updatedat = DateTime.UtcNow;
-            await _unitOfWork.SaveChangesAsync(ct);
-
-            var dtoOut = (await _unitOfWork.WorkOrderRepository.GetByIdAsync(dto.WorkOrderId, ct) ?? entity).ToDto();
-            dtoOut.CompletedAt = DateTime.UtcNow; // not persisted
-            return ServiceResult<WorkOrderDto>.Success(dtoOut, "Work completed");
-        }
-        catch (Exception ex)
-        {
-            return ServiceResult<WorkOrderDto>.Failure($"Error completing Work Order: {ex.Message}");
-        }
-    }
-
     public async Task<IServiceResult<WorkOrderDto>> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
         try
         {
             var entity = await _unitOfWork.WorkOrderRepository.GetByIdAsync(id, ct);
             if (entity == null) return ServiceResult<WorkOrderDto>.Failure("Work Order not found");
-            return ServiceResult<WorkOrderDto>.Success(entity.ToDto());
+            var dto = entity.ToDto();
+            // Join checklist summary by IntakeId
+            if (dto.IntakeId != Guid.Empty)
+            {
+                var checklist = await _unitOfWork.ChecklistRepository.GetResponsesAsync(dto.IntakeId, ct);
+                dto.ChecklistSummary = checklist.Select(x => new ChecklistSummaryDto
+                {
+                    ItemName = x.Item?.Name ?? "Unknown Item",
+                    Severity = x.Severity,
+                    Comment = x.Comment,
+                    PhotoUrl = x.Photourl
+                }).ToList();
+            }
+            return ServiceResult<WorkOrderDto>.Success(dto);
         }
         catch (Exception ex)
         {
@@ -327,11 +356,77 @@ public class WorkOrderService : IWorkOrderService
         try
         {
             var entities = await _unitOfWork.WorkOrderRepository.GetRangeAsync(centerId, date, status, technicianId, ct);
-            return ServiceResult<List<WorkOrderDto>>.Success(entities.ToDto());
+            var dtos = entities.ToDto();
+            // Enrich with checklist summaries for each item
+            foreach (var dto in dtos)
+            {
+                if (dto.IntakeId != Guid.Empty)
+                {
+                    var checklist = await _unitOfWork.ChecklistRepository.GetResponsesAsync(dto.IntakeId, ct);
+                    dto.ChecklistSummary = checklist.Select(x => new ChecklistSummaryDto
+                    {
+                        ItemName = x.Item?.Name ?? "Unknown Item",
+                        Severity = x.Severity,
+                        Comment = x.Comment,
+                        PhotoUrl = x.Photourl
+                    }).ToList();
+                }
+            }
+            return ServiceResult<List<WorkOrderDto>>.Success(dtos);
         }
         catch (Exception ex)
         {
             return ServiceResult<List<WorkOrderDto>>.Failure($"Error retrieving Work Orders: {ex.Message}");
+        }
+    }
+
+    public async Task<IServiceResult<List<WorkOrderDto>>> GetMyWorkOrdersAsync(Guid currentUserId, string role, CancellationToken ct)
+    {
+        try
+        {
+            var query = _unitOfWork.WorkOrderRepository
+                .GetAllQueryable()
+                .Include(wo => wo.Order)
+                    .ThenInclude(o => o.Booking)
+                        .ThenInclude(b => b.Serviceintakethaontt)
+                .AsNoTracking();
+
+            if (string.Equals(role, "TECHNICIAN", StringComparison.OrdinalIgnoreCase))
+            {
+                query = query.Where(x => x.Order.Booking != null && x.Order.Booking.Serviceintakethaontt != null && x.Order.Booking.Serviceintakethaontt.Advisorid == currentUserId);
+            }
+            else if (string.Equals(role, "CUSTOMER", StringComparison.OrdinalIgnoreCase))
+            {
+                query = query.Where(x => x.Order.Booking != null && x.Order.Booking.Customerid == currentUserId);
+            }
+
+            var list = await query
+                .OrderByDescending(x => x.Createdat)
+                .ToListAsync(ct);
+
+            var dtos = new List<WorkOrderDto>();
+            foreach (var entity in list)
+            {
+                var dto = entity.ToDto();
+                if (dto.IntakeId != Guid.Empty)
+                {
+                    var checklist = await _unitOfWork.ChecklistRepository.GetResponsesAsync(dto.IntakeId, ct);
+                    dto.ChecklistSummary = checklist.Select(x => new ChecklistSummaryDto
+                    {
+                        ItemName = x.Item?.Name ?? "Unknown Item",
+                        Severity = x.Severity,
+                        Comment = x.Comment,
+                        PhotoUrl = x.Photourl
+                    }).ToList();
+                }
+                dtos.Add(dto);
+            }
+
+            return ServiceResult<List<WorkOrderDto>>.Success(dtos);
+        }
+        catch (Exception ex)
+        {
+            return ServiceResult<List<WorkOrderDto>>.Failure($"Error retrieving user Work Orders: {ex.Message}");
         }
     }
 
