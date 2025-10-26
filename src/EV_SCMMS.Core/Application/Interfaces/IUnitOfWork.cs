@@ -89,6 +89,11 @@ public interface IUnitOfWork : IDisposable
     IChecklistRepository ChecklistRepository { get; }
 
     /// <summary>
+    /// Work Order repository
+    /// </summary>
+    IWorkOrderRepository WorkOrderRepository { get; }
+
+    /// <summary>
     /// Refresh Token service
     /// </summary>
     IRefreshTokenService RefreshTokenService { get; }
