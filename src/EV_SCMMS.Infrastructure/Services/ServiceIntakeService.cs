@@ -24,7 +24,7 @@ public class ServiceIntakeService : IServiceIntakeService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<IServiceResult<ServiceIntakeDto>> CreateAsync(CreateServiceIntakeDto dto, CancellationToken ct = default)
+    public async Task<IServiceResult<ServiceIntakeDto>> CreateAsync(CreateServiceIntakeDto dto, Guid checkedInBy, CancellationToken ct = default)
     {
         try
         {
@@ -33,30 +33,27 @@ public class ServiceIntakeService : IServiceIntakeService
                 return ServiceResult<ServiceIntakeDto>.Failure("Payload is required");
             }
 
-            if (dto.CenterId == Guid.Empty || dto.VehicleId == Guid.Empty || dto.TechnicianId == Guid.Empty)
+            if (dto.BookingId == Guid.Empty)
             {
-                return ServiceResult<ServiceIntakeDto>.Failure("CenterId, VehicleId and TechnicianId are required");
+                return ServiceResult<ServiceIntakeDto>.Failure("BookingId is required");
             }
 
-            var (booking, assignmentResult, error) = await ResolveBookingAsync(dto, ct);
-            if (error != null)
-            {
-                return ServiceResult<ServiceIntakeDto>.Failure(error);
-            }
+            var booking = await _unitOfWork.BookingRepository.GetAllQueryable()
+                .AsNoTracking()
+                .Include(b => b.Slot)
+                .Include(b => b.Vehicle)
+                .Include(b => b.Assignmentthaontts)
+                .FirstOrDefaultAsync(b => b.Bookingid == dto.BookingId, ct);
 
             if (booking == null)
             {
                 return ServiceResult<ServiceIntakeDto>.Failure("Booking not found");
             }
 
-            if (booking.Vehicleid != dto.VehicleId)
+            // Optional business rule: allow intake creation only for approved bookings
+            if (!string.Equals(booking.Status, "APPROVED", StringComparison.OrdinalIgnoreCase))
             {
-                return ServiceResult<ServiceIntakeDto>.Failure("Vehicle does not match booking");
-            }
-
-            if (booking.Slot?.Centerid != null && booking.Slot.Centerid != dto.CenterId)
-            {
-                return ServiceResult<ServiceIntakeDto>.Failure("Center does not match booking slot");
+                return ServiceResult<ServiceIntakeDto>.Failure("Service intake allowed only for APPROVED bookings");
             }
 
             var existingIntake = await _unitOfWork.ServiceIntakeRepository.GetAllQueryable()
@@ -67,18 +64,9 @@ public class ServiceIntakeService : IServiceIntakeService
                 return ServiceResult<ServiceIntakeDto>.Failure("An active intake already exists for this booking");
             }
 
-            if (assignmentResult != null && assignmentResult.Value != Guid.Empty)
-            {
-                var hasActive = await _unitOfWork.ServiceIntakeRepository.ExistsActiveByAssignmentAsync(assignmentResult.Value, ct);
-                if (hasActive)
-                {
-                    return ServiceResult<ServiceIntakeDto>.Failure("Another active intake already uses this assignment");
-                }
-            }
-
-            dto.BookingId = booking.Bookingid;
-
             var entity = dto.ToEntity();
+            entity.Bookingid = booking.Bookingid;
+            entity.CheckedInBy = checkedInBy; // store check-in actor
             entity.Status = "CHECKED_IN";
             entity.Isactive = true;
             entity.Createdat = DateTime.UtcNow;
@@ -260,48 +248,7 @@ public class ServiceIntakeService : IServiceIntakeService
         }
     }
 
-    private async Task<(Bookinghuykt? Booking, Guid? AssignmentId, string? Error)> ResolveBookingAsync(CreateServiceIntakeDto dto, CancellationToken ct)
-    {
-        Guid? bookingId = dto.BookingId;
-        Guid? assignmentId = dto.AssignmentId;
-
-        if (!bookingId.HasValue || bookingId.Value == Guid.Empty)
-        {
-            if (!assignmentId.HasValue || assignmentId.Value == Guid.Empty)
-            {
-                return (null, null, "BookingId or AssignmentId is required");
-            }
-
-            var assignment = await _unitOfWork.AssignmentRepository.GetAllQueryable()
-                .AsNoTracking()
-                .FirstOrDefaultAsync(a => a.Assignmentid == assignmentId.Value, ct);
-            if (assignment == null)
-            {
-                return (null, null, "Assignment not found");
-            }
-
-            if (assignment.Technicianid != dto.TechnicianId)
-            {
-                return (null, null, "Technician does not match assignment");
-            }
-
-            bookingId = assignment.Bookingid;
-        }
-
-        var booking = await _unitOfWork.BookingRepository.GetAllQueryable()
-            .AsNoTracking()
-            .Include(b => b.Slot)
-            .Include(b => b.Vehicle)
-            .Include(b => b.Assignmentthaontts)
-            .FirstOrDefaultAsync(b => b.Bookingid == bookingId.Value, ct);
-
-        if (booking == null)
-        {
-            return (null, assignmentId, "Booking not found");
-        }
-
-        return (booking, assignmentId, null);
-    }
+    // Booking resolution via Assignment is no longer needed as Create requires BookingId only.
 
     private async Task<Serviceintakethaontt?> LoadTrackedIntakeAsync(Guid id, CancellationToken ct)
     {

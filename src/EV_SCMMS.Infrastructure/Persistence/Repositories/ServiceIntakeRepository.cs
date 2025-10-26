@@ -71,33 +71,11 @@ public class ServiceIntakeRepository : GenericRepository<Serviceintakethaontt>, 
         if (technicianId.HasValue)
         {
             var techId = technicianId.Value;
-            query = query.Where(si => si.Advisorid == techId);
+            query = query.Where(si => si.CheckedInBy == techId);
         }
 
         return await query
             .OrderByDescending(si => si.Createdat)
             .ToListAsync(ct);
-    }
-
-    public async Task<bool> ExistsActiveByAssignmentAsync(Guid assignmentId, CancellationToken ct = default)
-    {
-        var assignment = await _dbSet.Assignmentthaontts
-            .AsNoTracking()
-            .Where(a => a.Assignmentid == assignmentId)
-            .Select(a => new { a.Bookingid, a.Isactive })
-            .FirstOrDefaultAsync(ct);
-
-        if (assignment == null || assignment.Isactive == false)
-        {
-            return false;
-        }
-
-        return await _dbSet.Serviceintakethaontts
-            .AsNoTracking()
-            .AnyAsync(si =>
-                si.Bookingid == assignment.Bookingid &&
-                si.Isactive != false &&
-                !string.Equals(si.Status, "CANCELLED", StringComparison.OrdinalIgnoreCase),
-                ct);
     }
 }

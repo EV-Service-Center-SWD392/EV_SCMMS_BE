@@ -16,7 +16,5 @@ namespace EV_SCMMS.Core.Application.Interfaces.Repositories
             string? status,
             Guid? technicianId,
             CancellationToken ct = default);
-
-        Task<bool> ExistsActiveByAssignmentAsync(Guid assignmentId, CancellationToken ct = default);
     }
 }

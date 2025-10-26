@@ -19,6 +19,7 @@ public class WorkOrderDto
     public decimal? EstimatedAmount { get; set; }
 
     public DateTime CreatedAt { get; set; }
+    public Guid? ApprovedBy { get; set; }
     public DateTime? ApprovedAt { get; set; }
     public DateTime? StartedAt { get; set; }
     public DateTime? CompletedAt { get; set; }

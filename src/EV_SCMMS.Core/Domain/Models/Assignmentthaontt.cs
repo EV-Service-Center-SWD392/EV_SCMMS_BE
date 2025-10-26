@@ -19,6 +19,8 @@ public partial class Assignmentthaontt
 
     public string? Status { get; set; }
 
+    public string? Note { get; set; }
+
     public bool? Isactive { get; set; }
 
     public DateTime? Createdat { get; set; }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EV_SCMMS.Core.Domain.Models;
 
@@ -9,7 +10,8 @@ public partial class Serviceintakethaontt
 
     public Guid Bookingid { get; set; }
 
-    public Guid Advisorid { get; set; }
+    [Column("advisorid")]
+    public Guid CheckedInBy { get; set; }
 
     public DateTime? Checkintimeutc { get; set; }
 
@@ -27,6 +29,7 @@ public partial class Serviceintakethaontt
 
     public DateTime? Updatedat { get; set; }
 
+    [ForeignKey(nameof(CheckedInBy))]
     public virtual Useraccount Advisor { get; set; } = null!;
 
     public virtual Bookinghuykt Booking { get; set; } = null!;

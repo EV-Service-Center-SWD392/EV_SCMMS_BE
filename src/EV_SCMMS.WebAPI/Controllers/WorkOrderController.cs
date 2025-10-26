@@ -73,7 +73,13 @@ public class WorkOrderController : ControllerBase
     [Authorize(Roles = "CUSTOMER")]
     public async Task<IActionResult> Approve(Guid id, [FromBody] ApproveWorkOrderDto dto, CancellationToken ct)
     {
-        var result = await _workOrderService.ApproveAsync(id, dto, ct);
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdClaim, out var approvedBy) || approvedBy == Guid.Empty)
+        {
+            return Unauthorized("Invalid user context");
+        }
+
+        var result = await _workOrderService.ApproveAsync(id, dto, approvedBy, ct);
         if (result.IsSuccess && result.Data != null) return Ok(result.Data);
         return BadRequest(result.Message);
     }

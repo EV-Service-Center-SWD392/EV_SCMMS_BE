@@ -19,6 +19,7 @@ public static class ServiceIntakeMapper
         var centerId = booking?.Slot?.Centerid ?? Guid.Empty;
         var vehicleId = booking?.Vehicleid ?? Guid.Empty;
         var assignmentId = ResolveAssignmentId(entity);
+        var technicianId = ResolveTechnicianId(entity);
 
         var createdAt = EnsureUtc(entity.Createdat);
         var updatedAt = EnsureNullableUtc(entity.Updatedat);
@@ -28,7 +29,7 @@ public static class ServiceIntakeMapper
             Id = entity.Intakeid,
             CenterId = centerId,
             VehicleId = vehicleId,
-            TechnicianId = entity.Advisorid,
+            TechnicianId = technicianId,
             AssignmentId = assignmentId,
             BookingId = entity.Bookingid,
             Odometer = entity.Odometerkm,
@@ -58,8 +59,7 @@ public static class ServiceIntakeMapper
         return new Serviceintakethaontt
         {
             Intakeid = Guid.NewGuid(),
-            Bookingid = dto.BookingId ?? Guid.Empty,
-            Advisorid = dto.TechnicianId,
+            Bookingid = dto.BookingId,
             Checkintimeutc = now,
             Odometerkm = dto.Odometer,
             Batterysoc = dto.BatteryPercent,
@@ -89,17 +89,21 @@ public static class ServiceIntakeMapper
             return null;
         }
 
-        var match = bookingAssignments
-            .Where(a => a.Isactive != false)
-            .FirstOrDefault(a => a.Technicianid == entity.Advisorid);
-
-        if (match != null)
-        {
-            return match.Assignmentid;
-        }
-
+        // Choose first active assignment as the linked assignment for the booking
         var first = bookingAssignments.FirstOrDefault(a => a.Isactive != false);
         return first?.Assignmentid;
+    }
+
+    private static Guid ResolveTechnicianId(Serviceintakethaontt entity)
+    {
+        var bookingAssignments = entity.Booking?.Assignmentthaontts;
+        if (bookingAssignments == null || bookingAssignments.Count == 0)
+        {
+            return Guid.Empty;
+        }
+
+        var active = bookingAssignments.FirstOrDefault(a => a.Isactive != false);
+        return active?.Technicianid ?? Guid.Empty;
     }
 
     private static DateTime EnsureUtc(DateTime? value)
