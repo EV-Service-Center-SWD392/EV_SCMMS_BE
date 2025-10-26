@@ -75,6 +75,26 @@ public class ServiceIntakeService : IServiceIntakeService
             await _unitOfWork.ServiceIntakeRepository.AddAsync(entity);
             await _unitOfWork.SaveChangesAsync(ct);
 
+            // Transition related assignments to ACTIVE when customer checks in
+            try
+            {
+                var now = DateTime.UtcNow;
+                var activeAssignments = await _unitOfWork.AssignmentRepository
+                    .GetAllQueryable()
+                    .Where(a => a.Bookingid == booking.Bookingid && a.Isactive == true)
+                    .ToListAsync(ct);
+                foreach (var a in activeAssignments)
+                {
+                    a.Status = "ACTIVE";
+                    a.Updatedat = now;
+                }
+                if (activeAssignments.Count > 0)
+                {
+                    await _unitOfWork.SaveChangesAsync(ct);
+                }
+            }
+            catch { /* best-effort; do not fail intake creation */ }
+
             var reloaded = await _unitOfWork.ServiceIntakeRepository.GetByIdWithIncludesAsync(entity.Intakeid, ct) ?? entity;
             reloaded.Booking = reloaded.Booking ?? booking;
 
@@ -132,17 +152,9 @@ public class ServiceIntakeService : IServiceIntakeService
                 return ServiceResult<ServiceIntakeDto>.Failure("Intake already verified or finalized");
             }
 
-            if (currentStatus.Equals("CHECKED_IN", StringComparison.OrdinalIgnoreCase))
+            if (!currentStatus.Equals("INSPECTING", StringComparison.OrdinalIgnoreCase))
             {
-                var responses = await _unitOfWork.ChecklistRepository.GetResponsesAsync(id, ct);
-                if (responses.Count > 0)
-                {
-                    return ServiceResult<ServiceIntakeDto>.Failure("Intake must be in INSPECTING status before verification");
-                }
-            }
-            else if (!currentStatus.Equals("INSPECTING", StringComparison.OrdinalIgnoreCase))
-            {
-                return ServiceResult<ServiceIntakeDto>.Failure("Only INSPECTING intakes can be verified");
+                return ServiceResult<ServiceIntakeDto>.Failure("Intake must be in INSPECTING status before verification");
             }
 
             entity.Status = "VERIFIED";
