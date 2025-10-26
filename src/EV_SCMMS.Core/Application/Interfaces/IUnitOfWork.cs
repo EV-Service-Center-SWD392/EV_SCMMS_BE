@@ -94,6 +94,11 @@ public interface IUnitOfWork : IDisposable
     IWorkOrderRepository WorkOrderRepository { get; }
 
     /// <summary>
+    /// User-Center membership repository
+    /// </summary>
+    IUserCenterRepository UserCenterRepository { get; }
+
+    /// <summary>
     /// Refresh Token service
     /// </summary>
     IRefreshTokenService RefreshTokenService { get; }

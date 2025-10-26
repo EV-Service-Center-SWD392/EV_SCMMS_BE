@@ -14,9 +14,6 @@ public class CreateAssignmentDto
     public Guid TechnicianId { get; set; }
 
     [Required]
-    public Guid CenterId { get; set; }
-
-    [Required]
     public DateTime PlannedStartUtc { get; set; }
 
     [Required]

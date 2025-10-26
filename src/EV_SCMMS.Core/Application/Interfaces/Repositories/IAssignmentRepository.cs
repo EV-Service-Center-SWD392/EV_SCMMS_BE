@@ -29,6 +29,27 @@ public interface IAssignmentRepository : IGenericRepository<Assignmentthaontt>
         CancellationToken ct = default);
 
     /// <summary>
+    /// Check overlapping assignments filtered by status list
+    /// </summary>
+    Task<bool> ExistsOverlapWithStatusesAsync(
+        Guid technicianId,
+        DateTime startUtc,
+        DateTime endUtc,
+        IEnumerable<string> statuses,
+        Guid? excludeAssignmentId = null,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// Count assignments within range filtered by status list
+    /// </summary>
+    Task<int> CountAssignmentsWithStatusesByTechnicianAndRangeAsync(
+        Guid technicianId,
+        DateTime startUtc,
+        DateTime endUtc,
+        IEnumerable<string> statuses,
+        CancellationToken ct = default);
+
+    /// <summary>
     /// Retrieves assignments filtered by optional center, date, and status.
     /// </summary>
     Task<List<Assignmentthaontt>> GetRangeAsync(

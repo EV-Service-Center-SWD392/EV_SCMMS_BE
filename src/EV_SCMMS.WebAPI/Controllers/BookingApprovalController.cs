@@ -10,7 +10,7 @@ namespace EV_SCMMS.WebAPI.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "ADMIN,STAFF")]
+[Authorize(Roles = "STAFF,ADVISOR")]
 public class BookingApprovalController : ControllerBase
 {
     private readonly IBookingApprovalService _bookingApprovalService;
@@ -52,7 +52,13 @@ public class BookingApprovalController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        var result = await _bookingApprovalService.ApproveAsync(dto, ct);
+        var staffIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(staffIdClaim, out var staffId) || staffId == Guid.Empty)
+        {
+            return Unauthorized("Invalid user identity");
+        }
+
+        var result = await _bookingApprovalService.ApproveAsync(dto, staffId, ct);
         if (result.IsSuccess)
         {
             return Ok(result.Data);
@@ -69,7 +75,13 @@ public class BookingApprovalController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        var result = await _bookingApprovalService.RejectAsync(dto, ct);
+        var staffIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(staffIdClaim, out var staffId) || staffId == Guid.Empty)
+        {
+            return Unauthorized("Invalid user identity");
+        }
+
+        var result = await _bookingApprovalService.RejectAsync(dto, staffId, ct);
         if (result.IsSuccess)
         {
             return Ok(result.Data);
