@@ -25,42 +25,10 @@ public class ChecklistItemService : IChecklistItemService
         page = page < 1 ? 1 : page;
         pageSize = pageSize < 1 ? 20 : (pageSize > 200 ? 200 : pageSize);
 
-        var qry = _uow.ChecklistItemRepository.Query().AsNoTracking();
-
-        if (!string.IsNullOrWhiteSpace(q))
-        {
-            var term = q.Trim().ToLower();
-            qry = qry.Where(x => (x.Code != null && x.Code.ToLower().Contains(term)) || x.Name.ToLower().Contains(term));
-        }
-
-        if (!string.IsNullOrWhiteSpace(status) && !status.Equals("ALL", StringComparison.OrdinalIgnoreCase))
-        {
-            if (status.Equals("ACTIVE", StringComparison.OrdinalIgnoreCase))
-            {
-                qry = qry.Where(x => x.Isactive == true);
-            }
-            else if (status.Equals("INACTIVE", StringComparison.OrdinalIgnoreCase))
-            {
-                qry = qry.Where(x => x.Isactive == false);
-            }
-        }
-
-        qry = (sort?.ToLower()) switch
-        {
-            "createdat" => (order.Equals("asc", StringComparison.OrdinalIgnoreCase) ? qry.OrderBy(x => x.Createdat) : qry.OrderByDescending(x => x.Createdat)),
-            "updatedat" => (order.Equals("asc", StringComparison.OrdinalIgnoreCase) ? qry.OrderBy(x => x.Updatedat) : qry.OrderByDescending(x => x.Updatedat)),
-            "code" => (order.Equals("asc", StringComparison.OrdinalIgnoreCase) ? qry.OrderBy(x => x.Code) : qry.OrderByDescending(x => x.Code)),
-            "name" => (order.Equals("asc", StringComparison.OrdinalIgnoreCase) ? qry.OrderBy(x => x.Name) : qry.OrderByDescending(x => x.Name)),
-            _ => qry.OrderByDescending(x => x.Createdat)
-        };
-
-        var total = await qry.CountAsync(ct);
-        var skip = (page - 1) * pageSize;
-        var items = await qry.Skip(skip).Take(pageSize).ToListAsync(ct);
-
+        var (entities, total) = await _uow.ChecklistItemRepository.SearchAsync(q, status, page, pageSize, sort, order, ct);
         return new PagedResult<ChecklistItemDto>
         {
-            Items = items.Select(MapToDto).ToList(),
+            Items = entities.Select(MapToDto).ToList(),
             Total = total,
             Page = page,
             PageSize = pageSize
