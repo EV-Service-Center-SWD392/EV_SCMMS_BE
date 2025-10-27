@@ -89,6 +89,11 @@ public interface IUnitOfWork : IDisposable
     IChecklistRepository ChecklistRepository { get; }
 
     /// <summary>
+    /// Checklist Item repository (ThaoNTT)
+    /// </summary>
+    IChecklistItemRepository ChecklistItemRepository { get; }
+
+    /// <summary>
     /// Work Order repository
     /// </summary>
     IWorkOrderRepository WorkOrderRepository { get; }

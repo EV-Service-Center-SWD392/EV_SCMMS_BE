@@ -21,8 +21,21 @@ public class ChecklistController : ControllerBase
     }
 
     [HttpGet("items")]
-    public async Task<IActionResult> GetItems(CancellationToken ct)
+    public async Task<IActionResult> GetItems([FromQuery] string? q, [FromQuery] string? status, [FromQuery] int? page, [FromQuery] int? pageSize, [FromQuery] string? sort, [FromQuery] string? order, CancellationToken ct)
     {
+        // If advanced query params are provided, serve paged admin-style listing via new service
+        if (!string.IsNullOrWhiteSpace(q) || !string.IsNullOrWhiteSpace(status) || page.HasValue || pageSize.HasValue || !string.IsNullOrWhiteSpace(sort) || !string.IsNullOrWhiteSpace(order))
+        {
+            var itemService = HttpContext.RequestServices.GetService(typeof(IChecklistItemService)) as IChecklistItemService;
+            if (itemService == null)
+            {
+                return BadRequest("Checklist item service not available");
+            }
+
+            var paged = await itemService.GetAsync(q, status ?? "ACTIVE", page ?? 1, pageSize ?? 20, sort ?? "createdAt", order ?? "desc", ct);
+            return Ok(paged);
+        }
+
         var result = await _checklistService.GetItemsAsync(ct);
         if (result.IsSuccess) return Ok(result.Data);
         return BadRequest(result.Message);
