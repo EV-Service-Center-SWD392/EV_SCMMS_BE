@@ -31,38 +31,8 @@ public class WorkOrderService : IWorkOrderService
                 return ServiceResult<WorkOrderDto>.Failure("IntakeId is required");
             }
 
-            // Build response lines by always deriving PartName/UnitPrice from SparepartTuht
-            List<WorkOrderLineDto>? responseLines = null;
-            if (dto.Lines != null && dto.Lines.Any())
-            {
-                responseLines = new List<WorkOrderLineDto>();
-                foreach (var line in dto.Lines)
-                {
-                    var partObj = await _unitOfWork.SparepartRepository.GetByIdAsync(line.PartId);
-                    if (partObj is SparepartTuht part)
-                    {
-                        responseLines.Add(new WorkOrderLineDto
-                        {
-                            PartId = part.Sparepartid,
-                            PartName = part.Name,
-                            Qty = line.Qty,
-                            UnitPrice = part.Unitprice,
-                            LaborCode = line.LaborCode,
-                            LaborHours = line.LaborHours
-                        });
-                    }
-                    else
-                    {
-                        responseLines.Add(new WorkOrderLineDto
-                        {
-                            PartId = line.PartId,
-                            Qty = line.Qty,
-                            LaborCode = line.LaborCode,
-                            LaborHours = line.LaborHours
-                        });
-                    }
-                }
-            }
+            // Lines are auto-derived from checklist responses; FE must not send lines.
+            List<WorkOrderDerivedLineDto>? responseLines = null;
 
             var intake = await _unitOfWork.ServiceIntakeRepository.GetAllQueryable()
                 .Include(si => si.Booking)
@@ -130,6 +100,38 @@ public class WorkOrderService : IWorkOrderService
             dtoOut.Title = dto.Title;
             dtoOut.Description = dto.Description;
             dtoOut.EstimatedAmount = dto.EstimatedAmount;
+
+            // Auto-derive lines from checklist responses for this intake
+            var checklistResponses = await _unitOfWork.ChecklistRepository.GetResponsesAsync(dto.IntakeId, ct);
+            if (checklistResponses != null && checklistResponses.Count > 0)
+            {
+                responseLines = new List<WorkOrderDerivedLineDto>();
+                foreach (var r in checklistResponses)
+                {
+                    var name = r.Item?.Name ?? "Unknown Item";
+                    var code = r.Item?.Code;
+                    var displayName = string.IsNullOrWhiteSpace(code) ? name : $"{code} - {name}";
+
+                    responseLines.Add(new WorkOrderDerivedLineDto
+                    {
+                        PartName = displayName,
+                        Qty = 1,
+                        UnitPrice = null,
+                        LaborCode = null,
+                        LaborHours = null
+                    });
+                }
+
+                // Always return ChecklistSummary joined with item metadata
+                dtoOut.ChecklistSummary = checklistResponses.Select(x => new ChecklistSummaryDto
+                {
+                    ItemName = x.Item?.Name ?? "Unknown Item",
+                    Severity = x.Severity,
+                    Comment = x.Comment,
+                    PhotoUrl = x.Photourl
+                }).ToList();
+            }
+
             dtoOut.Lines = responseLines;
 
             return ServiceResult<WorkOrderDto>.Success(dtoOut, "Work Order created in DRAFT");
@@ -166,15 +168,14 @@ public class WorkOrderService : IWorkOrderService
             dtoOut.EstimatedAmount = dto.EstimatedAmount;
             if (dto.Lines != null && dto.Lines.Any())
             {
-                var mapped = new List<WorkOrderLineDto>();
+                var mapped = new List<WorkOrderDerivedLineDto>();
                 foreach (var line in dto.Lines)
                 {
                     var partObj = await _unitOfWork.SparepartRepository.GetByIdAsync(line.PartId);
                     if (partObj is SparepartTuht part)
                     {
-                        mapped.Add(new WorkOrderLineDto
+                        mapped.Add(new WorkOrderDerivedLineDto
                         {
-                            PartId = part.Sparepartid,
                             PartName = part.Name,
                             Qty = line.Qty,
                             UnitPrice = part.Unitprice,
@@ -184,9 +185,8 @@ public class WorkOrderService : IWorkOrderService
                     }
                     else
                     {
-                        mapped.Add(new WorkOrderLineDto
+                        mapped.Add(new WorkOrderDerivedLineDto
                         {
-                            PartId = line.PartId,
                             Qty = line.Qty,
                             LaborCode = line.LaborCode,
                             LaborHours = line.LaborHours
@@ -320,15 +320,14 @@ public class WorkOrderService : IWorkOrderService
             dtoOut.EstimatedAmount = dto.Payload.EstimatedAmount;
             if (dto.Payload.Lines != null && dto.Payload.Lines.Any())
             {
-                var mapped = new List<WorkOrderLineDto>();
+                var mapped = new List<WorkOrderDerivedLineDto>();
                 foreach (var line in dto.Payload.Lines)
                 {
                     var partObj = await _unitOfWork.SparepartRepository.GetByIdAsync(line.PartId);
                     if (partObj is SparepartTuht part)
                     {
-                        mapped.Add(new WorkOrderLineDto
+                        mapped.Add(new WorkOrderDerivedLineDto
                         {
-                            PartId = part.Sparepartid,
                             PartName = part.Name,
                             Qty = line.Qty,
                             UnitPrice = part.Unitprice,
@@ -338,9 +337,8 @@ public class WorkOrderService : IWorkOrderService
                     }
                     else
                     {
-                        mapped.Add(new WorkOrderLineDto
+                        mapped.Add(new WorkOrderDerivedLineDto
                         {
-                            PartId = line.PartId,
                             Qty = line.Qty,
                             LaborCode = line.LaborCode,
                             LaborHours = line.LaborHours

@@ -2,6 +2,8 @@ using System.Text;
 using EV_SCMMS.Core.Application.Interfaces;
 using EV_SCMMS.Core.Application.Interfaces.Services;
 using EV_SCMMS.Infrastructure.Persistence;
+using EV_SCMMS.Infrastructure.Persistence.Seed;
+using Microsoft.Extensions.DependencyInjection;
 using EV_SCMMS.Infrastructure.Services;
 using EV_SCMMS.WebAPI.Authorization;
 using EV_SCMMS.WebAPI.Middleware;
@@ -198,8 +200,21 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod());
 });
 
-
 var app = builder.Build();
+
+// Seed initial checklist catalog if empty (dev bootstrap)
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    try
+    {
+        ChecklistSeeder.SeedAsync(db).GetAwaiter().GetResult();
+    }
+    catch (Exception seedingEx)
+    {
+        Console.WriteLine($"Checklist seeding failed: {seedingEx.Message}");
+    }
+}
 
 // Configure the HTTP request pipeline
 

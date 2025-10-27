@@ -21,6 +21,10 @@ public partial class Serviceintakethaontt
 
     public string? Notes { get; set; }
 
+    // Stores the common note for a single checklist submission against this intake
+    [Column("intakeresponsenote")]
+    public string? IntakeResponseNote { get; set; }
+
     public string? Status { get; set; }
 
     public bool? Isactive { get; set; }

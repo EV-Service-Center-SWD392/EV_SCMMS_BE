@@ -10,5 +10,4 @@ public class CreateWorkOrderDto
     public string? Title { get; set; }
     public string? Description { get; set; }
     public decimal? EstimatedAmount { get; set; }
-    public List<WorkOrderLineCreateDto>? Lines { get; set; }
 }

@@ -99,6 +99,43 @@ public class ChecklistService : IChecklistService
                 return ServiceResult<bool>.Failure("Intake no longer accepts checklist updates");
             }
 
+            // Validate that all itemIds exist and values match expected type
+            var payloadItemIds = dto.Responses.Select(r => r.ItemId).ToList();
+            var itemTypeMap = await _unitOfWork.ChecklistRepository
+                .GetItemsAsync(ct)
+                .ContinueWith(t => t.Result
+                    .Where(i => payloadItemIds.Contains(i.Itemid))
+                    .ToDictionary(i => i.Itemid, i => i.Type), ct);
+
+            if (itemTypeMap == null || itemTypeMap.Count != payloadItemIds.Distinct().Count())
+            {
+                return ServiceResult<bool>.Failure("Item not found");
+            }
+
+            foreach (var r in dto.Responses)
+            {
+                if (!itemTypeMap.TryGetValue(r.ItemId, out var type))
+                {
+                    return ServiceResult<bool>.Failure("Item not found");
+                }
+
+                if (!string.IsNullOrWhiteSpace(r.Value) && type.HasValue)
+                {
+                    var expected = type.Value;
+                    var ok = expected switch
+                    {
+                        1 => bool.TryParse(r.Value, out _),
+                        2 => decimal.TryParse(r.Value, out _),
+                        3 => short.TryParse(r.Value, out _),
+                        _ => true
+                    };
+                    if (!ok)
+                    {
+                        return ServiceResult<bool>.Failure("Invalid value type");
+                    }
+                }
+            }
+
             await _unitOfWork.ChecklistRepository.UpsertResponsesAsync(
                 dto.IntakeId,
                 dto.Responses.Select(r => (r.ItemId, r.Value, r.Note, r.PhotoUrl)),
@@ -108,6 +145,12 @@ public class ChecklistService : IChecklistService
             if (string.Equals(intake.Status, "CHECKED_IN", StringComparison.OrdinalIgnoreCase))
             {
                 intake.Status = "INSPECTING";
+            }
+
+            // Save common note for this intake submission if provided
+            if (!string.IsNullOrWhiteSpace(dto.Note))
+            {
+                intake.IntakeResponseNote = dto.Note;
             }
 
             intake.Updatedat = now;

@@ -24,7 +24,7 @@ public class WorkOrderDto
     public DateTime? StartedAt { get; set; }
     public DateTime? CompletedAt { get; set; }
 
-    public List<WorkOrderLineDto>? Lines { get; set; }
+    public List<WorkOrderDerivedLineDto>? Lines { get; set; }
 
     public List<ChecklistSummaryDto>? ChecklistSummary { get; set; }
 }

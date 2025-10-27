@@ -346,6 +346,7 @@ CREATE TABLE ServiceIntakeThaoNTT (
     OdometerKm      INT,
     BatterySoC      INT,
     Notes           TEXT,
+    IntakeResponseNote TEXT,
     Status          VARCHAR(50) DEFAULT 'CHECKED_IN',
     IsActive        BOOLEAN DEFAULT TRUE,
     createdAt       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -368,6 +369,10 @@ CREATE TABLE ChecklistResponseThaoNTT (
     createdAt       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updatedAt       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Ensure uniqueness of (IntakeID, ItemID) pairs for checklist responses
+CREATE UNIQUE INDEX IF NOT EXISTS ux_checklistresponsethaontt_intake_item
+    ON ChecklistResponseThaoNTT (IntakeID, ItemID);
 
 -- BẢNG 25/34
 CREATE TABLE OrderThaoNTT (

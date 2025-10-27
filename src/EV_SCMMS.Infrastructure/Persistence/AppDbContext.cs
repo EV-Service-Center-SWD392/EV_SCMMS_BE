@@ -380,6 +380,9 @@ public partial class AppDbContext : DbContext
 
       entity.ToTable("checklistresponsethaontt");
 
+      // Enforce uniqueness: one response per (Intake, Item)
+      entity.HasIndex(e => new { e.Intakeid, e.Itemid }).IsUnique();
+
       entity.Property(e => e.Responseid)
               .HasDefaultValueSql("uuid_generate_v4()")
               .HasColumnName("responseid");
@@ -909,6 +912,7 @@ public partial class AppDbContext : DbContext
               .HasDefaultValue(true)
               .HasColumnName("isactive");
       entity.Property(e => e.Notes).HasColumnName("notes");
+      entity.Property(e => e.IntakeResponseNote).HasColumnName("intakeresponsenote");
       entity.Property(e => e.Odometerkm).HasColumnName("odometerkm");
       entity.Property(e => e.Status)
               .HasMaxLength(50)
