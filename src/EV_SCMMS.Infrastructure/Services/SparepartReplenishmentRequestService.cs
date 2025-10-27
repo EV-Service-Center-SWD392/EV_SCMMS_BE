@@ -80,6 +80,7 @@ public class SparepartReplenishmentRequestService : ISparepartReplenishmentReque
             request.Status = "Pending";
 
             var createdRequest = await _unitOfWork.SparepartReplenishmentRequestRepository.AddAsync(request);
+            await _unitOfWork.SaveChangesAsync();
 
             var requestDto = createdRequest.ToDto();
             return ServiceResult<SparepartReplenishmentRequestDto>.Success(requestDto, "Replenishment request created successfully");
