@@ -13,5 +13,14 @@ public interface IChecklistItemRepository
     Task AddAsync(Checklistitemthaontt entity, CancellationToken ct = default);
     Task UpdateAsync(Checklistitemthaontt entity, CancellationToken ct = default);
     Task<Checklistitemthaontt?> FindByIdAsync(Guid id, CancellationToken ct = default);
+
+    Task<(List<Checklistitemthaontt> Items, int Total)> SearchAsync(
+        string? q,
+        string status,
+        int page,
+        int pageSize,
+        string sort,
+        string order,
+        CancellationToken ct = default);
 }
 

@@ -46,5 +46,55 @@ public class ChecklistItemRepository : IChecklistItemRepository
     {
         return await _context.Checklistitemthaontts.FirstOrDefaultAsync(e => e.Itemid == id, ct);
     }
+
+    public async Task<(List<Checklistitemthaontt> Items, int Total)> SearchAsync(
+        string? q,
+        string status,
+        int page,
+        int pageSize,
+        string sort,
+        string order,
+        CancellationToken ct = default)
+    {
+        page = page < 1 ? 1 : page;
+        pageSize = pageSize < 1 ? 20 : (pageSize > 200 ? 200 : pageSize);
+
+        var qry = _context.Checklistitemthaontts.AsNoTracking().AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(q))
+        {
+            var term = q.Trim().ToLower();
+            qry = qry.Where(x => (x.Code != null && x.Code.ToLower().Contains(term)) || x.Name.ToLower().Contains(term));
+        }
+
+        if (!string.IsNullOrWhiteSpace(status) && !status.Equals("ALL", StringComparison.OrdinalIgnoreCase))
+        {
+            if (status.Equals("ACTIVE", StringComparison.OrdinalIgnoreCase))
+            {
+                qry = qry.Where(x => x.Isactive == true);
+            }
+            else if (status.Equals("INACTIVE", StringComparison.OrdinalIgnoreCase))
+            {
+                qry = qry.Where(x => x.Isactive == false);
+            }
+        }
+
+        var sortLower = (sort ?? "createdAt").ToLower();
+        var orderDesc = !string.Equals(order, "asc", StringComparison.OrdinalIgnoreCase);
+
+        qry = sortLower switch
+        {
+            "createdat" => orderDesc ? qry.OrderByDescending(x => x.Createdat) : qry.OrderBy(x => x.Createdat),
+            "updatedat" => orderDesc ? qry.OrderByDescending(x => x.Updatedat) : qry.OrderBy(x => x.Updatedat),
+            "code" => orderDesc ? qry.OrderByDescending(x => x.Code) : qry.OrderBy(x => x.Code),
+            "name" => orderDesc ? qry.OrderByDescending(x => x.Name) : qry.OrderBy(x => x.Name),
+            _ => qry.OrderByDescending(x => x.Createdat)
+        };
+
+        var total = await qry.CountAsync(ct);
+        var skip = (page - 1) * pageSize;
+        var items = await qry.Skip(skip).Take(pageSize).ToListAsync(ct);
+        return (items, total);
+    }
 }
 
