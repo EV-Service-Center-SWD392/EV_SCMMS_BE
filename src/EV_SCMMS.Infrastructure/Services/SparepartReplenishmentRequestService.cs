@@ -87,7 +87,7 @@ public class SparepartReplenishmentRequestService : ISparepartReplenishmentReque
         }
         catch (Exception ex)
         {
-            return ServiceResult<SparepartReplenishmentRequestDto>.Failure($"Error creating replenishment request: {ex.Message}");
+            return ServiceResult<SparepartReplenishmentRequestDto>.Failure($"Error creating replenishment request: {ex.InnerException?.Message}");
         }
     }
 
