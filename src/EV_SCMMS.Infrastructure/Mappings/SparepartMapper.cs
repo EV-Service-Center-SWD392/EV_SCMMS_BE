@@ -61,8 +61,6 @@ public static class SparepartMapperExtensions
         return new SparepartTuht
         {
             Vehiclemodelid = createDto.VehicleModelId,
-            Inventoryid = createDto.InventoryId,
-            Typeid = createDto.TypeId,
             Name = createDto.Name,
             Unitprice = createDto.UnitPrice,
             Manufacture = createDto.Manufacturer

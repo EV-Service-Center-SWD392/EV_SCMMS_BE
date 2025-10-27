@@ -8,5 +8,6 @@ namespace EV_SCMMS.Core.Application.Interfaces.Repositories;
 public interface ICenterRepository : IGenericRepository<Centertuantm>
 {
     Task<IEnumerable<Centertuantm>> GetActiveCentersAsync(CancellationToken cancellationToken = default);
+    Task<Centertuantm?> GetByNameAsync(string name, CancellationToken cancellationToken = default);
     Task SoftDeleteAsync(Guid id);
 }

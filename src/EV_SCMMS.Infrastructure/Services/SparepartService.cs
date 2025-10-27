@@ -2,6 +2,7 @@ using EV_SCMMS.Core.Application.DTOs.Sparepart;
 using EV_SCMMS.Core.Application.Interfaces;
 using EV_SCMMS.Core.Application.Interfaces.Services;
 using EV_SCMMS.Core.Application.Results;
+using EV_SCMMS.Core.Domain.Models;
 using EV_SCMMS.Infrastructure.Mappings;
 
 namespace EV_SCMMS.Infrastructure.Services;
@@ -62,15 +63,26 @@ public class SparepartService : ISparepartService
     {
         try
         {
-            // Check if inventory exists
-            var inventory = await _unitOfWork.InventoryRepository.GetByIdAsync(createDto.InventoryId);
-            if (inventory == null)
+            // Find center by name
+            var center = await _unitOfWork.CenterRepository.GetByNameAsync(createDto.CenterName);
+            if (center == null)
             {
-                return ServiceResult<SparepartDto>.Failure("Inventory not found");
+                return ServiceResult<SparepartDto>.Failure("Center not found");
             }
 
-            // Check if sparepart type exists
-            var sparepartType = await _unitOfWork.SparepartTypeRepository.GetByIdAsync(createDto.TypeId);
+            // Create new inventory for this center
+            var inventory = new InventoryTuht
+            {
+                Centerid = center.Centerid,
+                Quantity = 0,
+                Minimumstocklevel = 50
+            };
+            
+            var createdInventory = await _unitOfWork.InventoryRepository.AddAsync(inventory);
+            await _unitOfWork.SaveChangesAsync();
+
+            // Find sparepart type by name
+            var sparepartType = await _unitOfWork.SparepartTypeRepository.GetByNameAsync(createDto.TypeName);
             if (sparepartType == null)
             {
                 return ServiceResult<SparepartDto>.Failure("Sparepart type not found");
@@ -83,18 +95,18 @@ public class SparepartService : ISparepartService
             }
 
             var sparepart = createDto.ToEntity();
-            sparepart.Sparepartid = Guid.NewGuid();
-            sparepart.Createdat = DateTime.UtcNow;
-            sparepart.Isactive = true;
+            sparepart.Inventoryid = createdInventory.Inventoryid;
+            sparepart.Typeid = sparepartType.Typeid;
 
             var createdSparepart = await _unitOfWork.SparepartRepository.AddAsync(sparepart);
+            await _unitOfWork.SaveChangesAsync();
 
             var sparepartDto = createdSparepart.ToDto();
             return ServiceResult<SparepartDto>.Success(sparepartDto, "Sparepart created successfully");
         }
         catch (Exception ex)
         {
-            return ServiceResult<SparepartDto>.Failure($"Error creating sparepart: {ex.Message}");
+            return ServiceResult<SparepartDto>.Failure($"Error creating sparepart: {ex.InnerException?.Message}");
         }
     }
 
