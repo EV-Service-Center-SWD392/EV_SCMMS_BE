@@ -127,15 +127,22 @@ CREATE TABLE CertificateTuantm (
 -- BẢNG 7/34
 CREATE TABLE ChecklistItemThaoNTT (
     ItemID          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    Code            VARCHAR(50) UNIQUE,
-    Name            VARCHAR(100) NOT NULL,
-    Type            SMALLINT,
-    Unit            VARCHAR(20),
+    Code            VARCHAR(50),
+    Name            VARCHAR(200) NOT NULL,
+    Type            SMALLINT NOT NULL CHECK (Type IN (1,2,3)),
+    Unit            VARCHAR(50),
     Status          VARCHAR(50) DEFAULT 'ACTIVE',
     IsActive        BOOLEAN DEFAULT TRUE,
     createdAt       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updatedAt       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Unique index on lower(code) when not null (case-insensitive)
+CREATE UNIQUE INDEX IF NOT EXISTS ux_checklistitemthaontt_code_notnull ON checklistitemthaontt (lower(code)) WHERE code IS NOT NULL;
+
+-- Additional indexes for filtering
+CREATE INDEX IF NOT EXISTS ix_checklistitemthaontt_isactive ON checklistitemthaontt (isactive);
+CREATE INDEX IF NOT EXISTS ix_checklistitemthaontt_status ON checklistitemthaontt (status);
 
 -- BẢNG 8/34
 CREATE TABLE SparePartType_TuHT (

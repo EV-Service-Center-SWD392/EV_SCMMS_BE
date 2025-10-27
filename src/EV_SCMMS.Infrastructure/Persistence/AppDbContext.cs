@@ -342,7 +342,10 @@ public partial class AppDbContext : DbContext
 
       entity.ToTable("checklistitemthaontt");
 
+      // Unique code (DB script enforces lower(code) unique when not null)
       entity.HasIndex(e => e.Code, "checklistitemthaontt_code_key").IsUnique();
+      entity.HasIndex(e => e.Isactive, "ix_checklistitemthaontt_isactive");
+      entity.HasIndex(e => e.Status, "ix_checklistitemthaontt_status");
 
       entity.Property(e => e.Itemid)
               .HasDefaultValueSql("uuid_generate_v4()")
@@ -358,7 +361,7 @@ public partial class AppDbContext : DbContext
               .HasDefaultValue(true)
               .HasColumnName("isactive");
       entity.Property(e => e.Name)
-              .HasMaxLength(100)
+              .HasMaxLength(200)
               .HasColumnName("name");
       entity.Property(e => e.Status)
               .HasMaxLength(50)
@@ -366,7 +369,7 @@ public partial class AppDbContext : DbContext
               .HasColumnName("status");
       entity.Property(e => e.Type).HasColumnName("type");
       entity.Property(e => e.Unit)
-              .HasMaxLength(20)
+              .HasMaxLength(50)
               .HasColumnName("unit");
       entity.Property(e => e.Updatedat)
               .HasDefaultValueSql("CURRENT_TIMESTAMP")
