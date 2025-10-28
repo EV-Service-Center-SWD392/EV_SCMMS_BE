@@ -32,6 +32,15 @@ public class UnitOfWork : IUnitOfWork
     private IBookingRepository? _bookingRepository;
     private IBookingScheduleRepository? _bookingScheduleRepository;
     private IRefreshTokenRepository? _refreshTokenRepository;
+    private IWorkScheduleRepository? _workScheduleRepository;
+    private IUserWorkScheduleRepository? _userWorkScheduleRepository;
+    private IUserAccountRepository? _userAccountRepository;
+    private IAssignmentRepository? _assignmentRepository;
+    private IServiceIntakeRepository? _serviceIntakeRepository;
+    private IChecklistRepository? _checklistRepository;
+    private IChecklistItemRepository? _checklistItemRepository;
+    private IWorkOrderRepository? _workOrderRepository;
+    private IUserCenterRepository? _userCenterRepository;
     
     // Service instances
     private IRefreshTokenService? _refreshTokenService;
@@ -148,6 +157,87 @@ public class UnitOfWork : IUnitOfWork
         {
             _refreshTokenRepository ??= new RefreshTokenRepository(_context);
             return _refreshTokenRepository;
+        }
+    }
+
+    public IWorkScheduleRepository WorkScheduleRepository
+    {
+        get
+        {
+            _workScheduleRepository ??= new WorkScheduleRepository(_context);
+            return _workScheduleRepository;
+        }
+    }
+
+    public IUserWorkScheduleRepository UserWorkScheduleRepository
+    {
+        get
+        {
+            _userWorkScheduleRepository ??= new UserWorkScheduleRepository(_context);
+            return _userWorkScheduleRepository;
+        }
+    }
+
+    public IUserAccountRepository UserAccountRepository
+    {
+        get
+        {
+            _userAccountRepository ??= new UserAccountRepository(_context);
+            return _userAccountRepository;
+        }
+    }
+
+    public IAssignmentRepository AssignmentRepository
+    {
+        get
+        {
+            _assignmentRepository ??= new AssignmentRepository(_context);
+            return _assignmentRepository;
+        }
+    }
+
+    public IServiceIntakeRepository ServiceIntakeRepository
+    {
+        get
+        {
+            _serviceIntakeRepository ??= new ServiceIntakeRepository(_context);
+            return _serviceIntakeRepository;
+        }
+    }
+
+    public IChecklistRepository ChecklistRepository
+    {
+        get
+        {
+            _checklistRepository ??= new ChecklistRepository(_context);
+            return _checklistRepository;
+        }
+    }
+
+    public IChecklistItemRepository ChecklistItemRepository
+    {
+        get
+        {
+            _checklistItemRepository ??= new ChecklistItemRepository(_context);
+            return _checklistItemRepository;
+        }
+    }
+
+    public IWorkOrderRepository WorkOrderRepository
+    {
+        get
+        {
+            _workOrderRepository ??= new WorkOrderRepository(_context);
+            return _workOrderRepository;
+        }
+    }
+
+    public IUserCenterRepository UserCenterRepository
+    {
+        get
+        {
+            _userCenterRepository ??= new UserCenterRepository(_context);
+            return _userCenterRepository;
         }
     }
 

@@ -249,6 +249,7 @@ DROP TABLE IF EXISTS OrderSparePart CASCADE;
 DROP TABLE IF EXISTS OrderServiceThaoNTT CASCADE;
 DROP TABLE IF EXISTS WorkOrderApprovalThaoNTT CASCADE;
 DROP TABLE IF EXISTS OrderThaoNTT CASCADE;
+DROP TABLE IF EXISTS PaymentMethodCuongtq CASCADE;
 DROP TABLE IF EXISTS PaymentCuongtq CASCADE;
 DROP TABLE IF EXISTS Service CASCADE;
 DROP TABLE IF EXISTS ChecklistResponseThaoNTT CASCADE;
@@ -329,15 +330,7 @@ CREATE TABLE Service (
 );
 
 -- BẢNG 5/34
-CREATE TABLE PaymentCuongtq (
-    PaymentID       SERIAL PRIMARY KEY,
-    Name            VARCHAR(256) NOT NULL,
-    Description     VARCHAR(500),
-    Status          VARCHAR(50) DEFAULT 'ACTIVE',
-    IsActive        BOOLEAN DEFAULT TRUE,
-    createdAt       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updatedAt       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+
 
 -- BẢNG 6/34
 CREATE TABLE CertificateTuantm (
@@ -353,15 +346,22 @@ CREATE TABLE CertificateTuantm (
 -- BẢNG 7/34
 CREATE TABLE ChecklistItemThaoNTT (
     ItemID          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    Code            VARCHAR(50) UNIQUE,
-    Name            VARCHAR(100) NOT NULL,
-    Type            SMALLINT,
-    Unit            VARCHAR(20),
+    Code            VARCHAR(50),
+    Name            VARCHAR(200) NOT NULL,
+    Type            SMALLINT NOT NULL CHECK (Type IN (1,2,3)),
+    Unit            VARCHAR(50),
     Status          VARCHAR(50) DEFAULT 'ACTIVE',
     IsActive        BOOLEAN DEFAULT TRUE,
     createdAt       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updatedAt       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Unique index on lower(code) when not null (case-insensitive)
+CREATE UNIQUE INDEX IF NOT EXISTS ux_checklistitemthaontt_code_notnull ON checklistitemthaontt (lower(code)) WHERE code IS NOT NULL;
+
+-- Additional indexes for filtering
+CREATE INDEX IF NOT EXISTS ix_checklistitemthaontt_isactive ON checklistitemthaontt (isactive);
+CREATE INDEX IF NOT EXISTS ix_checklistitemthaontt_status ON checklistitemthaontt (status);
 
 -- BẢNG 8/34
 CREATE TABLE SparePartType_TuHT (
@@ -556,7 +556,8 @@ CREATE TABLE AssignmentThaoNTT (
     PlannedStartUtc TIMESTAMP,
     PlannedEndUtc   TIMESTAMP,
     QueueNo         INT,
-    Status          VARCHAR(50) DEFAULT 'PENDING',
+    Note            TEXT,
+    Status          VARCHAR(50) DEFAULT 'PENDING' CHECK (Status IN ('PENDING','ASSIGNED','ACTIVE','DONE')),
     IsActive        BOOLEAN DEFAULT TRUE,
     createdAt       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updatedAt       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -566,11 +567,12 @@ CREATE TABLE AssignmentThaoNTT (
 CREATE TABLE ServiceIntakeThaoNTT (
     IntakeID        UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     BookingID       UUID NOT NULL UNIQUE REFERENCES BookingHuykt(BookingID) ON DELETE CASCADE,
-    AdvisorID       UUID NOT NULL REFERENCES UserAccount(UserID) ON DELETE RESTRICT,
+    AdvisorID       UUID NOT NULL REFERENCES UserAccount(UserID) ON DELETE RESTRICT, -- Checked-in-by actor
     CheckinTimeUtc  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     OdometerKm      INT,
     BatterySoC      INT,
     Notes           TEXT,
+    IntakeResponseNote TEXT,
     Status          VARCHAR(50) DEFAULT 'CHECKED_IN',
     IsActive        BOOLEAN DEFAULT TRUE,
     createdAt       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -594,13 +596,16 @@ CREATE TABLE ChecklistResponseThaoNTT (
     updatedAt       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Ensure uniqueness of (IntakeID, ItemID) pairs for checklist responses
+CREATE UNIQUE INDEX IF NOT EXISTS ux_checklistresponsethaontt_intake_item
+    ON ChecklistResponseThaoNTT (IntakeID, ItemID);
+
 -- BẢNG 25/34
 CREATE TABLE OrderThaoNTT (
     OrderID         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     CustomerID      UUID NOT NULL REFERENCES UserAccount(UserID) ON DELETE RESTRICT,
     VehicleID       UUID NOT NULL REFERENCES Vehicle(VehicleID) ON DELETE RESTRICT,
     BookingID       UUID UNIQUE REFERENCES BookingHuykt(BookingID) ON DELETE SET NULL,
-    PaymentID       INT REFERENCES PaymentCuongtq(PaymentID) ON DELETE SET NULL,
     TotalAmount     DECIMAL(18,2) DEFAULT 0.00,
     Status          VARCHAR(50) DEFAULT 'PENDING_APPROVAL',
     IsActive        BOOLEAN DEFAULT TRUE,
@@ -610,16 +615,18 @@ CREATE TABLE OrderThaoNTT (
 
 -- BẢNG 26/34
 CREATE TABLE WorkOrderApprovalThaoNTT (
-    WOA_ID          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    OrderID         UUID NOT NULL REFERENCES OrderThaoNTT(OrderID) ON DELETE CASCADE,
-    Status          VARCHAR(50) DEFAULT 'AWAITING', -- AWAITING, APPROVED, REJECTED
-    ApprovedAt      TIMESTAMP,
-    Method          VARCHAR(20), -- App, InPerson, ESign
-    Note            VARCHAR(500),
-    IsActive        BOOLEAN DEFAULT TRUE,
-    createdAt       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updatedAt       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    WOA_Id         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    OrderID        UUID NOT NULL REFERENCES OrderThaoNTT(OrderID) ON DELETE CASCADE,
+    Status         VARCHAR(50) DEFAULT 'AWAITING',
+    ApprovedBy     UUID REFERENCES UserAccount(UserID),
+    ApprovedAt     TIMESTAMP,
+    Method         VARCHAR(20),
+    Note           VARCHAR(500),
+    IsActive       BOOLEAN DEFAULT TRUE,
+    createdAt      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
 
 -- BẢNG 27/34
 CREATE TABLE OrderServiceThaoNTT (
@@ -675,33 +682,63 @@ CREATE TABLE MaintenanceTaskDungVM (
 );
 
 -- BẢNG 31/34
-CREATE TABLE ReceiptCuongtq (
-    ReceiptID       UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    OrderID         UUID NOT NULL UNIQUE REFERENCES OrderThaoNTT(OrderID) ON DELETE CASCADE,
-    PaymentMethod   VARCHAR(128),
-    TotalAmount     DECIMAL(18,2) NOT NULL,
-    CustomerID      UUID NOT NULL REFERENCES UserAccount(UserID),
-    StaffID         UUID NOT NULL REFERENCES UserAccount(UserID),
-    Status          VARCHAR(50) DEFAULT 'PAID',
+
+-- ENUM types
+CREATE TYPE transaction_status AS ENUM ('CREATED', 'PAID', 'CANCELLED');
+CREATE TYPE item_type AS ENUM ('SERVICE', 'SPAREPART');
+
+-- Payment methods
+CREATE TABLE PaymentMethodCuongtq (
+    PaymentMethodID SERIAL PRIMARY KEY,
+    Name            VARCHAR(256) NOT NULL,
+    Description     VARCHAR(500),
     IsActive        BOOLEAN DEFAULT TRUE,
-    createdAt       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updatedAt       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    createdAt       TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    updatedAt       TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
--- BẢNG 32/34
+-- Transactions
+CREATE TABLE TransactionCuongtq (
+    TransactionID   UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    OrderID         UUID NOT NULL UNIQUE
+        REFERENCES OrderThaoNTT(OrderID) ON DELETE CASCADE,
+    PaymentMethodID UUID
+        REFERENCES PaymentMethodCuongtq(PaymentMethodID),
+    Description     VARCHAR(500),
+    Status          transaction_status NOT NULL DEFAULT 'CREATED',
+    Reason          VARCHAR(50),
+    TotalAmount     DECIMAL(18,2) NOT NULL,
+    createdAt       TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    updatedAt       TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    StaffID         UUID NOT NULL
+        REFERENCES UserAccount(UserID)
+);
+
+-- Receipts
+CREATE TABLE ReceiptCuongtq (
+    ReceiptID       UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    TotalAmount     DECIMAL(18,2) NOT NULL,
+    CustomerID      UUID NOT NULL
+        REFERENCES UserAccount(UserID),
+    TransactionID   UUID
+        REFERENCES TransactionCuongtq(TransactionID),
+    createdAt       TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    updatedAt       TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Receipt items
 CREATE TABLE ReceiptItemCuongtq (
     ReceiptItemID   UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    ReceiptID       UUID NOT NULL REFERENCES ReceiptCuongtq(ReceiptID) ON DELETE CASCADE,
-    ItemType        VARCHAR(50) NOT NULL,
+    ReceiptID       UUID NOT NULL
+        REFERENCES ReceiptCuongtq(ReceiptID) ON DELETE CASCADE,
+    ItemType        item_type NOT NULL,
     ItemName        VARCHAR(256) NOT NULL,
-    ItemCode        VARCHAR(128),
-    Quantity        INT NOT NULL,
-    UnitPrice       DECIMAL(18,2) NOT NULL,
-    LineTotal       DECIMAL(18,2) NOT NULL,
-    Status          VARCHAR(50) DEFAULT 'INCLUDED',
-    IsActive        BOOLEAN DEFAULT TRUE,
-    createdAt       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updatedAt       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ItemID          UUID,
+    Quantity        INT NOT NULL CHECK (Quantity > 0),
+    UnitPrice       DECIMAL(18,2) NOT NULL CHECK (UnitPrice >= 0),
+    LineTotal       DECIMAL(18,2) NOT NULL CHECK (LineTotal >= 0),
+    createdAt       TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    updatedAt       TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
 -- BẢNG 33/34
@@ -761,7 +798,7 @@ CREATE TRIGGER trg_update_centertuantm_updatedAt BEFORE UPDATE ON CenterTuantm F
 CREATE TRIGGER trg_update_userrole_updatedAt BEFORE UPDATE ON UserRole FOR EACH ROW EXECUTE FUNCTION update_updatedAt();
 CREATE TRIGGER trg_update_vehiclemodel_updatedAt BEFORE UPDATE ON VehicleModel FOR EACH ROW EXECUTE FUNCTION update_updatedAt();
 CREATE TRIGGER trg_update_service_updatedAt BEFORE UPDATE ON Service FOR EACH ROW EXECUTE FUNCTION update_updatedAt();
-CREATE TRIGGER trg_update_paymentcuongtq_updatedAt BEFORE UPDATE ON PaymentCuongtq FOR EACH ROW EXECUTE FUNCTION update_updatedAt();
+CREATE TRIGGER trg_update_paymentcuongtq_updatedAt BEFORE UPDATE ON PaymentMethodCuongtq FOR EACH ROW EXECUTE FUNCTION update_updatedAt();
 CREATE TRIGGER trg_update_certificatetuantm_updatedAt BEFORE UPDATE ON CertificateTuantm FOR EACH ROW EXECUTE FUNCTION update_updatedAt();
 CREATE TRIGGER trg_update_checklistitemthaontt_updatedAt BEFORE UPDATE ON ChecklistItemThaoNTT FOR EACH ROW EXECUTE FUNCTION update_updatedAt();
 CREATE TRIGGER trg_update_spareparttype_updatedAt BEFORE UPDATE ON SparePartType_TuHT FOR EACH ROW EXECUTE FUNCTION update_updatedAt();
@@ -788,7 +825,24 @@ CREATE TRIGGER trg_update_maintenancehistorydungvm_updatedAt BEFORE UPDATE ON Ma
 CREATE TRIGGER trg_update_maintenancetaskdungvm_updatedAt BEFORE UPDATE ON MaintenanceTaskDungVM FOR EACH ROW EXECUTE FUNCTION update_updatedAt();
 CREATE TRIGGER trg_update_receiptcuongtq_updatedAt BEFORE UPDATE ON ReceiptCuongtq FOR EACH ROW EXECUTE FUNCTION update_updatedAt();
 CREATE TRIGGER trg_update_receiptitemcuongtq_updatedAt BEFORE UPDATE ON ReceiptItemCuongtq FOR EACH ROW EXECUTE FUNCTION update_updatedAt();
+CREATE TRIGGER trg_update_receiptitemcuongtq_updatedAt BEFORE UPDATE ON TransactionCuongtq FOR EACH ROW EXECUTE FUNCTION update_updatedAt();
 CREATE TRIGGER trg_update_usage_updatedAt BEFORE UPDATE ON SparePartUsageHistory_TuHT FOR EACH ROW EXECUTE FUNCTION update_updatedAt();
 CREATE TRIGGER trg_update_forecast_updatedAt BEFORE UPDATE ON SparePartForecast_TuHT FOR EACH ROW EXECUTE FUNCTION update_updatedAt();
 CREATE TRIGGER trg_update_replenishment_updatedAt BEFORE UPDATE ON SparePartReplenishmentRequest FOR EACH ROW EXECUTE FUNCTION update_updatedAt();
 -- Lưu ý: Không tạo trigger cho bảng RefreshToken
+INSERT INTO "userrole"
+(roleid, "name", description)
+VALUES('af4578f0-a8be-429c-8c3f-c9be22c9368b'::uuid, 'ADMIN', 'Quản trị viên hệ thống — có toàn quyền quản lý người dùng, trung tâm, kho và dữ liệu hệ thống.');
+INSERT INTO "userrole"
+(roleid, "name", description)
+VALUES('8bce91c5-0f07-4146-91e0-938b2dbc2104'::uuid, 'STAFF', 'Nhân viên điều phối hoặc hỗ trợ quản lý nghiệp vụ, có quyền xem và cập nhật dữ liệu nghiệp vụ trong phạm vi cho phép.');
+INSERT INTO "userrole"
+(roleid, "name", description)
+VALUES('1d32603c-f69c-452e-b655-740f7ec48586'::uuid, 'TECHNICIAN', 'Kỹ thuật viên — chịu trách nhiệm bảo trì, thay thế và cập nhật lịch sử sử dụng phụ tùng tại trung tâm.');
+INSERT INTO "userrole"
+(roleid, "name", description)
+VALUES('55ca452e-fe3e-4e7c-b594-65263c738f0d'::uuid, 'CUSTOMER', 'Khách hàng hoặc người dùng cuối — có thể gửi yêu cầu, xem trạng thái dịch vụ và lịch sử bảo trì.');
+
+INSERT INTO useraccount
+(userid, email, "password", lastname, firstname, address, phonenumber, roleid, status, isactive, createdat, updatedat)
+VALUES('431eaeb4-3c02-483c-ba01-7398780333c9'::uuid, 'admin@example.com', 'AQAAAAIAAYagAAAAEKyeet50VJU7arWO7JxiqBpx7NhxnFoacKjfNLF8xLUMAV5N+U412w2ylHjKlYOrQg==', 'string', 'string', 'string', '0000000000', 'af4578f0-a8be-429c-8c3f-c9be22c9368b'::uuid, 'ACTIVE', true, '2025-10-15 05:44:24.987', '2025-10-15 05:44:24.987');

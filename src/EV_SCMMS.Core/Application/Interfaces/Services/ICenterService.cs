@@ -13,7 +13,7 @@ public interface ICenterService
     /// <param name="pageNumber">Page number</param>
     /// <param name="pageSize">Page size</param>
     /// <returns>Paged result of centers</returns>
-    Task<IServiceResult<List<CenterDto>>> GetAllAsync(int pageNumber = 1, int pageSize = 10);
+    Task<IServiceResult<List<CenterDto>>> GetAllAsync();
 
     /// <summary>
     /// Get center by ID

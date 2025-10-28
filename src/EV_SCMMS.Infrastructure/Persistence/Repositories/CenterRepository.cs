@@ -22,6 +22,12 @@ public class CenterRepository : GenericRepository<Centertuantm>, ICenterReposito
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<Centertuantm?> GetByNameAsync(string name, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet.Centertuantms
+            .FirstOrDefaultAsync(x => x.Name == name && x.Isactive == true, cancellationToken);
+    }
+
     public Task SoftDeleteAsync(Guid id)
     {
         throw new NotImplementedException();

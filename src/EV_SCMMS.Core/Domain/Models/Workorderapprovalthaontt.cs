@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace EV_SCMMS.Core.Domain.Models;
@@ -10,6 +10,8 @@ public partial class Workorderapprovalthaontt
     public Guid Orderid { get; set; }
 
     public string? Status { get; set; }
+
+    public Guid? Approvedby { get; set; }
 
     public DateTime? Approvedat { get; set; }
 
@@ -23,5 +25,5 @@ public partial class Workorderapprovalthaontt
 
     public DateTime? Updatedat { get; set; }
 
-    public virtual Orderthaontt Order { get; set; } = null!;
+    public virtual Orderthaontt? Order { get; set; } = null!;
 }

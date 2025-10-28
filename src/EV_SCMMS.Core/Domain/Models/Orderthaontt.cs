@@ -13,8 +13,6 @@ public partial class Orderthaontt
 
     public Guid? Bookingid { get; set; }
 
-    public int? Paymentid { get; set; }
-
     public decimal? Totalamount { get; set; }
 
     public string? Status { get; set; }
@@ -35,9 +33,7 @@ public partial class Orderthaontt
 
     public virtual ICollection<Ordersparepart> Orderspareparts { get; set; } = new List<Ordersparepart>();
 
-    public virtual Paymentcuongtq? Payment { get; set; }
-
-    public virtual Receiptcuongtq? Receiptcuongtq { get; set; }
+    public virtual Transactioncuongtq? Transactioncuongtq { get; set; }
 
     public virtual Vehicle Vehicle { get; set; } = null!;
 

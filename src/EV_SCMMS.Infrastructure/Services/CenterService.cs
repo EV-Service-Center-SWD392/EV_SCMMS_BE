@@ -50,6 +50,7 @@ public class CenterService : ICenterService
             var center = createDto.ToEntity();
 
             var createdCenter = await _unitOfWork.CenterRepository.AddAsync(center);
+            await _unitOfWork.SaveChangesAsync();
 
             var centerDto = createdCenter.ToDto();
             return ServiceResult<CenterDto>.Success(centerDto, "Center created successfully");
@@ -129,8 +130,18 @@ public class CenterService : ICenterService
         throw new NotImplementedException();
     }
 
-    public Task<IServiceResult<List<CenterDto>>> GetAllAsync(int pageNumber = 1, int pageSize = 10)
+    public async Task<IServiceResult<List<CenterDto>>> GetAllAsync()
     {
-        throw new NotImplementedException();
+        try 
+        {
+            var centers = await _unitOfWork.CenterRepository.GetAllAsync();
+            var centerDtos = centers.ToDto();
+
+            return ServiceResult<List<CenterDto>>.Success(centerDtos, "Centers retrieved successfully");
+        }
+        catch (Exception ex)
+        {
+            return ServiceResult<List<CenterDto>>.Failure($"Error retrieving centers: {ex.InnerException?.Message}");
+        }
     }
 }

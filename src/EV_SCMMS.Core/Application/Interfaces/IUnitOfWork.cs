@@ -69,6 +69,51 @@ public interface IUnitOfWork : IDisposable
     IRefreshTokenRepository RefreshTokenRepository { get; }
 
     /// <summary>
+    /// WorkSchedule repository
+    /// </summary>
+    IWorkScheduleRepository WorkScheduleRepository { get; }
+
+    /// <summary>
+    /// UserWorkSchedule repository
+    /// </summary>
+    IUserWorkScheduleRepository UserWorkScheduleRepository { get; }
+
+    /// <summary>
+    /// UserAccount repository
+    /// </summary>
+    IUserAccountRepository UserAccountRepository { get; }
+
+    /// <summary>
+    /// Assignment repository
+    /// </summary>
+    IAssignmentRepository AssignmentRepository { get; }
+
+    /// <summary>
+    /// Service intake repository
+    /// </summary>
+    IServiceIntakeRepository ServiceIntakeRepository { get; }
+
+    /// <summary>
+    /// Checklist repository
+    /// </summary>
+    IChecklistRepository ChecklistRepository { get; }
+
+    /// <summary>
+    /// Checklist Item repository (ThaoNTT)
+    /// </summary>
+    IChecklistItemRepository ChecklistItemRepository { get; }
+
+    /// <summary>
+    /// Work Order repository
+    /// </summary>
+    IWorkOrderRepository WorkOrderRepository { get; }
+
+    /// <summary>
+    /// User-Center membership repository
+    /// </summary>
+    IUserCenterRepository UserCenterRepository { get; }
+
+    /// <summary>
     /// Refresh Token service
     /// </summary>
     IRefreshTokenService RefreshTokenService { get; }

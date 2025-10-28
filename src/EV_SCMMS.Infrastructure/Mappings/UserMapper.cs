@@ -86,4 +86,60 @@ public static class UserMapper
       Address = registerDto.Address
     };
   }
+
+  // UserAccount specific mappings
+  public static UserAccountDto? ToUserAccountDto(this Useraccount? entity)
+  {
+    if (entity == null) return null;
+
+    return new UserAccountDto
+    {
+      UserId = entity.Userid,
+      Email = entity.Email ?? string.Empty,
+      FirstName = entity.Firstname,
+      LastName = entity.Lastname,
+      PhoneNumber = entity.Phonenumber,
+      Address = entity.Address,
+      RoleId = entity.Roleid,
+      Status = entity.Status,
+      IsActive = entity.Isactive ?? false,
+      CreatedAt = entity.Createdat,
+      UpdatedAt = entity.Updatedat
+    };
+  }
+
+  public static Useraccount? ToUserAccountEntity(this CreateUserAccountDto? createDto)
+  {
+    if (createDto == null) return null;
+
+    return new Useraccount
+    {
+      Userid = Guid.NewGuid(),
+      Email = createDto.Email,
+      Password = createDto.Password, // Note: Should be hashed in real implementation
+      Firstname = createDto.FirstName,
+      Lastname = createDto.LastName,
+      Phonenumber = createDto.PhoneNumber,
+      Address = createDto.Address,
+      Roleid = createDto.RoleId,
+      Isactive = true,
+      Createdat = DateTime.UtcNow
+    };
+  }
+
+  public static void UpdateFromUserAccountDto(this Useraccount entity, UpdateUserAccountDto updateDto)
+  {
+    if (entity == null || updateDto == null) return;
+
+    if (!string.IsNullOrEmpty(updateDto.Email))
+      entity.Email = updateDto.Email;
+    
+    entity.Firstname = updateDto.FirstName;
+    entity.Lastname = updateDto.LastName;
+    entity.Phonenumber = updateDto.PhoneNumber;
+    entity.Address = updateDto.Address;
+    entity.Status = updateDto.Status;
+    entity.Isactive = updateDto.IsActive;
+    entity.Updatedat = DateTime.UtcNow;
+  }
 }

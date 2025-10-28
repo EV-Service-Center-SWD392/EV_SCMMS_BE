@@ -54,4 +54,8 @@ public partial class Useraccount
     public virtual ICollection<Userworkscheduletuantm> Userworkscheduletuantms { get; set; } = new List<Userworkscheduletuantm>();
 
     public virtual ICollection<Vehicle> Vehicles { get; set; } = new List<Vehicle>();
+
+    public virtual ICollection<Transactioncuongtq> Transactioncuongtqs { get; set; } = new List<Transactioncuongtq>();
+
+    public virtual ICollection<Receiptcuongtq> Receiptcuongtqs { get; set; } = new List<Receiptcuongtq>();
 }

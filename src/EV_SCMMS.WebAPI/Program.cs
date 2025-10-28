@@ -35,6 +35,9 @@ builder.Services.AddDbContext<AppDbContext>(
                     maxRetryDelay: TimeSpan.FromSeconds(15),
                     errorCodesToAdd: null);
             });
+        
+        // Fix timezone issue
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
         // Logging & debugging — chỉ bật khi đang ở môi trường dev
         if (builder.Environment.IsDevelopment())
@@ -128,6 +131,19 @@ builder.Services.AddScoped<ISparepartTypeService, SparepartTypeService>();
 builder.Services.AddScoped<ISparepartForecastService, SparepartForecastService>();
 builder.Services.AddScoped<ISparepartReplenishmentRequestService, SparepartReplenishmentRequestService>();
 builder.Services.AddScoped<ISparepartUsageHistoryService, SparepartUsageHistoryService>();
+builder.Services.AddScoped<IWorkScheduleService, WorkScheduleService>();
+builder.Services.AddScoped<IUserWorkScheduleService, UserWorkScheduleService>();
+builder.Services.AddScoped<IUserAccountService, UserAccountService>();
+builder.Services.AddScoped<IAssignmentService, AssignmentService>();
+builder.Services.AddScoped<IBookingApprovalService, BookingApprovalService>();
+builder.Services.AddScoped<IServiceIntakeService, ServiceIntakeService>();
+builder.Services.AddScoped<IChecklistService, ChecklistService>();
+builder.Services.AddScoped<IChecklistItemService, ChecklistItemService>();
+builder.Services.AddScoped<IWorkOrderService, WorkOrderService>();
+
+// Register ChatBot AI Service
+builder.Services.AddHttpClient<IChatBotService, ChatBotService>();
+builder.Services.AddScoped<IChatBotService, ChatBotService>();
 
 // Add Basic Health Checks
 builder.Services.AddHealthChecks();
@@ -179,19 +195,16 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// Add CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
-    {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
-    });
+    options.AddPolicy("AllowVercel",
+        policy => policy
+            .WithOrigins("https://ev-web-fe.vercel.app")
+            .AllowAnyHeader()
+            .AllowAnyMethod());
 });
 
 var app = builder.Build();
-
 // Configure the HTTP request pipeline
 
 // Use custom middleware in correct order (ExceptionHandling -> Logging -> Performance)
@@ -208,7 +221,7 @@ app.UseSwaggerUI(c =>
 
 app.UseHttpsRedirection();
 
-app.UseCors("AllowAll");
+app.UseCors("AllowVercel");
 
 app.UseAuthentication();
 app.UseAuthorization();
