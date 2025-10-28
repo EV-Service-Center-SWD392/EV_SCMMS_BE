@@ -4,62 +4,59 @@ using EV_SCMMS.Core.Domain.Models;
 namespace EV_SCMMS.Infrastructure.Mappings;
 
 /// <summary>
-/// Extension methods for WorkScheduleTuantm mapping
+/// Extension methods for Workscheduletuantm mapping
 /// </summary>
 public static class WorkScheduleMapper
 {
-    public static WorkScheduleDto ToDto(this WorkScheduleTuantm entity)
+    public static WorkScheduleDto ToDto(this Workscheduletuantm entity)
     {
         if (entity == null) return null;
 
         return new WorkScheduleDto
         {
-            Id = entity.Id,
-            TechnicianId = entity.TechnicianId,
-            WorkDate = entity.WorkDate,
-            StartTime = entity.StartTime,
-            EndTime = entity.EndTime,
-            SlotCapacity = entity.SlotCapacity,
-            IsActive = entity.IsActive,
-            CreatedAt = entity.CreatedAt,
-            UpdatedAt = entity.UpdatedAt
+            WorkScheduleId = entity.Workscheduleid,
+            CenterId = entity.Centerid,
+            Starttime = entity.Starttime,
+            Endtime = entity.Endtime,
+            Status = entity.Status,
+            IsActive = entity.Isactive ?? false,
+            CreatedAt = entity.Createdat,
+            UpdatedAt = entity.Updatedat
         };
     }
 
-    public static List<WorkScheduleDto> ToDto(this IEnumerable<WorkScheduleTuantm> entities)
+    public static List<WorkScheduleDto> ToDto(this IEnumerable<Workscheduletuantm> entities)
     {
         if (entities == null) return new List<WorkScheduleDto>();
         return entities.Select(e => e.ToDto()).Where(x => x != null).ToList();
     }
 
-    public static WorkScheduleTuantm ToEntity(this CreateWorkScheduleDto dto)
+    public static Workscheduletuantm ToEntity(this CreateWorkScheduleDto dto)
     {
         if (dto == null) return null;
 
-        return new WorkScheduleTuantm
+        return new Workscheduletuantm
         {
-            Id = Guid.NewGuid(),
-            TechnicianId = dto.TechnicianId,
-            WorkDate = dto.WorkDate,
-            StartTime = dto.StartTime,
-            EndTime = dto.EndTime,
-            SlotCapacity = dto.SlotCapacity,
-            IsActive = dto.IsActive,
-            CreatedAt = DateTime.UtcNow
+            Workscheduleid = Guid.NewGuid(),
+            Centerid = dto.CenterId,
+            Starttime = dto.Starttime,
+            Endtime = dto.Endtime,
+            Status = dto.Status,
+            Isactive = true,
+            Createdat = DateTime.UtcNow
         };
     }
 
-    public static void UpdateFromDto(this WorkScheduleTuantm entity, UpdateWorkScheduleDto dto)
+    public static void UpdateFromDto(this Workscheduletuantm entity, UpdateWorkScheduleDto dto)
     {
         if (entity == null || dto == null) return;
 
-        entity.TechnicianId = dto.TechnicianId;
-        entity.WorkDate = dto.WorkDate;
-        entity.StartTime = dto.StartTime;
-        entity.EndTime = dto.EndTime;
-        entity.SlotCapacity = dto.SlotCapacity;
-        entity.IsActive = dto.IsActive;
-        entity.UpdatedAt = DateTime.UtcNow;
+        entity.Centerid = dto.CenterId;
+        entity.Starttime = dto.Starttime;
+        entity.Endtime = dto.Endtime;
+        entity.Status = dto.Status;
+        entity.Isactive = dto.IsActive;
+        entity.Updatedat = DateTime.UtcNow;
     }
 }
 

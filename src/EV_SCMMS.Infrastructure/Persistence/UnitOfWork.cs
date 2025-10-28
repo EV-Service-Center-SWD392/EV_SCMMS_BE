@@ -33,6 +33,8 @@ public class UnitOfWork : IUnitOfWork
     private IBookingScheduleRepository? _bookingScheduleRepository;
     private IRefreshTokenRepository? _refreshTokenRepository;
     private IWorkScheduleRepository? _workScheduleRepository;
+    private IUserWorkScheduleRepository? _userWorkScheduleRepository;
+    private IUserAccountRepository? _userAccountRepository;
     private IAssignmentRepository? _assignmentRepository;
     private IServiceIntakeRepository? _serviceIntakeRepository;
     private IChecklistRepository? _checklistRepository;
@@ -164,6 +166,24 @@ public class UnitOfWork : IUnitOfWork
         {
             _workScheduleRepository ??= new WorkScheduleRepository(_context);
             return _workScheduleRepository;
+        }
+    }
+
+    public IUserWorkScheduleRepository UserWorkScheduleRepository
+    {
+        get
+        {
+            _userWorkScheduleRepository ??= new UserWorkScheduleRepository(_context);
+            return _userWorkScheduleRepository;
+        }
+    }
+
+    public IUserAccountRepository UserAccountRepository
+    {
+        get
+        {
+            _userAccountRepository ??= new UserAccountRepository(_context);
+            return _userAccountRepository;
         }
     }
 

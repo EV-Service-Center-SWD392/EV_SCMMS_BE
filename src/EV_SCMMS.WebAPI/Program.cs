@@ -35,6 +35,9 @@ builder.Services.AddDbContext<AppDbContext>(
                     maxRetryDelay: TimeSpan.FromSeconds(15),
                     errorCodesToAdd: null);
             });
+        
+        // Fix timezone issue
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
         // Logging & debugging — chỉ bật khi đang ở môi trường dev
         if (builder.Environment.IsDevelopment())
@@ -129,6 +132,8 @@ builder.Services.AddScoped<ISparepartForecastService, SparepartForecastService>(
 builder.Services.AddScoped<ISparepartReplenishmentRequestService, SparepartReplenishmentRequestService>();
 builder.Services.AddScoped<ISparepartUsageHistoryService, SparepartUsageHistoryService>();
 builder.Services.AddScoped<IWorkScheduleService, WorkScheduleService>();
+builder.Services.AddScoped<IUserWorkScheduleService, UserWorkScheduleService>();
+builder.Services.AddScoped<IUserAccountService, UserAccountService>();
 builder.Services.AddScoped<IAssignmentService, AssignmentService>();
 builder.Services.AddScoped<IBookingApprovalService, BookingApprovalService>();
 builder.Services.AddScoped<IServiceIntakeService, ServiceIntakeService>();

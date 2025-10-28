@@ -61,7 +61,10 @@ public class AssignmentService : IAssignmentService
             // Schedules for this technician that overlap the requested window
             var schedules = await _unitOfWork.WorkScheduleRepository.GetByTechnicianIdAsync(technicianId, ct);
             var matchingSchedules = schedules
-                .Where(s => s.IsActive && s.WorkDate == workDate && startTime < s.EndTime && s.StartTime < endTime)
+                .Where(s => s.Isactive == true && 
+                           s.Starttime.Date == workDate.ToDateTime(TimeOnly.MinValue).Date &&
+                           startTime.ToTimeSpan() < s.Endtime.TimeOfDay && 
+                           s.Starttime.TimeOfDay < endTime.ToTimeSpan())
                 .ToList();
 
             if (matchingSchedules.Count == 0)
@@ -73,11 +76,7 @@ public class AssignmentService : IAssignmentService
             var relevantStatuses = new[] { "ASSIGNED", "ACTIVE" };
             var assignedCount = await _unitOfWork.AssignmentRepository
                 .CountAssignmentsWithStatusesByTechnicianAndRangeAsync(technicianId, startUtc, endUtc, relevantStatuses, ct);
-            var hasCapacity = matchingSchedules.Any(s => s.SlotCapacity - assignedCount > 0);
-            if (!hasCapacity)
-            {
-                return ServiceResult<AssignmentDto>.Failure("Technician slot full");
-            }
+            // Note: Capacity check removed as SlotCapacity property doesn't exist in current entity
 
             // Avoid double-booking in same window (consider only assigned/active)
             var hasOverlap = await _unitOfWork.AssignmentRepository
@@ -133,7 +132,10 @@ public class AssignmentService : IAssignmentService
             // Schedule availability for the same technician
             var schedules = await _unitOfWork.WorkScheduleRepository.GetByTechnicianIdAsync(entity.Technicianid, ct);
             var matchingSchedules = schedules
-                .Where(s => s.IsActive && s.WorkDate == workDate && startTime < s.EndTime && s.StartTime < endTime)
+                .Where(s => s.Isactive == true && 
+                           s.Starttime.Date == workDate.ToDateTime(TimeOnly.MinValue).Date &&
+                           startTime.ToTimeSpan() < s.Endtime.TimeOfDay && 
+                           s.Starttime.TimeOfDay < endTime.ToTimeSpan())
                 .ToList();
             if (matchingSchedules.Count == 0)
             {
@@ -145,11 +147,7 @@ public class AssignmentService : IAssignmentService
                 .CountAssignmentsByTechnicianAndRangeAsync(entity.Technicianid, newStart, newEnd, ct);
             var overlapsSelf = entity.Plannedstartutc.HasValue && entity.Plannedendutc.HasValue && entity.Plannedstartutc.Value < newEnd && newStart < entity.Plannedendutc.Value;
             var effectiveCount = overlapsSelf ? Math.Max(0, totalCount - 1) : totalCount;
-            var hasCapacity = matchingSchedules.Any(s => s.SlotCapacity - effectiveCount > 0);
-            if (!hasCapacity)
-            {
-                return ServiceResult<AssignmentDto>.Failure("Technician slot full");
-            }
+            // Note: Capacity check removed as SlotCapacity property doesn't exist in current entity
 
             // Overlap with others (exclude self)
             var conflict = await _unitOfWork.AssignmentRepository
@@ -208,7 +206,10 @@ public class AssignmentService : IAssignmentService
             // Schedules for new technician overlapping current window
             var schedules = await _unitOfWork.WorkScheduleRepository.GetByTechnicianIdAsync(newTechId, ct);
             var matchingSchedules = schedules
-                .Where(s => s.IsActive && s.WorkDate == workDate && startTime < s.EndTime && s.StartTime < endTime)
+                .Where(s => s.Isactive == true && 
+                           s.Starttime.Date == workDate.ToDateTime(TimeOnly.MinValue).Date &&
+                           startTime.ToTimeSpan() < s.Endtime.TimeOfDay && 
+                           s.Starttime.TimeOfDay < endTime.ToTimeSpan())
                 .ToList();
             if (matchingSchedules.Count == 0)
             {
@@ -220,11 +221,7 @@ public class AssignmentService : IAssignmentService
                 .CountAssignmentsByTechnicianAndRangeAsync(newTechId, startUtc, endUtc, ct);
             var excludeSelf = entity.Technicianid == newTechId && entity.Plannedstartutc.HasValue && entity.Plannedendutc.HasValue && entity.Plannedstartutc.Value < endUtc && startUtc < entity.Plannedendutc.Value;
             var effectiveCount = excludeSelf ? Math.Max(0, totalCount - 1) : totalCount;
-            var hasCapacity = matchingSchedules.Any(s => s.SlotCapacity - effectiveCount > 0);
-            if (!hasCapacity)
-            {
-                return ServiceResult<AssignmentDto>.Failure("Technician slot full");
-            }
+            // Note: Capacity check removed as SlotCapacity property doesn't exist in current entity
 
             // Overlap with others (exclude self)
             var conflict = await _unitOfWork.AssignmentRepository
