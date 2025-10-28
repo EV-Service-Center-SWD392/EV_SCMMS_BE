@@ -24,7 +24,7 @@ public class WorkScheduleService : IWorkScheduleService
         try
         {
             // basic validation
-            if (dto.EndTime <= dto.StartTime)
+            if (dto.Endtime <= dto.Starttime)
             {
                 return ServiceResult<WorkScheduleDto>.Failure("EndTime must be after StartTime");
             }
@@ -37,7 +37,7 @@ public class WorkScheduleService : IWorkScheduleService
         }
         catch (Exception ex)
         {
-            return ServiceResult<WorkScheduleDto>.Failure($"Error creating work schedule: {ex.Message}");
+            return ServiceResult<WorkScheduleDto>.Failure($"Error creating work schedule: {ex.InnerException?.Message}");
         }
     }
 
@@ -51,7 +51,7 @@ public class WorkScheduleService : IWorkScheduleService
                 return ServiceResult<WorkScheduleDto>.Failure("Work schedule not found");
             }
 
-            if (dto.EndTime <= dto.StartTime)
+            if (dto.Endtime <= dto.Starttime)
             {
                 return ServiceResult<WorkScheduleDto>.Failure("EndTime must be after StartTime");
             }
@@ -79,8 +79,8 @@ public class WorkScheduleService : IWorkScheduleService
             }
 
             // Soft delete: mark inactive
-            existing.IsActive = false;
-            existing.UpdatedAt = DateTime.UtcNow;
+            existing.Isactive = false;
+            existing.Updatedat = DateTime.UtcNow;
             await _unitOfWork.WorkScheduleRepository.UpdateAsync(existing);
             await _unitOfWork.SaveChangesAsync();
 
@@ -127,7 +127,9 @@ public class WorkScheduleService : IWorkScheduleService
     {
         try
         {
-            var items = await _unitOfWork.WorkScheduleRepository.GetByDateRangeAsync(startDate, endDate, technicianId);
+            var startDateTime = startDate.ToDateTime(TimeOnly.MinValue);
+            var endDateTime = endDate.ToDateTime(TimeOnly.MaxValue);
+            var items = await _unitOfWork.WorkScheduleRepository.GetByDateRangeAsync(startDateTime, endDateTime, technicianId);
             return ServiceResult<List<WorkScheduleDto>>.Success(items.ToDto());
         }
         catch (Exception ex)
@@ -140,7 +142,9 @@ public class WorkScheduleService : IWorkScheduleService
     {
         try
         {
-            var items = await _unitOfWork.WorkScheduleRepository.GetAvailableTechniciansAsync(workDate, startTime, endTime);
+            var startDateTime = workDate.ToDateTime(startTime);
+            var endDateTime = workDate.ToDateTime(endTime);
+            var items = await _unitOfWork.WorkScheduleRepository.GetByDateRangeAsync(startDateTime, endDateTime);
             return ServiceResult<List<WorkScheduleDto>>.Success(items.ToDto());
         }
         catch (Exception ex)
@@ -149,4 +153,3 @@ public class WorkScheduleService : IWorkScheduleService
         }
     }
 }
-

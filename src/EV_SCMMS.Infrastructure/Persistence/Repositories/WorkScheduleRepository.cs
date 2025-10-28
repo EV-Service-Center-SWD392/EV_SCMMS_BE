@@ -5,69 +5,79 @@ using Microsoft.EntityFrameworkCore;
 namespace EV_SCMMS.Infrastructure.Persistence.Repositories;
 
 /// <summary>
-/// Repository implementation for WorkScheduleTuantm entity
+/// Repository implementation for Workscheduletuantm entity
 /// </summary>
-public class WorkScheduleRepository : GenericRepository<WorkScheduleTuantm>, IWorkScheduleRepository
+public class WorkScheduleRepository : GenericRepository<Workscheduletuantm>, IWorkScheduleRepository
 {
     public WorkScheduleRepository(AppDbContext context) : base(context)
     {
     }
 
-    public async Task<List<WorkScheduleTuantm>> GetByTechnicianIdAsync(Guid technicianId, CancellationToken cancellationToken = default)
+    public async Task<List<Workscheduletuantm>> GetByCenterIdAsync(Guid centerId, CancellationToken cancellationToken = default)
     {
-        return await _dbSet.Set<WorkScheduleTuantm>()
-            .AsNoTracking()
-            .Where(x => x.IsActive && x.TechnicianId == technicianId)
-            .OrderBy(x => x.WorkDate)
-            .ThenBy(x => x.StartTime)
+        return await _dbSet.Workscheduletuantms
+            .Where(x => x.Centerid == centerId && x.Isactive == true)
+            .Include(x => x.Center)
+            .OrderBy(x => x.Starttime)
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<List<WorkScheduleTuantm>> GetByDateRangeAsync(DateOnly startDate, DateOnly endDate, Guid? technicianId = default, CancellationToken cancellationToken = default)
+    public async Task<List<Workscheduletuantm>> GetByDateRangeAsync(DateTime startDate, DateTime endDate, Guid? centerId = null, CancellationToken cancellationToken = default)
     {
-        var query = _dbSet.Set<WorkScheduleTuantm>()
-            .AsNoTracking()
-            .Where(x => x.IsActive && x.WorkDate >= startDate && x.WorkDate <= endDate);
+        var query = _dbSet.Workscheduletuantms
+            .Where(x => x.Isactive == true && x.Starttime >= startDate && x.Endtime <= endDate);
 
-        if (technicianId.HasValue)
+        if (centerId.HasValue)
         {
-            query = query.Where(x => x.TechnicianId == technicianId);
+            query = query.Where(x => x.Centerid == centerId);
         }
 
         return await query
-            .OrderBy(x => x.WorkDate)
-            .ThenBy(x => x.StartTime)
+            .Include(x => x.Center)
+            .OrderBy(x => x.Starttime)
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<List<WorkScheduleTuantm>> GetAvailableTechniciansAsync(DateOnly workDate, TimeOnly startTime, TimeOnly endTime, CancellationToken cancellationToken = default)
+    public async Task<List<Workscheduletuantm>> GetActiveSchedulesAsync(CancellationToken cancellationToken = default)
     {
-        // base time range for the day
-        var slotStart = workDate.ToDateTime(startTime);
-        var slotEnd = workDate.ToDateTime(endTime);
-
-        // Get all active schedules overlapping the requested time window
-        var schedules = _dbSet.Set<WorkScheduleTuantm>()
-            .AsNoTracking()
-            .Where(s => s.IsActive && s.WorkDate == workDate && s.StartTime < endTime && s.EndTime > startTime);
-
-        // Compute current assignment counts and filter schedules with remaining capacity
-        var result = await schedules
-            .Select(s => new
-            {
-                Schedule = s,
-                AssignedCount = _dbSet.Assignmentthaontts
-                    .Where(a => a.Isactive == true && a.Technicianid == s.TechnicianId)
-                    .Where(a => a.Plannedstartutc < slotEnd && a.Plannedendutc > slotStart)
-                    .Count()
-            })
-            .Where(x => x.Schedule.SlotCapacity > x.AssignedCount)
-            .Select(x => x.Schedule)
-            .OrderBy(x => x.TechnicianId)
-            .ThenBy(x => x.StartTime)
+        return await _dbSet.Workscheduletuantms
+            .Where(x => x.Isactive == true)
+            .Include(x => x.Center)
+            .OrderBy(x => x.Starttime)
             .ToListAsync(cancellationToken);
+    }
 
-        return result;
+    public async Task<List<Workscheduletuantm>> GetByTechnicianIdAsync(Guid technicianId, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet.Workscheduletuantms
+            .Where(x => x.Isactive == true)
+            .Include(x => x.Userworkscheduletuantms.Where(u => u.Userid == technicianId && u.Isactive == true))
+            .Where(x => x.Userworkscheduletuantms.Any(u => u.Userid == technicianId && u.Isactive == true))
+            .OrderBy(x => x.Starttime)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<List<Workscheduletuantm>> GetSchedulesWithAvailableCapacityAsync(DateTime startTime, DateTime endTime, Guid? centerId = null, CancellationToken cancellationToken = default)
+    {
+        var query = _dbSet.Workscheduletuantms
+            .Where(x => x.Isactive == true && x.Starttime < endTime && x.Endtime > startTime);
+
+        if (centerId.HasValue)
+        {
+            query = query.Where(x => x.Centerid == centerId);
+        }
+
+        return await query
+            .Include(x => x.Userworkscheduletuantms)
+            .OrderBy(x => x.Starttime)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<int> GetAssignedTechnicianCountAsync(Guid workScheduleId, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet.Userworkscheduletuantms
+            .Where(x => x.Workscheduleid == workScheduleId && x.Isactive == true)
+            .CountAsync(cancellationToken);
     }
 }
 
