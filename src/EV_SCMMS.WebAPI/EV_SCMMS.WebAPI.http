@@ -1,0 +1,6 @@
+@EV_SCMMS.WebAPI_HostAddress = http://localhost:5020
+
+GET {{EV_SCMMS.WebAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

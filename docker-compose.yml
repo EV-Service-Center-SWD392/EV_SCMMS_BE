@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  # EV SCMMS Web API (using Supabase as external database)
+  ev_scmms_api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ev_scmms_api
+    ports:
+      - "5020:5020"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5020/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+networks:
+  default:
+    driver: bridge
