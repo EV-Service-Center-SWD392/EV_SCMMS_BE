@@ -67,10 +67,6 @@ public interface IUnitOfWork : IDisposable
     /// Refresh Token repository
     /// </summary>
     IRefreshTokenRepository RefreshTokenRepository { get; }
-  /// <summary>
-  /// Refresh Token repository
-  /// </summary>
-  IRefreshTokenRepository RefreshTokenRepository { get; }
 
     /// <summary>
     /// WorkSchedule repository
@@ -127,10 +123,6 @@ public interface IUnitOfWork : IDisposable
     /// </summary>
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
   /// <summary>
-  /// Refresh Token service
-  /// </summary>
-  IRefreshTokenService RefreshTokenService { get; }
-  /// <summary>
   /// Refresh Transaction Repository
   /// </summary>
   ITransactionRepository TransactionRepository { get; }
@@ -146,10 +138,6 @@ public interface IUnitOfWork : IDisposable
   /// Refresh Transaction Repository
   /// </summary>
   IReceiptItemRepository ReceiptItemRepository { get; }
-  /// <summary>
-  /// Save all changes made in this context to the database
-  /// </summary>
-  Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 
   /// <summary>
   /// Begin a database transaction
