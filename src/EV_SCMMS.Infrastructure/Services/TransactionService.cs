@@ -12,6 +12,7 @@ using EV_SCMMS.Core.Application.Events;
 using EV_SCMMS.Core.Domain.Models;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 
 namespace EV_SCMMS.Infrastructure.Services;
 
@@ -168,7 +169,7 @@ public class TransactionService : ITransactionService
 
         // attach payos data to transaction entity
         entity.Paymentid = orderCode;
-
+        entity.Description = "PayOs paymentgate";
         // try to extract checkoutUrl from createPayment via reflection to avoid coupling
         try
         {
@@ -229,12 +230,22 @@ public class TransactionService : ITransactionService
     }
  
     entity.Status = parsed.ToString();
-
+    Guid staffId = _currentUser?.UserId ?? Guid.Empty;
+    entity.Staffid = staffId;
+    if(parsed == TransactionStatus.CANCELLED)
+      {
+      entity.Reason = "Cancelled by staff";
+    }
     await _unitOfWork.TransactionRepository.UpdateAsync(entity);
 
     // if status became PAID, create receipt
     if (parsed == TransactionStatus.PAID)
     {
+      if (entity.Paymentid == 2)
+      {
+        // For PayOS payments, we should verify payment status via webhook/event instead of direct update
+        return ServiceResult<TransactionDto>.Failure("Cannot directly set PayOS transactions to PAID.");
+      }
       await CreateReceiptForTransactionAsync(entity);
     }
 
@@ -253,8 +264,8 @@ public class TransactionService : ITransactionService
     {
       return ServiceResult<bool>.Failure("Only transactions with status 'CREATED' can be cancelled");
     }
-    entity.Reason = TransactionStatus.CANCELLED.ToString();
-
+    entity.Status = TransactionStatus.CANCELLED.ToString();
+    entity.Reason = "Cancelled by user";
     if (_currentUser != null && _currentUser.UserId.HasValue)
     {
       if(entity.Order.Customerid != _currentUser.UserId.Value)
@@ -331,6 +342,7 @@ public class TransactionService : ITransactionService
       if (entity != null)
       {
         entity.Status = TransactionStatus.CANCELLED.ToString();
+        entity.Reason = "Cancelled via Payos Page";
         await _unitOfWork.TransactionRepository.UpdateAsync(entity);
         await _unitOfWork.SaveChangesAsync();
       }

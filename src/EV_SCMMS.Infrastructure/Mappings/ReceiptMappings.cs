@@ -27,6 +27,7 @@ public static class ReceiptMappings
         {
             ReceiptItemId = i.Receiptitemid,
             ItemId = i.Itemid,
+            ItemType = i.Itemtype,
             ItemName = i.Itemname,
             Quantity = i.Quantity,
             UnitPrice = i.Unitprice,
