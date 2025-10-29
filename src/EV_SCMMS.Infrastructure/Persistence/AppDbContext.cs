@@ -759,6 +759,9 @@ public partial class AppDbContext : DbContext
       entity.Property(e => e.Itemname)
           .HasMaxLength(256)
           .HasColumnName("itemname");
+      entity.Property(e => e.Itemtype)
+          .HasMaxLength(50)
+          .HasColumnName("itemtype");
       entity.Property(e => e.Linetotal)
           .HasPrecision(18, 2)
           .HasColumnName("linetotal");
@@ -797,6 +800,7 @@ public partial class AppDbContext : DbContext
       entity.Property(e => e.Reason)
           .HasMaxLength(50)
           .HasColumnName("reason");
+      entity.Property(e => e.Paymentid).HasColumnName("paymentid");
       entity.Property(e => e.Staffid).HasColumnName("staffid");
       entity.Property(e => e.Totalamount)
           .HasPrecision(18, 2)
@@ -804,7 +808,8 @@ public partial class AppDbContext : DbContext
       entity.Property(e => e.Updatedat)
           .HasDefaultValueSql("now()")
           .HasColumnName("updatedat");
-
+      entity.Property(e => e.Status).HasColumnName("status");
+      entity.Property(e => e.Paymentlink).HasColumnName("paymentlink");
       entity.HasOne(d => d.Order).WithOne(p => p.Transactioncuongtq)
           .HasForeignKey<Transactioncuongtq>(d => d.Orderid)
           .HasConstraintName("transactioncuongtq_orderid_fkey");

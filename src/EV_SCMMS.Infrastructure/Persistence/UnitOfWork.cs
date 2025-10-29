@@ -32,6 +32,10 @@ public class UnitOfWork : IUnitOfWork
     private IBookingRepository? _bookingRepository;
     private IBookingScheduleRepository? _bookingScheduleRepository;
     private IRefreshTokenRepository? _refreshTokenRepository;
+    private ITransactionRepository? _transactionRepository;
+    private IOrderRepository? _orderRepository;
+    private IReceiptRepository? _receiptRepository;
+    private IReceiptItemRepository? _receiptItemRepository;
     private IWorkScheduleRepository? _workScheduleRepository;
     private IUserWorkScheduleRepository? _userWorkScheduleRepository;
     private IUserAccountRepository? _userAccountRepository;
@@ -157,6 +161,42 @@ public class UnitOfWork : IUnitOfWork
         {
             _refreshTokenRepository ??= new RefreshTokenRepository(_context);
             return _refreshTokenRepository;
+        }
+    }
+
+    public ITransactionRepository TransactionRepository
+    {
+        get
+        {
+            _transactionRepository ??= new TransactionRepository(_context);
+            return _transactionRepository;
+        }
+    }
+
+    public IOrderRepository OrderRepository
+    {
+        get
+        {
+            _orderRepository ??= new OrderRepository(_context);
+            return _orderRepository;
+        }
+    }
+
+    public IReceiptRepository ReceiptRepository
+    {
+        get
+        {
+            _receiptRepository ??= new ReceiptRepository(_context);
+            return _receiptRepository;
+        }
+    }
+
+    public IReceiptItemRepository ReceiptItemRepository
+    {
+        get
+        {
+            _receiptItemRepository ??= new ReceiptItemRepository(_context);
+            return _receiptItemRepository;
         }
     }
 
