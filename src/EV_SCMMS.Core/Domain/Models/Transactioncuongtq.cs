@@ -22,7 +22,12 @@ public partial class Transactioncuongtq
 
     public DateTime? Updatedat { get; set; }
 
-    public Guid Staffid { get; set; }
+    public int Paymentid { get; set; }
+
+    public string? Paymentlink { get; set; }
+
+  public string? Status { get; set; } = "CREATED";
+  public Guid? Staffid { get; set; }
 
     public virtual Orderthaontt Order { get; set; } = null!;
 

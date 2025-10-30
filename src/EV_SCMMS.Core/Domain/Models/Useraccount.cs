@@ -37,9 +37,7 @@ public partial class Useraccount
 
     public virtual ICollection<Orderthaontt> Orderthaontts { get; set; } = new List<Orderthaontt>();
 
-    public virtual ICollection<Receiptcuongtq> ReceiptcuongtqCustomers { get; set; } = new List<Receiptcuongtq>();
-
-    public virtual ICollection<Receiptcuongtq> ReceiptcuongtqStaffs { get; set; } = new List<Receiptcuongtq>();
+    public virtual ICollection<Receiptcuongtq> Receiptcuongtqs { get; set; } = new List<Receiptcuongtq>();
 
     public virtual ICollection<Refreshtoken> Refreshtokens { get; set; } = new List<Refreshtoken>();
 
@@ -57,5 +55,4 @@ public partial class Useraccount
 
     public virtual ICollection<Transactioncuongtq> Transactioncuongtqs { get; set; } = new List<Transactioncuongtq>();
 
-    public virtual ICollection<Receiptcuongtq> Receiptcuongtqs { get; set; } = new List<Receiptcuongtq>();
 }
