@@ -139,6 +139,10 @@ public interface IUnitOfWork : IDisposable
   /// </summary>
   IReceiptItemRepository ReceiptItemRepository { get; }
 
+  ICertificateRepository CertificateRepository { get; }
+
+  IUserCertificateRepository UserCertificateRepository { get; }
+
   /// <summary>
   /// Begin a database transaction
   /// </summary>

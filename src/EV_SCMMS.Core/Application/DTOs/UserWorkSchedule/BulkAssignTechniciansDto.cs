@@ -8,7 +8,13 @@ namespace EV_SCMMS.Core.Application.DTOs.UserWorkSchedule;
 public class BulkAssignTechniciansDto
 {
     [Required]
-    public Guid WorkScheduleId { get; set; }
+    public Guid CenterId { get; set; }
+    
+    [Required]
+    public string Shift { get; set; } = string.Empty;
+    
+    [Required]
+    public DateTime WorkDate { get; set; }
     
     [Required]
     [MinLength(1)]
