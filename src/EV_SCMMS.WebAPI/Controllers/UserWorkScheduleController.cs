@@ -44,6 +44,17 @@ public class UserWorkScheduleController : ControllerBase
         return NotFound(result.Message);
     }
 
+    /// <summary>
+    /// Get user work schedules within a date range
+    /// </summary>
+    /// <param name="userId">User/technician ID</param>
+    /// <param name="startDate">Start date (YYYY-MM-DD)</param>
+    /// <param name="endDate">End date (YYYY-MM-DD)</param>
+    /// <returns>List of work schedules in the date range</returns>
+    /// <remarks>
+    /// Useful for calendar views and schedule planning.
+    /// Returns all shifts (Morning, Evening, Night) for the user in the specified period.
+    /// </remarks>
     [HttpGet("user/{userId}/range")]
     public async Task<IActionResult> GetByDateRange(Guid userId, [FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
     {
@@ -60,6 +71,23 @@ public class UserWorkScheduleController : ControllerBase
         return BadRequest(result.Message);
     }
 
+    /// <summary>
+    /// Create a new user work schedule assignment
+    /// </summary>
+    /// <param name="dto">User work schedule data</param>
+    /// <returns>Created user work schedule</returns>
+    /// <remarks>
+    /// Required fields:
+    /// - UserId: GUID of the technician/user
+    /// - CenterId: GUID of the service center
+    /// - Shift: Must be one of: "Morning", "Evening", "Night"
+    /// - WorkDate: Date for the work schedule (YYYY-MM-DD format)
+    /// 
+    /// Shift times:
+    /// - Morning: 07:00 - 12:00
+    /// - Evening: 13:00 - 19:00
+    /// - Night: 20:00 - 06:00 (next day)
+    /// </remarks>
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateUserWorkScheduleDto dto)
     {
@@ -72,6 +100,17 @@ public class UserWorkScheduleController : ControllerBase
         return BadRequest(result.Message);
     }
 
+    /// <summary>
+    /// Update an existing user work schedule assignment
+    /// </summary>
+    /// <param name="id">User work schedule ID</param>
+    /// <param name="dto">Update data</param>
+    /// <returns>Updated user work schedule</returns>
+    /// <remarks>
+    /// Optional fields:
+    /// - Status: Assignment status (e.g., "Active", "Cancelled", "Completed")
+    /// - IsActive: Boolean flag for soft delete
+    /// </remarks>
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateUserWorkScheduleDto dto)
     {
@@ -89,6 +128,28 @@ public class UserWorkScheduleController : ControllerBase
         return BadRequest(result.Message);
     }
 
+    /// <summary>
+    /// Bulk assign multiple technicians to the same work schedule
+    /// </summary>
+    /// <param name="dto">Bulk assignment data</param>
+    /// <returns>Assignment results with success/failure details</returns>
+    /// <remarks>
+    /// Required fields:
+    /// - CenterId: GUID of the service center
+    /// - Shift: Must be one of: "Morning", "Evening", "Night"
+    /// - WorkDate: Date for the work schedule (YYYY-MM-DD format)
+    /// - TechnicianIds: Array of technician GUIDs to assign
+    /// 
+    /// Shift times:
+    /// - Morning: 07:00 - 12:00
+    /// - Evening: 13:00 - 19:00
+    /// - Night: 20:00 - 06:00 (next day)
+    /// 
+    /// Returns:
+    /// - successfulAssignments: List of successfully assigned technicians
+    /// - failedAssignments: List of failed assignments with error details
+    /// - totalProcessed, successCount, failureCount: Summary statistics
+    /// </remarks>
     [HttpPost("bulk-assign")]
     public async Task<IActionResult> BulkAssign([FromBody] BulkAssignTechniciansDto dto)
     {
@@ -98,6 +159,28 @@ public class UserWorkScheduleController : ControllerBase
         return BadRequest(result.Message);
     }
 
+    /// <summary>
+    /// Automatically assign available technicians to a work schedule
+    /// </summary>
+    /// <param name="dto">Auto assignment request data</param>
+    /// <returns>Assignment results with success/failure details</returns>
+    /// <remarks>
+    /// Required fields:
+    /// - CenterId: GUID of the service center
+    /// - Shift: Must be one of: "Morning", "Evening", "Night"
+    /// - WorkDate: Date for the work schedule (YYYY-MM-DD format)
+    /// - RequiredTechnicianCount: Number of technicians needed (1-50)
+    /// 
+    /// Optional fields:
+    /// - RequiredSkills: Array of required skill names (not implemented yet)
+    /// 
+    /// Shift times:
+    /// - Morning: 07:00 - 12:00
+    /// - Evening: 13:00 - 19:00
+    /// - Night: 20:00 - 06:00 (next day)
+    /// 
+    /// System will automatically find and assign available technicians.
+    /// </remarks>
     [HttpPost("auto-assign")]
     public async Task<IActionResult> AutoAssign([FromBody] AutoAssignRequestDto dto)
     {

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace EV_SCMMS.Core.Application.DTOs.UserWorkSchedule;
 
@@ -9,9 +10,15 @@ public class CreateUserWorkScheduleDto
 {
     [Required]
     public Guid UserId { get; set; }
+    [Required]
+    public Guid CenterId { get; set; }
+
+    [Required]
+    public string Shift { get; set; } = string.Empty;
     
     [Required]
-    public Guid WorkScheduleId { get; set; }
+    public DateTime WorkDate { get; set; }
     
-    public string? Status { get; set; } = "Active";
+    [JsonIgnore]
+    public Guid? WorkScheduleId { get; set; }
 }

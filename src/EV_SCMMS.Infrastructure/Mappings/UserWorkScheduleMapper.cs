@@ -41,8 +41,8 @@ public static class UserWorkScheduleMapperExtensions
         {
             Userworkscheduleid = Guid.NewGuid(),
             Userid = createDto.UserId,
-            Workscheduleid = createDto.WorkScheduleId,
-            Status = createDto.Status,
+            Workscheduleid = createDto.WorkScheduleId ?? Guid.Empty,
+            Status = "Active",
             Isactive = true,
             Createdat = DateTime.UtcNow
         };
