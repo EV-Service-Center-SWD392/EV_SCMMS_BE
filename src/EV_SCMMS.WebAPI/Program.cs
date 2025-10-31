@@ -161,6 +161,8 @@ builder.Services.AddScoped<IServiceIntakeService, ServiceIntakeService>();
 builder.Services.AddScoped<IChecklistService, ChecklistService>();
 builder.Services.AddScoped<IChecklistItemService, ChecklistItemService>();
 builder.Services.AddScoped<IWorkOrderService, WorkOrderService>();
+builder.Services.AddScoped<IUserCertificateService, UserCertificateService>();
+builder.Services.AddScoped<ICertificateService, CertificateService>();
 
 // Register ChatBot AI Service
 builder.Services.AddHttpClient<IChatBotService, ChatBotService>();

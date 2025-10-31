@@ -45,6 +45,8 @@ public class UnitOfWork : IUnitOfWork
     private IChecklistItemRepository? _checklistItemRepository;
     private IWorkOrderRepository? _workOrderRepository;
     private IUserCenterRepository? _userCenterRepository;
+    private ICertificateRepository? _certificateRepository;
+    private IUserCertificateRepository? _userCertificateRepository;
     
     // Service instances
     private IRefreshTokenService? _refreshTokenService;
@@ -287,6 +289,24 @@ public class UnitOfWork : IUnitOfWork
         {
             _refreshTokenService ??= new RefreshTokenService(this, _configuration, _loggerFactory.CreateLogger<RefreshTokenService>());
             return _refreshTokenService;
+        }
+    }
+
+    public ICertificateRepository CertificateRepository
+    {
+        get
+        {
+            _certificateRepository ??= new CertificateRepository(_context);
+            return _certificateRepository;
+        }
+    }
+
+    public IUserCertificateRepository UserCertificateRepository
+    {
+        get
+        {
+            _userCertificateRepository ??= new UserCertificateRepository(_context);
+            return _userCertificateRepository;
         }
     }
 

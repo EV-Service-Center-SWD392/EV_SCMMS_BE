@@ -75,21 +75,11 @@ namespace EV_SCMMS.Infrastructure.Services
                 // Đọc raw JSON
                 var rawResponse = await response.Content.ReadAsStringAsync();
 
-                if (!response.IsSuccessStatusCode)
-                {
-                    throw new ApplicationException(
-                        $"Lỗi từ AI service: {response.StatusCode}. " +
-                        $"Chi tiết: {rawResponse}, Request: {json}"
-                    );
-                }
 
 
 
-                // Cache the response for future requests
-                await _cache.SetStringAsync(cacheKey, rawResponse, new DistributedCacheEntryOptions
-                {
-                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10) // Cache for 10 minutes
-                });
+
+                // Removed: Don't cache here, only cache after success check
 
                 if (!response.IsSuccessStatusCode)
                 {
