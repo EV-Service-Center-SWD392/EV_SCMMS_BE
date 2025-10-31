@@ -61,6 +61,8 @@ namespace EV_SCMMS.Infrastructure.Services
                     );
                 }
 
+                
+
                 // Cache the response for future requests
                 await _cache.SetStringAsync(cacheKey, rawResponse, new DistributedCacheEntryOptions
                 {
@@ -76,15 +78,31 @@ namespace EV_SCMMS.Infrastructure.Services
                 }
 
                 // Parse JSON linh hoạt
+                JsonNode? jsonResponse;
                 try
                 {
-                    var jsonResponse = JsonNode.Parse(rawResponse);
-                    return jsonResponse;
+                    jsonResponse = JsonNode.Parse(rawResponse);
                 }
                 catch (Exception parseEx)
                 {
                     throw new ApplicationException("Không thể phân tích phản hồi JSON từ AI service.", parseEx);
                 }
+
+                bool isSuccess = jsonResponse?["success"]?.GetValue<bool>() ?? false;
+                if (isSuccess)
+                {
+                    await _cache.SetStringAsync(cacheKey, rawResponse, new DistributedCacheEntryOptions
+                    {
+                        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
+                    });
+                    Console.WriteLine($"[CACHE SET] {cacheKey}");
+                }
+                else
+                {
+                    Console.WriteLine($"[CACHE SKIP] success = false cho request {cacheKey}");
+                }
+
+                return jsonResponse;
 
 
             }
