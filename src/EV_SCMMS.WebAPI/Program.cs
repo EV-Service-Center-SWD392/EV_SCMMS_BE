@@ -177,7 +177,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddStackExchangeRedisCache(options =>
 {
-    options.Configuration = builder.Configuration["REDIS_URL"];
+    options.Configuration = builder.Configuration.GetConnectionString("REDIS_URL");
     options.InstanceName = "EV_SCMMS_CACHE_";
 });
 
