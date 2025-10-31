@@ -41,7 +41,7 @@ builder.Services.AddDbContext<AppDbContext>(
                     maxRetryDelay: TimeSpan.FromSeconds(15),
                     errorCodesToAdd: null);
             });
-        
+
         // Fix timezone issue
         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
@@ -175,6 +175,11 @@ builder.Services.AddScoped<ITransactionService, TransactionService>();
 // Register IHttpContextAccessor and CurrentUserService
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration["REDIS_URL"];
+    options.InstanceName = "EV_SCMMS_CACHE_";
+});
 
 // Add Basic Health Checks
 builder.Services.AddHealthChecks();
