@@ -3,6 +3,7 @@ using EV_SCMMS.Core.Application.Interfaces;
 using EV_SCMMS.Core.Application.Interfaces.Services;
 using EV_SCMMS.Infrastructure.Persistence;
 using EV_SCMMS.Infrastructure.Services;
+using EV_SCMMS.Infrastructure.Adapters;
 using EV_SCMMS.WebAPI.Authorization;
 using EV_SCMMS.WebAPI.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -12,12 +13,17 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Net.payOS;
+using EV_SCMMS.Infrastructure.Configuration;
+using EV_SCMMS.WebAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
 // Add services to the container
 builder.Services.AddControllers();
+
+// Register configuration
+var configuration = builder.Configuration;
 
 // Configure Database
 builder.Services.AddDbContext<AppDbContext>(
@@ -35,7 +41,7 @@ builder.Services.AddDbContext<AppDbContext>(
                     maxRetryDelay: TimeSpan.FromSeconds(15),
                     errorCodesToAdd: null);
             });
-        
+
         // Fix timezone issue
         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
@@ -55,6 +61,17 @@ builder.Services.AddDbContext<AppDbContext>(
     ServiceLifetime.Scoped // 🔒 Scoped để mỗi request có 1 DbContext riêng
 );
 
+// Bind PayOsOptions
+builder.Services.Configure<PayOsOptions>(configuration.GetSection("PayOs"));
+
+// Register Event Publisher as singleton
+builder.Services.AddSingleton<IEventPublisher, InProcessEventPublisher>();
+
+// Register Transaction service
+builder.Services.AddScoped<ITransactionService, TransactionService>();
+
+// Register adapter that wraps PayOS as Scoped
+builder.Services.AddScoped<IPayOsClient, PayOsClientAdapter>();
 
 // Configure JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -103,13 +120,17 @@ builder.Services.AddAuthorization(options =>
         .AddRequirements(new ValidRefreshTokenRequirement())
         .Build());
 
-    options.AddPolicy("TechnicianAndStaff", new AuthorizationPolicyBuilder()
-        .RequireAuthenticatedUser()
-        .RequireRole("TECHNICIAN", "STAFF")
-        .AddRequirements(new ValidRefreshTokenRequirement())
-        .Build());
+  options.AddPolicy("TechnicianAndStaff", new AuthorizationPolicyBuilder()
+      .RequireAuthenticatedUser()
+      .RequireRole("TECHNICIAN", "STAFF")
+      .AddRequirements(new ValidRefreshTokenRequirement())
+      .Build());
+  options.AddPolicy("StaffAndAdmin", new AuthorizationPolicyBuilder()
+      .RequireAuthenticatedUser()
+      .RequireRole("STAFF", "ADMIN")
+      .AddRequirements(new ValidRefreshTokenRequirement())
+      .Build());
 });
-
 
 // Register Application Services
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -144,6 +165,21 @@ builder.Services.AddScoped<IWorkOrderService, WorkOrderService>();
 // Register ChatBot AI Service
 builder.Services.AddHttpClient<IChatBotService, ChatBotService>();
 builder.Services.AddScoped<IChatBotService, ChatBotService>();
+
+// Register Receipt service
+builder.Services.AddScoped<IReceiptService, ReceiptService>();
+
+// Register Transaction service
+builder.Services.AddScoped<ITransactionService, TransactionService>();
+
+// Register IHttpContextAccessor and CurrentUserService
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration["REDIS_URL"];
+    options.InstanceName = "EV_SCMMS_CACHE_";
+});
 
 // Add Basic Health Checks
 builder.Services.AddHealthChecks();
