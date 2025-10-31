@@ -37,13 +37,9 @@ public static class WorkScheduleMapper
 
         return new Workscheduletuantm
         {
-            Workscheduleid = Guid.NewGuid(),
             Centerid = dto.CenterId,
             Starttime = dto.Starttime,
             Endtime = dto.Endtime,
-            Status = dto.Status,
-            Isactive = true,
-            Createdat = DateTime.UtcNow
         };
     }
 
@@ -57,6 +53,18 @@ public static class WorkScheduleMapper
         entity.Status = dto.Status;
         entity.Isactive = dto.IsActive;
         entity.Updatedat = DateTime.UtcNow;
+    }
+
+    public static Workscheduletuantm ToEntity(this WorkScheduleDto dto)
+    {
+        if (dto == null) return null;
+
+        return new Workscheduletuantm
+        {
+            Centerid = dto.CenterId,
+            Starttime = dto.Starttime,
+            Endtime = dto.Endtime
+        };
     }
 }
 

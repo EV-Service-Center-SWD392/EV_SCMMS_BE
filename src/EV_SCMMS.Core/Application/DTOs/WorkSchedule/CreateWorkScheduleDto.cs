@@ -15,7 +15,5 @@ public class CreateWorkScheduleDto
 
     [Required]
     public DateTime Endtime { get; set; }
-
-    public string? Status { get; set; } = "Active";
 }
 
