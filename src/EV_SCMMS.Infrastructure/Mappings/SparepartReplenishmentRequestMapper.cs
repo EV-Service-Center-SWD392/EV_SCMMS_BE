@@ -30,12 +30,10 @@ public static class SparepartReplenishmentRequestMapperExtensions
             Priority = "", // Not available in model
             Status = request.Status ?? "Pending",
             Notes = request.Notes,
-            RequestDate = request.Createdat ?? DateTime.UtcNow,
+            RequestDate = request.Createdat ?? DateTime.Now,
             ApprovalDate = request.Approvedat,
             ExpectedDeliveryDate = null, // Not available in model
             ActualDeliveryDate = null, // Not available in model
-            CreatedAt = request.Createdat ?? DateTime.UtcNow,
-            UpdatedAt = request.Updatedat,
             IsDeleted = !(request.Isactive ?? true),
             Sparepart = null, // Will be populated separately if needed
             Center = null // Will be populated separately if needed
@@ -65,7 +63,6 @@ public static class SparepartReplenishmentRequestMapperExtensions
 
         return new Sparepartreplenishmentrequest
         {
-            Requestid = Guid.NewGuid(),
             Centerid = createDto.CenterId,
             Sparepartid = createDto.SparepartId,
             Forecastid = null, // Not in CreateDto
@@ -74,9 +71,6 @@ public static class SparepartReplenishmentRequestMapperExtensions
             Approvedby = null, // Will be set during approval
             Approvedat = null, // Will be set during approval
             Notes = createDto.Notes,
-            Isactive = true,
-            Createdat = DateTime.UtcNow,
-            Updatedat = null
         };
     }
 

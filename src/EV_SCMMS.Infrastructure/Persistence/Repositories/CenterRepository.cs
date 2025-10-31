@@ -8,16 +8,28 @@ namespace EV_SCMMS.Infrastructure.Persistence.Repositories;
 /// <summary>
 /// Repository implementation for Center entity
 /// </summary>
-public class CenterRepository : GenericRepository<Center>, ICenterRepository
+public class CenterRepository : GenericRepository<Centertuantm>, ICenterRepository
 {
     public CenterRepository(AppDbContext context) : base(context)
     {
     }
 
-    public async Task<IEnumerable<Center>> GetActiveCentersAsync(CancellationToken cancellationToken = default)
+
+    public async Task<IEnumerable<Centertuantm>> GetActiveCentersAsync(CancellationToken cancellationToken = default)
     {
-        return await _dbSet
+        return await _dbSet.Centertuantms
             .Where(x => x.Isactive == true)
             .ToListAsync(cancellationToken);
+    }
+
+    public async Task<Centertuantm?> GetByNameAsync(string name, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet.Centertuantms
+            .FirstOrDefaultAsync(x => x.Name == name && x.Isactive == true, cancellationToken);
+    }
+
+    public Task SoftDeleteAsync(Guid id)
+    {
+        throw new NotImplementedException();
     }
 }

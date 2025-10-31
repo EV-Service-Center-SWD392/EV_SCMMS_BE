@@ -1,6 +1,7 @@
+
 using EV_SCMMS.Core.Application.Interfaces.Repositories;
+using EV_SCMMS.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using System.Linq.Expressions;
 
 namespace EV_SCMMS.Infrastructure.Persistence.Repositories;
 
@@ -10,73 +11,104 @@ namespace EV_SCMMS.Infrastructure.Persistence.Repositories;
 /// <typeparam name="T">Entity type</typeparam>
 public class GenericRepository<T> : IGenericRepository<T> where T : class
 {
-    protected readonly AppDbContext _context;
-    protected readonly DbSet<T> _dbSet;
+    protected AppDbContext _dbSet;
 
     public GenericRepository(AppDbContext context)
     {
-        _context = context;
-        _dbSet = context.Set<T>();
+        _dbSet = context;
     }
 
-    public virtual async Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public List<T> GetAll()
     {
-        return await _dbSet.FindAsync(new object[] { id }, cancellationToken);
+        return _dbSet.Set<T>().ToList();
+    }
+    public async Task<List<T>> GetAllAsync()
+    {
+        return await _dbSet.Set<T>().ToListAsync();
+    }
+    public void Add(T entity)
+    {
+        _dbSet.Add(entity);
     }
 
-    public virtual async Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<T> AddAsync(T entity)
     {
-        return await _dbSet.AsNoTracking().ToListAsync(cancellationToken);
-    }
-
-    public virtual async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default)
-    {
-        return await _dbSet.AsNoTracking().Where(predicate).ToListAsync(cancellationToken);
-    }
-
-    public virtual async Task<T> AddAsync(T entity, CancellationToken cancellationToken = default)
-    {
-        await _dbSet.AddAsync(entity, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
+        await _dbSet.AddAsync(entity);
         return entity;
     }
 
-    public virtual async Task UpdateAsync(T entity, CancellationToken cancellationToken = default)
+    public void Update(T entity)
     {
-        _dbSet.Update(entity);
-        await _context.SaveChangesAsync(cancellationToken);
+        var tracker = _dbSet.Attach(entity);
+        tracker.State = EntityState.Modified;
     }
 
-    public virtual async Task DeleteAsync(T entity, CancellationToken cancellationToken = default)
+    public async Task<T> UpdateAsync(T entity)
+    {
+        var tracker = _dbSet.Attach(entity);
+        tracker.State = EntityState.Modified;
+
+        return entity;
+    }
+
+    public bool Remove(T entity)
     {
         _dbSet.Remove(entity);
-        await _context.SaveChangesAsync(cancellationToken);
+
+        return true;
     }
 
-    public virtual async Task SoftDeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<bool> RemoveAsync(T entity)
     {
-        var entity = await GetByIdAsync(id, cancellationToken);
+        _dbSet.Remove(entity);
+        await _dbSet.SaveChangesAsync();
+
+        return true;
+    }
+
+    public async Task<T?> GetByIdAsync(object id)
+    {
+        var entity = await _dbSet.Set<T>().FindAsync(id);
         if (entity != null)
         {
-            // Basic soft delete - specific logic should be in concrete repository
-            await DeleteAsync(entity, cancellationToken);
+            // Đảm bảo không bị tracking lại
+            _dbSet.Entry(entity).State = EntityState.Detached;
         }
+        return entity;
     }
 
-    public virtual async Task<int> CountAsync(Expression<Func<T, bool>>? predicate = null, CancellationToken cancellationToken = default)
+    #region Separating asigned entity and save operators        
+
+    public void PrepareCreate(T entity)
     {
-        var query = _dbSet.AsQueryable();
-        
-        if (predicate != null)
-            query = query.Where(predicate);
-
-        return await query.CountAsync(cancellationToken);
+        _dbSet.Add(entity);
     }
 
-    public virtual async Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default)
+    public void PrepareUpdate(T entity)
     {
-        return await _dbSet.AnyAsync(predicate, cancellationToken);
+        var tracker = _dbSet.Attach(entity);
+        tracker.State = EntityState.Modified;
     }
 
-    // Removed HasProperty method as we now use EF.Property directly
+    public void PrepareRemove(T entity)
+    {
+        _dbSet.Remove(entity);
+    }
+
+    public int Save()
+    {
+        return _dbSet.SaveChanges();
+    }
+
+    public async Task<int> SaveAsync()
+    {
+        return await _dbSet.SaveChangesAsync();
+    }
+
+    #endregion Separating asign entity and save operators
+
+    public IQueryable<T> GetAllQueryable()
+    {
+        return _dbSet.Set<T>().AsQueryable();
+    }
 }

@@ -10,10 +10,12 @@ public class CreateSparepartDto
     public int? VehicleModelId { get; set; }
 
     [Required]
-    public Guid InventoryId { get; set; }
+    [StringLength(255)]
+    public string CenterName { get; set; } = string.Empty;
 
     [Required]
-    public Guid TypeId { get; set; }
+    [StringLength(255)]
+    public string TypeName { get; set; } = string.Empty;
 
     [Required]
     [StringLength(255)]
@@ -31,8 +33,4 @@ public class CreateSparepartDto
     [Required]
     [Range(0, double.MaxValue)]
     public decimal UnitPrice { get; set; }
-
-    [StringLength(50)]
-    public string? Status { get; set; }
-    public bool IsActive { get; set; }
 }

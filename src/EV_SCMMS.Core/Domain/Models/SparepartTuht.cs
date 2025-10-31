@@ -29,6 +29,8 @@ public partial class SparepartTuht
 
     public virtual InventoryTuht? Inventory { get; set; }
 
+    public virtual ICollection<Ordersparepart> Orderspareparts { get; set; } = new List<Ordersparepart>();
+
     public virtual ICollection<SparepartforecastTuht> SparepartforecastTuhts { get; set; } = new List<SparepartforecastTuht>();
 
     public virtual ICollection<Sparepartreplenishmentrequest> Sparepartreplenishmentrequests { get; set; } = new List<Sparepartreplenishmentrequest>();
@@ -36,4 +38,6 @@ public partial class SparepartTuht
     public virtual ICollection<SparepartusagehistoryTuht> SparepartusagehistoryTuhts { get; set; } = new List<SparepartusagehistoryTuht>();
 
     public virtual SpareparttypeTuht? Type { get; set; }
+
+    public virtual Vehiclemodel? Vehiclemodel { get; set; }
 }

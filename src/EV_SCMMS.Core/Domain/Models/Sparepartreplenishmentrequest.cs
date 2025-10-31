@@ -15,19 +15,21 @@ public partial class Sparepartreplenishmentrequest
 
     public int? Suggestedquantity { get; set; }
 
-    public string? Status { get; set; }
-
     public Guid? Approvedby { get; set; }
 
     public DateTime? Approvedat { get; set; }
 
     public string? Notes { get; set; }
 
+    public string? Status { get; set; }
+
+    public bool? Isactive { get; set; }
+
     public DateTime? Createdat { get; set; }
 
     public DateTime? Updatedat { get; set; }
-    public bool? Isactive { get; set; }
-    public virtual Center Center { get; set; } = null!;
+
+    public virtual Centertuantm Center { get; set; } = null!;
 
     public virtual SparepartforecastTuht? Forecast { get; set; }
 

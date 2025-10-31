@@ -14,4 +14,5 @@ public interface ISparepartReplenishmentRequestRepository : IGenericRepository<S
     Task<IEnumerable<Sparepartreplenishmentrequest>> GetByStatusAsync(string status, CancellationToken cancellationToken = default);
     Task<IEnumerable<Sparepartreplenishmentrequest>> GetPendingRequestsAsync(CancellationToken cancellationToken = default);
     Task<IEnumerable<Sparepartreplenishmentrequest>> GetByDateRangeAsync(DateTime startDate, DateTime endDate, CancellationToken cancellationToken = default);
+    Task SoftDeleteAsync(Guid id);
 }

@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace EV_SCMMS.Core.Domain.Models;
+﻿namespace EV_SCMMS.Core.Domain.Models;
 
 public partial class Center
 {
-    public Guid Centerid { get; set; }
+    public Guid CenterId { get; set; }
 
     public string Name { get; set; } = null!;
 
@@ -13,17 +10,19 @@ public partial class Center
 
     public string? Status { get; set; }
 
-    public bool? Isactive { get; set; }
+    public bool? IsActive { get; set; }
 
-    public DateTime? Createdat { get; set; }
+    public DateTime? CreatedAt { get; set; }
 
-    public DateTime? Updatedat { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 
-    public virtual ICollection<InventoryTuht> InventoryTuhts { get; set; } = new List<InventoryTuht>();
+    public virtual ICollection<BookingScheduleThaoNtt> BookingScheduleThaoNtts { get; set; } = new List<BookingScheduleThaoNtt>();
 
-    public virtual ICollection<SparepartforecastTuht> SparepartforecastTuhts { get; set; } = new List<SparepartforecastTuht>();
+    public virtual ICollection<InventoryTuHt> InventoryTuHts { get; set; } = new List<InventoryTuHt>();
 
-    public virtual ICollection<Sparepartreplenishmentrequest> Sparepartreplenishmentrequests { get; set; } = new List<Sparepartreplenishmentrequest>();
+    public virtual ICollection<SparePartForecastTuHt> SparePartForecastTuHts { get; set; } = new List<SparePartForecastTuHt>();
 
-    public virtual ICollection<SparepartusagehistoryTuht> SparepartusagehistoryTuhts { get; set; } = new List<SparepartusagehistoryTuht>();
+    public virtual ICollection<SparePartReplenishmentRequest> SparePartReplenishmentRequests { get; set; } = new List<SparePartReplenishmentRequest>();
+
+    public virtual ICollection<SparePartUsageHistoryTuHt> SparePartUsageHistoryTuHts { get; set; } = new List<SparePartUsageHistoryTuHt>();
 }

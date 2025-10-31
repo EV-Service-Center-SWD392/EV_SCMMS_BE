@@ -21,7 +21,7 @@ public partial class InventoryTuht
 
     public DateTime? Updatedat { get; set; }
 
-    public virtual Center Center { get; set; } = null!;
+    public virtual Centertuantm Center { get; set; } = null!;
 
     public virtual ICollection<SparepartTuht> SparepartTuhts { get; set; } = new List<SparepartTuht>();
 }

@@ -1,24 +1,39 @@
-﻿namespace EV_SCMMS.Core.Domain.Models;
+﻿using System;
+using System.Collections.Generic;
+
+namespace EV_SCMMS.Core.Domain.Models;
 
 public partial class Vehicle
 {
-    public Guid VehicleId { get; set; }
+    public Guid Vehicleid { get; set; }
 
-    public Guid? CustomerId { get; set; }
+    public Guid Customerid { get; set; }
 
-    public string? Vin { get; set; }
+    public int? Modelid { get; set; }
 
-    public string? PlateNo { get; set; }
+    public string Licenseplate { get; set; } = null!;
 
-    public string? Model { get; set; }
+    public int? Year { get; set; }
 
-    public DateTime? CreatedAt { get; set; }
+    public string? Color { get; set; }
 
-    public DateTime? UpdatedAt { get; set; }
+    public string? Status { get; set; }
 
-    public virtual ICollection<BookingThaoNtt> BookingThaoNtts { get; set; } = new List<BookingThaoNtt>();
+    public bool? Isactive { get; set; }
 
-    public virtual User? Customer { get; set; }
+    public DateTime? Createdat { get; set; }
 
-    public virtual ICollection<OrderThaoNtt> OrderThaoNtts { get; set; } = new List<OrderThaoNtt>();
+    public DateTime? Updatedat { get; set; }
+
+    public virtual ICollection<Bookinghuykt> Bookinghuykts { get; set; } = new List<Bookinghuykt>();
+
+    public virtual Useraccount Customer { get; set; } = null!;
+
+    public virtual ICollection<Maintenancehistorydungvm> Maintenancehistorydungvms { get; set; } = new List<Maintenancehistorydungvm>();
+
+    public virtual Vehiclemodel? Model { get; set; }
+
+    public virtual ICollection<Orderthaontt> Orderthaontts { get; set; } = new List<Orderthaontt>();
+
+    public virtual ICollection<Vehicleconditiondungvm> Vehicleconditiondungvms { get; set; } = new List<Vehicleconditiondungvm>();
 }

@@ -1,4 +1,5 @@
 using EV_SCMMS.Core.Application.Interfaces.Repositories;
+using EV_SCMMS.Core.Application.Services;
 
 namespace EV_SCMMS.Core.Application.Interfaces;
 
@@ -7,59 +8,149 @@ namespace EV_SCMMS.Core.Application.Interfaces;
 /// </summary>
 public interface IUnitOfWork : IDisposable
 {
+  /// <summary>
+  /// User repository
+  /// </summary>
+  IUserRepository UserRepository { get; }
+
+  /// <summary>
+  /// Role repository
+  /// </summary>
+  IRoleRepository RoleRepository { get; }
+
+  /// <summary>
+  /// Center repository
+  /// </summary>
+  ICenterRepository CenterRepository { get; }
+
+  /// <summary>
+  /// Inventory repository
+  /// </summary>
+  IInventoryRepository InventoryRepository { get; }
+
+  /// <summary>
+  /// Sparepart repository
+  /// </summary>
+  ISparepartRepository SparepartRepository { get; }
+
+  /// <summary>
+  /// Sparepart Type repository
+  /// </summary>
+  ISparepartTypeRepository SparepartTypeRepository { get; }
+
+  /// <summary>
+  /// Sparepart Forecast repository
+  /// </summary>
+  ISparepartForecastRepository SparepartForecastRepository { get; }
+
+  /// <summary>
+  /// Sparepart Replenishment Request repository
+  /// </summary>
+  ISparepartReplenishmentRequestRepository SparepartReplenishmentRequestRepository { get; }
+
+  /// <summary>
+  /// Sparepart Usage History repository
+  /// </summary>
+  ISparepartUsageHistoryRepository SparepartUsageHistoryRepository { get; }
 
     /// <summary>
-    /// Center repository
+    /// Booking repository
     /// </summary>
-    ICenterRepository CenterRepository { get; }
+    IBookingRepository BookingRepository { get; }
 
     /// <summary>
-    /// Inventory repository
+    /// Booking Schedule repository
     /// </summary>
-    IInventoryRepository InventoryRepository { get; }
+    IBookingScheduleRepository BookingScheduleRepository { get; }
 
     /// <summary>
-    /// Sparepart repository
+    /// Refresh Token repository
     /// </summary>
-    ISparepartRepository SparepartRepository { get; }
+    IRefreshTokenRepository RefreshTokenRepository { get; }
 
     /// <summary>
-    /// Sparepart Type repository
+    /// WorkSchedule repository
     /// </summary>
-    ISparepartTypeRepository SparepartTypeRepository { get; }
+    IWorkScheduleRepository WorkScheduleRepository { get; }
 
     /// <summary>
-    /// Sparepart Forecast repository
+    /// UserWorkSchedule repository
     /// </summary>
-    ISparepartForecastRepository SparepartForecastRepository { get; }
+    IUserWorkScheduleRepository UserWorkScheduleRepository { get; }
 
     /// <summary>
-    /// Sparepart Replenishment Request repository
+    /// UserAccount repository
     /// </summary>
-    ISparepartReplenishmentRequestRepository SparepartReplenishmentRequestRepository { get; }
+    IUserAccountRepository UserAccountRepository { get; }
 
     /// <summary>
-    /// Sparepart Usage History repository
+    /// Assignment repository
     /// </summary>
-    ISparepartUsageHistoryRepository SparepartUsageHistoryRepository { get; }
+    IAssignmentRepository AssignmentRepository { get; }
+
+    /// <summary>
+    /// Service intake repository
+    /// </summary>
+    IServiceIntakeRepository ServiceIntakeRepository { get; }
+
+    /// <summary>
+    /// Checklist repository
+    /// </summary>
+    IChecklistRepository ChecklistRepository { get; }
+
+    /// <summary>
+    /// Checklist Item repository (ThaoNTT)
+    /// </summary>
+    IChecklistItemRepository ChecklistItemRepository { get; }
+
+    /// <summary>
+    /// Work Order repository
+    /// </summary>
+    IWorkOrderRepository WorkOrderRepository { get; }
+
+    /// <summary>
+    /// User-Center membership repository
+    /// </summary>
+    IUserCenterRepository UserCenterRepository { get; }
+
+    /// <summary>
+    /// Refresh Token service
+    /// </summary>
+    IRefreshTokenService RefreshTokenService { get; }
 
     /// <summary>
     /// Save all changes made in this context to the database
     /// </summary>
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+  /// <summary>
+  /// Refresh Transaction Repository
+  /// </summary>
+  ITransactionRepository TransactionRepository { get; }
+  /// <summary>
+  /// Refresh Transaction Repository
+  /// </summary>
+  IOrderRepository OrderRepository { get; }
+  /// <summary>
+  /// Refresh Transaction Repository
+  /// </summary>
+  IReceiptRepository ReceiptRepository { get; }
+  /// <summary>
+  /// Refresh Transaction Repository
+  /// </summary>
+  IReceiptItemRepository ReceiptItemRepository { get; }
 
-    /// <summary>
-    /// Begin a database transaction
-    /// </summary>
-    Task BeginTransactionAsync(CancellationToken cancellationToken = default);
+  /// <summary>
+  /// Begin a database transaction
+  /// </summary>
+  Task BeginTransactionAsync(CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Commit the current transaction
-    /// </summary>
-    Task CommitTransactionAsync(CancellationToken cancellationToken = default);
+  /// <summary>
+  /// Commit the current transaction
+  /// </summary>
+  Task CommitTransactionAsync(CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Rollback the current transaction
-    /// </summary>
-    Task RollbackTransactionAsync(CancellationToken cancellationToken = default);
+  /// <summary>
+  /// Rollback the current transaction
+  /// </summary>
+  Task RollbackTransactionAsync(CancellationToken cancellationToken = default);
 }

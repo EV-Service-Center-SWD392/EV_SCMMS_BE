@@ -15,21 +15,21 @@ public class SparepartTypeRepository : GenericRepository<SpareparttypeTuht>, ISp
 
     public async Task<SpareparttypeTuht?> GetByNameAsync(string name, CancellationToken cancellationToken = default)
     {
-        return await _dbSet
+        return await _dbSet.SpareparttypeTuhts
             .Where(x => x.Isactive == true)
             .FirstOrDefaultAsync(x => x.Name == name, cancellationToken);
     }
 
     public async Task<IEnumerable<SpareparttypeTuht>> GetActiveTypesAsync(CancellationToken cancellationToken = default)
     {
-        return await _dbSet
+        return await _dbSet.SpareparttypeTuhts
             .Where(x => x.Isactive == true)
             .ToListAsync(cancellationToken);
     }
 
     public async Task<IEnumerable<SpareparttypeTuht>> GetActiveSparepartTypesAsync(CancellationToken cancellationToken = default)
     {
-        return await _dbSet
+        return await _dbSet.SpareparttypeTuhts
             .Where(x => x.Isactive == true)
             .ToListAsync(cancellationToken);
     }
@@ -37,15 +37,14 @@ public class SparepartTypeRepository : GenericRepository<SpareparttypeTuht>, ISp
     public async Task<IEnumerable<SpareparttypeTuht>> GetByStatusAsync(string status, CancellationToken cancellationToken = default)
     {
         // Assuming status is related to IsActive boolean
-        bool isActive = status.ToLower() == "active";
-        return await _dbSet
-            .Where(x => x.Isactive == isActive)
+        return await _dbSet.SpareparttypeTuhts
+            .Where(x => x.Status == status)
             .ToListAsync(cancellationToken);
     }
 
     public async Task<bool> IsNameExistsAsync(string name, Guid? excludeId = null, CancellationToken cancellationToken = default)
     {
-        var query = _dbSet.Where(x => x.Name == name && x.Isactive == true);
+        var query = _dbSet.SpareparttypeTuhts.Where(x => x.Name == name);
         
         if (excludeId.HasValue)
         {
@@ -53,5 +52,10 @@ public class SparepartTypeRepository : GenericRepository<SpareparttypeTuht>, ISp
         }
         
         return await query.AnyAsync(cancellationToken);
+    }
+
+    public Task SoftDeleteAsync(Guid id)
+    {
+        throw new NotImplementedException();
     }
 }

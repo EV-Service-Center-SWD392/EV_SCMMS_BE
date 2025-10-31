@@ -1,20 +1,27 @@
-﻿namespace EV_SCMMS.Core.Domain.Models;
+﻿using System;
+using System.Collections.Generic;
+
+namespace EV_SCMMS.Core.Domain.Models;
 
 public partial class Service
 {
-    public int Id { get; set; }
+    public Guid Serviceid { get; set; }
 
     public string Name { get; set; } = null!;
 
     public string? Description { get; set; }
 
-    public int? DurationMinutes { get; set; }
+    public int? Durationminutes { get; set; }
 
-    public decimal? BasePrice { get; set; }
+    public decimal? Baseprice { get; set; }
 
-    public DateTime? CreatedAt { get; set; }
+    public string? Status { get; set; }
 
-    public DateTime? UpdatedAt { get; set; }
+    public bool? Isactive { get; set; }
 
-    public virtual ICollection<OrderServiceThaoNtt> OrderServiceThaoNtts { get; set; } = new List<OrderServiceThaoNtt>();
+    public DateTime? Createdat { get; set; }
+
+    public DateTime? Updatedat { get; set; }
+
+    public virtual ICollection<Orderservicethaontt> Orderservicethaontts { get; set; } = new List<Orderservicethaontt>();
 }
