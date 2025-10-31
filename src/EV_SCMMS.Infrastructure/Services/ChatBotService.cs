@@ -31,6 +31,28 @@ namespace EV_SCMMS.Infrastructure.Services
             return $"ChatBotResponse_{BitConverter.ToString(bytes).Replace("-", "")}";
         }
 
+        private static bool FindSuccess(JsonNode? node)
+        {
+            if (node == null) return false;
+
+            // Nếu node hiện tại là object
+            if (node is JsonObject obj)
+            {
+                foreach (var kvp in obj)
+                {
+                    if (kvp.Key.Equals("success", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return kvp.Value?.GetValue<bool>() ?? false;
+                    }
+
+                    if (FindSuccess(kvp.Value)) return true; // tìm đệ quy
+                }
+            }
+
+            return false;
+        }
+
+
         public async Task<JsonNode?> GetResponseAsync(ChatBotRequestDTO request)
         {
             try
@@ -61,6 +83,8 @@ namespace EV_SCMMS.Infrastructure.Services
                     );
                 }
 
+
+
                 // Cache the response for future requests
                 await _cache.SetStringAsync(cacheKey, rawResponse, new DistributedCacheEntryOptions
                 {
@@ -76,15 +100,31 @@ namespace EV_SCMMS.Infrastructure.Services
                 }
 
                 // Parse JSON linh hoạt
+                JsonNode? jsonResponse;
                 try
                 {
-                    var jsonResponse = JsonNode.Parse(rawResponse);
-                    return jsonResponse;
+                    jsonResponse = JsonNode.Parse(rawResponse);
                 }
                 catch (Exception parseEx)
                 {
                     throw new ApplicationException("Không thể phân tích phản hồi JSON từ AI service.", parseEx);
                 }
+
+                bool isSuccess = FindSuccess(jsonResponse);
+                if (isSuccess)
+                {
+                    await _cache.SetStringAsync(cacheKey, rawResponse, new DistributedCacheEntryOptions
+                    {
+                        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
+                    });
+                    Console.WriteLine($"[CACHE SET] {cacheKey}");
+                }
+                else
+                {
+                    Console.WriteLine($"[CACHE SKIP] success = false cho request {cacheKey}");
+                }
+
+                return jsonResponse;
 
 
             }
