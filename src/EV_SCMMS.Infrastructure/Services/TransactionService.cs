@@ -195,7 +195,13 @@ public class TransactionService : ITransactionService
     await _unitOfWork.SaveChangesAsync();
 
     var dto = entity.ToDto();
+    Paymentmethodcuongtq? paymentMethod = null;
+    if (entity.Paymentmethodid.HasValue)
+    {
+      paymentMethod = await _unitOfWork.Paymentmethodrepository.GetByIdAsync(entity.Paymentmethodid.Value);
+    }
 
+    dto.PaymentMethodName = paymentMethod?.Name;
     return ServiceResult<TransactionDto>.Success(dto);
   }
 
@@ -228,12 +234,12 @@ public class TransactionService : ITransactionService
     {
       return ServiceResult<TransactionDto>.Failure("Invalid status value");
     }
- 
+
     entity.Status = parsed.ToString();
     Guid staffId = _currentUser?.UserId ?? Guid.Empty;
     entity.Staffid = staffId;
-    if(parsed == TransactionStatus.CANCELLED)
-      {
+    if (parsed == TransactionStatus.CANCELLED)
+    {
       entity.Reason = "Cancelled by staff";
     }
     await _unitOfWork.TransactionRepository.UpdateAsync(entity);
@@ -268,7 +274,7 @@ public class TransactionService : ITransactionService
     entity.Reason = "Cancelled by user";
     if (_currentUser != null && _currentUser.UserId.HasValue)
     {
-      if(entity.Order.Customerid != _currentUser.UserId.Value)
+      if (entity.Order.Customerid != _currentUser.UserId.Value)
         return ServiceResult<bool>.Failure("UnAuthorized");
     }
 
@@ -276,8 +282,9 @@ public class TransactionService : ITransactionService
     {
       try
       {
-      var info = await _payOsClient.cancelPaymentLink(entity.Paymentid);
-      }catch(Exception ex)
+        var info = await _payOsClient.cancelPaymentLink(entity.Paymentid);
+      }
+      catch (Exception ex)
       {
         //ignore
         //return ServiceResult<bool>.Failure($"Failed to cancel PayOS payment link: {ex.Message}");
@@ -299,13 +306,13 @@ public class TransactionService : ITransactionService
     var result = await _unitOfWork.TransactionRepository.GetAllByUserIdAsync(userId);
     return ServiceResult<List<TransactionDto>>.Success(result.Select(t => t.ToDto()).ToList());
   }
-    
+
   async Task<IServiceResult<List<TransactionDto>>> ITransactionService.GetAllByOrderIdAsync(Guid orderId)
-    {
+  {
     var result = await _unitOfWork.TransactionRepository.GetAllByOrderIdAsync(orderId);
     return ServiceResult<List<TransactionDto>>.Success(result.Select(t => t.ToDto()).ToList());
   }
-     
+
   async Task<IServiceResult<List<TransactionDto>>> ITransactionService.GetAllAsync()
   {
     var result = await _unitOfWork.TransactionRepository.GetAllAsync();
@@ -336,7 +343,7 @@ public class TransactionService : ITransactionService
 
     try
     {
-      var info = await _payOsClient.cancelPaymentLink(orderCode);
+      //var info = await _payOsClient.cancelPaymentLink(orderCode);
 
       var entity = await _unitOfWork.TransactionRepository.GetByPaymentIdAsync(orderCode);
       if (entity != null)
@@ -393,5 +400,13 @@ public class TransactionService : ITransactionService
       Console.WriteLine($"Error handling webhook: {ex}");
       return ServiceResult<bool>.Failure($"Webhook handling failed: {ex.Message}");
     }
+  }
+
+  public async Task<IServiceResult<TransactionDto?>> getByOrderCodeAsync(int orderCode)
+  {
+    var result = await _unitOfWork.TransactionRepository.GetByPaymentIdAsync(orderCode);
+    if (result == null)
+      return ServiceResult<TransactionDto?>.Failure("Transaction not found");
+    return ServiceResult<TransactionDto?>.Success(result.ToDto());
   }
 }

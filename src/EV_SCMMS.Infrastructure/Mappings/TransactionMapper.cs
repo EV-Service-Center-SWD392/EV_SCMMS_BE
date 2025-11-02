@@ -19,7 +19,7 @@ public static class TransactionMapper
     };
   }
 
-  public static TransactionDto ToDto(this Transactioncuongtq entity)
+  public static TransactionDto? ToDto(this Transactioncuongtq entity)
   {
     if (entity == null) return null;
 
@@ -27,7 +27,11 @@ public static class TransactionMapper
     {
       TransactionId = entity.Transactionid,
       OrderId = entity.Orderid,
-      PaymentMethodId = entity.Paymentmethodid,
+      PaymentMethodId = entity.Paymentmethodid, 
+      PaymentMethodName = entity.Paymentmethod?.Name,
+      ReceiptId = entity.Receiptcuongtqs != null && entity.Receiptcuongtqs.Any()
+        ? entity.Receiptcuongtqs.First().Receiptid.ToString()
+        : null,
       TotalAmount = entity.Totalamount,
       Description = entity.Description,
       Reason = entity.Reason,

@@ -22,4 +22,6 @@ public interface ITransactionService
   Task<IServiceResult<bool>> HandlePayOsWebhookAsync(WebhookType webhook);
   Task<IServiceResult<bool>> ConfirmWebhookAsync(string webhookUrl);
   Task<IServiceResult<bool>> CancelPayOsPaymentLinkAsync(int orderCode);
+
+  Task<IServiceResult<TransactionDto?>> getByOrderCodeAsync(int orderCode);
 }

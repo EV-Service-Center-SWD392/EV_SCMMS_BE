@@ -15,6 +15,8 @@ public class TransactionRepository : GenericRepository<Transactioncuongtq>, ITra
   {
     return await _dbSet.Transactioncuongtqs
         .Where(t => t.Orderid == orderId)
+        .Include(t => t.Receiptcuongtqs)
+        .Include(t=> t.Paymentmethod)
         .ToListAsync(cancellationToken);
   }
 
@@ -22,6 +24,7 @@ public class TransactionRepository : GenericRepository<Transactioncuongtq>, ITra
   {
     return await _dbSet.Transactioncuongtqs
         .Where(t => t.Order.Customerid == userId)
+        .Include(t => t.Paymentmethod)
         .ToListAsync(cancellationToken);
   }
 
@@ -30,13 +33,24 @@ public class TransactionRepository : GenericRepository<Transactioncuongtq>, ITra
     return await _dbSet.Transactioncuongtqs
        .Where(t => t.Transactionid == id)
        .Include(t => t.Order)
+       .Include(t => t.Receiptcuongtqs)
+       .Include(t => t.Paymentmethod)
        .FirstOrDefaultAsync(cancellationToken);
+  }
+
+  public Task<Transactioncuongtq?> GetByOrderCodeAsync(int orderCode, CancellationToken cancellationToken = default)
+  {
+    return _dbSet.Transactioncuongtqs
+        .Where(t => t.Paymentid == orderCode)
+        .Include(t => t.Paymentmethod)
+        .FirstOrDefaultAsync(cancellationToken);
   }
 
   public async Task<Transactioncuongtq?> GetByPaymentIdAsync(int paymentId, CancellationToken cancellationToken = default)
   {
     return await _dbSet.Transactioncuongtqs
             .Where(t => t.Paymentid == paymentId)
+            .Include(t => t.Receiptcuongtqs)
             .FirstOrDefaultAsync(cancellationToken);
   }
 }

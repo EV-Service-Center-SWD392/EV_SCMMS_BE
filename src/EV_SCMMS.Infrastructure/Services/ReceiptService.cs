@@ -11,49 +11,50 @@ namespace EV_SCMMS.Infrastructure.Services;
 
 public class ReceiptService : IReceiptService
 {
-    private readonly IUnitOfWork _unitOfWork;
-    private readonly ICurrentUserService _currentUser;
+  private readonly IUnitOfWork _unitOfWork;
+  private readonly ICurrentUserService _currentUser;
 
-    public ReceiptService(IUnitOfWork unitOfWork, ICurrentUserService currentUser)
-    {
-        _unitOfWork = unitOfWork;
-        _currentUser = currentUser;
-    }
+  public ReceiptService(IUnitOfWork unitOfWork, ICurrentUserService currentUser)
+  {
+    _unitOfWork = unitOfWork;
+    _currentUser = currentUser;
+  }
 
-    public async Task<ServiceResult<List<ReceiptDto>>> GetAllAsync()
-    {
-        var receipts = await _unitOfWork.ReceiptRepository.GetAllAsync();
+  public async Task<IServiceResult<List<ReceiptDto>>> GetAllAsync()
+  {
+    var receipts = await _unitOfWork.ReceiptRepository.GetAllWithItemsAsync();
 
-        var dtos = receipts.Select(r => r.ToDto()).ToList();
-        return ServiceResult<List<ReceiptDto>>.Success(dtos);
-    }
+    var dtos = receipts.Select(r => r.ToDto()).ToList();
+    return ServiceResult<List<ReceiptDto>>.Success(dtos);
+  }
 
-    public async Task<ServiceResult<ReceiptDto?>> GetByIdAsync(Guid id)
-    {
-        var r = await _unitOfWork.ReceiptRepository.GetByIdWithItemsAsync(id);
-    if(_currentUser.Role == "CUSTOMER" && _currentUser.UserId.HasValue && _currentUser.UserId.Value != r.Customerid)
-        return ServiceResult<ReceiptDto?>.Failure("Access denied");
+  public async Task<IServiceResult<ReceiptDto?>> GetByIdAsync(Guid id)
+  {
+    var r = await _unitOfWork.ReceiptRepository.GetByIdWithItemsAsync(id);
+    if (_currentUser.Role == "CUSTOMER" && _currentUser.UserId.HasValue && _currentUser.UserId.Value != r.Customerid)
+      return ServiceResult<ReceiptDto?>.Failure("Access denied");
     if (r == null) return ServiceResult<ReceiptDto?>.Failure("Receipt not found");
 
-        return ServiceResult<ReceiptDto?>.Success(r.ToDto());
-    }
+    return ServiceResult<ReceiptDto?>.Success(r.ToDto());
+  }
 
-    public async Task<ServiceResult<List<ReceiptDto>>> GetByCustomerIdAsync(Guid customerId)
-    {
-        var receipts = await _unitOfWork.ReceiptRepository.GetByCustomerIdAsync(customerId);
+  public async Task<IServiceResult<List<ReceiptDto>>> GetByCustomerIdAsync(Guid customerId)
+  {
+    var receipts = await _unitOfWork.ReceiptRepository.GetByCustomerIdAsync(customerId);
 
-        var dtos = receipts.Select(r => r.ToDto()).ToList();
-        return ServiceResult<List<ReceiptDto>>.Success(dtos);
-    }
+    var dtos = receipts.Select(r => r.ToDto()).ToList();
+    return ServiceResult<List<ReceiptDto>>.Success(dtos);
+  }
 
-    public async Task<ServiceResult<List<ReceiptDto>>> GetForCurrentUserAsync()
-    {
-        if (!_currentUser.IsAuthenticated || !_currentUser.UserId.HasValue)
-            return ServiceResult<List<ReceiptDto>>.Failure("User not authenticated");
+  public async Task<IServiceResult<List<ReceiptDto>>> GetForCurrentUserAsync()
+  {
+    if (!_currentUser.IsAuthenticated || !_currentUser.UserId.HasValue)
+      return ServiceResult<List<ReceiptDto>>.Failure("User not authenticated");
 
-        var userId = _currentUser.UserId.Value;
-        var receipts = await _unitOfWork.ReceiptRepository.GetByCustomerIdAsync(userId);
-        var dtos = receipts.Select(r => r.ToDto()).ToList();
-        return ServiceResult<List<ReceiptDto>>.Success(dtos);
-    }
+    var userId = _currentUser.UserId.Value;
+    Console.WriteLine($"Getting receipts for user ID: {userId}");
+    var receipts = await _unitOfWork.ReceiptRepository.GetByCustomerIdAsync(userId);
+    var dtos = receipts.Select(r => r.ToDto()).ToList();
+    return ServiceResult<List<ReceiptDto>>.Success(dtos);
+  }
 }
