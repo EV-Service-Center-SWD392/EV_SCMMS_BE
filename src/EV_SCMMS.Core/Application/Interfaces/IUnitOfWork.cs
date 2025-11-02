@@ -53,75 +53,75 @@ public interface IUnitOfWork : IDisposable
   /// </summary>
   ISparepartUsageHistoryRepository SparepartUsageHistoryRepository { get; }
 
-    /// <summary>
-    /// Booking repository
-    /// </summary>
-    IBookingRepository BookingRepository { get; }
+  /// <summary>
+  /// Booking repository
+  /// </summary>
+  IBookingRepository BookingRepository { get; }
 
-    /// <summary>
-    /// Booking Schedule repository
-    /// </summary>
-    IBookingScheduleRepository BookingScheduleRepository { get; }
+  /// <summary>
+  /// Booking Schedule repository
+  /// </summary>
+  IBookingScheduleRepository BookingScheduleRepository { get; }
 
-    /// <summary>
-    /// Refresh Token repository
-    /// </summary>
-    IRefreshTokenRepository RefreshTokenRepository { get; }
+  /// <summary>
+  /// Refresh Token repository
+  /// </summary>
+  IRefreshTokenRepository RefreshTokenRepository { get; }
 
-    /// <summary>
-    /// WorkSchedule repository
-    /// </summary>
-    IWorkScheduleRepository WorkScheduleRepository { get; }
+  /// <summary>
+  /// WorkSchedule repository
+  /// </summary>
+  IWorkScheduleRepository WorkScheduleRepository { get; }
 
-    /// <summary>
-    /// UserWorkSchedule repository
-    /// </summary>
-    IUserWorkScheduleRepository UserWorkScheduleRepository { get; }
+  /// <summary>
+  /// UserWorkSchedule repository
+  /// </summary>
+  IUserWorkScheduleRepository UserWorkScheduleRepository { get; }
 
-    /// <summary>
-    /// UserAccount repository
-    /// </summary>
-    IUserAccountRepository UserAccountRepository { get; }
+  /// <summary>
+  /// UserAccount repository
+  /// </summary>
+  IUserAccountRepository UserAccountRepository { get; }
 
-    /// <summary>
-    /// Assignment repository
-    /// </summary>
-    IAssignmentRepository AssignmentRepository { get; }
+  /// <summary>
+  /// Assignment repository
+  /// </summary>
+  IAssignmentRepository AssignmentRepository { get; }
 
-    /// <summary>
-    /// Service intake repository
-    /// </summary>
-    IServiceIntakeRepository ServiceIntakeRepository { get; }
+  /// <summary>
+  /// Service intake repository
+  /// </summary>
+  IServiceIntakeRepository ServiceIntakeRepository { get; }
 
-    /// <summary>
-    /// Checklist repository
-    /// </summary>
-    IChecklistRepository ChecklistRepository { get; }
+  /// <summary>
+  /// Checklist repository
+  /// </summary>
+  IChecklistRepository ChecklistRepository { get; }
 
-    /// <summary>
-    /// Checklist Item repository (ThaoNTT)
-    /// </summary>
-    IChecklistItemRepository ChecklistItemRepository { get; }
+  /// <summary>
+  /// Checklist Item repository (ThaoNTT)
+  /// </summary>
+  IChecklistItemRepository ChecklistItemRepository { get; }
 
-    /// <summary>
-    /// Work Order repository
-    /// </summary>
-    IWorkOrderRepository WorkOrderRepository { get; }
+  /// <summary>
+  /// Work Order repository
+  /// </summary>
+  IWorkOrderRepository WorkOrderRepository { get; }
 
-    /// <summary>
-    /// User-Center membership repository
-    /// </summary>
-    IUserCenterRepository UserCenterRepository { get; }
+  /// <summary>
+  /// User-Center membership repository
+  /// </summary>
+  IUserCenterRepository UserCenterRepository { get; }
 
-    /// <summary>
-    /// Refresh Token service
-    /// </summary>
-    IRefreshTokenService RefreshTokenService { get; }
+  /// <summary>
+  /// Refresh Token service
+  /// </summary>
+  IRefreshTokenService RefreshTokenService { get; }
 
-    /// <summary>
-    /// Save all changes made in this context to the database
-    /// </summary>
-    Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+  /// <summary>
+  /// Save all changes made in this context to the database
+  /// </summary>
+  Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
   /// <summary>
   /// Refresh Transaction Repository
   /// </summary>
@@ -142,6 +142,10 @@ public interface IUnitOfWork : IDisposable
   ICertificateRepository CertificateRepository { get; }
 
   IUserCertificateRepository UserCertificateRepository { get; }
+
+  IVehicleRepository VehicleRepository { get; }
+
+  IVehicleModelRepository VehicleModelRepository { get; }
 
   /// <summary>
   /// Begin a database transaction

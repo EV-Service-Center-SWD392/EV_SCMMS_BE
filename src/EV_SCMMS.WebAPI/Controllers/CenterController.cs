@@ -1,5 +1,6 @@
 using EV_SCMMS.Core.Application.DTOs.Center;
 using EV_SCMMS.Core.Application.Interfaces.Services;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EV_SCMMS.WebAPI.Controllers;

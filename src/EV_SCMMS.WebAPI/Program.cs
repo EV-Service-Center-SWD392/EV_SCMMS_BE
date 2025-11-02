@@ -16,8 +16,10 @@ using Microsoft.OpenApi.Models;
 using Net.payOS;
 using EV_SCMMS.Infrastructure.Configuration;
 using EV_SCMMS.WebAPI.Services;
+using FluentValidation;
 
 var builder = WebApplication.CreateBuilder(args);
+
 
 // Add services to the container
 builder.Services.AddControllers();
@@ -120,16 +122,16 @@ builder.Services.AddAuthorization(options =>
         .AddRequirements(new ValidRefreshTokenRequirement())
         .Build());
 
-  options.AddPolicy("TechnicianAndStaff", new AuthorizationPolicyBuilder()
-      .RequireAuthenticatedUser()
-      .RequireRole("TECHNICIAN", "STAFF")
-      .AddRequirements(new ValidRefreshTokenRequirement())
-      .Build());
-  options.AddPolicy("StaffAndAdmin", new AuthorizationPolicyBuilder()
-      .RequireAuthenticatedUser()
-      .RequireRole("STAFF", "ADMIN")
-      .AddRequirements(new ValidRefreshTokenRequirement())
-      .Build());
+    options.AddPolicy("TechnicianAndStaff", new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .RequireRole("TECHNICIAN", "STAFF")
+        .AddRequirements(new ValidRefreshTokenRequirement())
+        .Build());
+    options.AddPolicy("StaffAndAdmin", new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .RequireRole("STAFF", "ADMIN")
+        .AddRequirements(new ValidRefreshTokenRequirement())
+        .Build());
 });
 
 // Register Application Services
@@ -163,6 +165,7 @@ builder.Services.AddScoped<IChecklistItemService, ChecklistItemService>();
 builder.Services.AddScoped<IWorkOrderService, WorkOrderService>();
 builder.Services.AddScoped<IUserCertificateService, UserCertificateService>();
 builder.Services.AddScoped<ICertificateService, CertificateService>();
+builder.Services.AddScoped<IVehicleService, VehicleService>();
 
 // Register ChatBot AI Service
 builder.Services.AddHttpClient<IChatBotService, ChatBotService>();
@@ -237,10 +240,20 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowVercel",
         policy => policy
-            .WithOrigins("https://ev-web-fe.vercel.app")
+            .WithOrigins(["https://ev-web-fe.vercel.app", "http://localhost:3000", "http://localhost:5020"])
             .AllowAnyHeader()
-            .AllowAnyMethod());
+            .AllowAnyMethod().AllowCredentials());
 });
+
+// Fluent Validation 
+
+builder.Services.AddScoped<ValidationFilter>();
+
+builder.Services.AddValidatorsFromAssemblyContaining<CreateVehicleDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<VehicleQueryDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<UpdateVehicleDtoValidator>();
+
+
 
 var app = builder.Build();
 // Configure the HTTP request pipeline
@@ -250,12 +263,25 @@ var app = builder.Build();
 // app.UseMiddleware<RequestLoggingMiddleware>();
 // app.UseMiddleware<PerformanceMonitoringMiddleware>();
 
+
+
+
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "EV_SCMMS API V1");
     c.RoutePrefix = string.Empty; // Set Swagger UI at app's root
 });
+
+// app.Use(async (context, next) =>
+// {
+//     context.ActionDescriptor.EndpointMetadata.Add(new EndpointFilterDelegate(async (efContext, nextEf) =>
+//     {
+//         var filter = efContext.HttpContext.RequestServices.GetRequiredService<ValidationFilter>();
+//         await filter.OnActionExecutionAsync(efContext.ActionContext.ActionArguments, nextEf);  // Gọi filter
+//         return await nextEf();
+//     }));
+// });
 
 app.UseHttpsRedirection();
 

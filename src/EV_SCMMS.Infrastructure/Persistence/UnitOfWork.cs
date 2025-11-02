@@ -18,7 +18,7 @@ public class UnitOfWork : IUnitOfWork
     private readonly IConfiguration _configuration;
     private readonly ILoggerFactory _loggerFactory;
     private IDbContextTransaction? _transaction;
-    
+
     // Repository instances
     private IUserRepository? _userRepository;
     private IRoleRepository? _roleRepository;
@@ -47,7 +47,11 @@ public class UnitOfWork : IUnitOfWork
     private IUserCenterRepository? _userCenterRepository;
     private ICertificateRepository? _certificateRepository;
     private IUserCertificateRepository? _userCertificateRepository;
-    
+
+    private IVehicleModelRepository? _vehicleModelRepository;
+
+    private IVehicleRepository? _vehicleRepository;
+
     // Service instances
     private IRefreshTokenService? _refreshTokenService;
 
@@ -310,6 +314,24 @@ public class UnitOfWork : IUnitOfWork
         }
     }
 
+    public IVehicleRepository VehicleRepository
+    {
+        get
+        {
+            _vehicleRepository ??= new VehicleRepository(_context);
+            return _vehicleRepository;
+        }
+    }
+
+    public IVehicleModelRepository VehicleModelRepository
+    {
+        get
+        {
+            _vehicleModelRepository ??= new VehicleModelRepository(_context);
+            return _vehicleModelRepository;
+        }
+    }
+
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         return await _context.SaveChangesAsync(cancellationToken);
@@ -325,7 +347,7 @@ public class UnitOfWork : IUnitOfWork
         try
         {
             await SaveChangesAsync(cancellationToken);
-            
+
             if (_transaction != null)
             {
                 await _transaction.CommitAsync(cancellationToken);
