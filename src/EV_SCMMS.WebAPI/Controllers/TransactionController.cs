@@ -3,6 +3,7 @@ using EV_SCMMS.Core.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Net.payOS.Types;
+using Microsoft.AspNetCore.Http;
 
 namespace EV_SCMMS.WebAPI.Controllers;
 
@@ -20,6 +21,8 @@ public class TransactionController : ControllerBase
 
   [HttpPost]
   [Authorize]
+  [ProducesResponseType(typeof(TransactionDto), StatusCodes.Status201Created)]
+  [ProducesResponseType(StatusCodes.Status400BadRequest)]
   public async Task<IActionResult> Create([FromBody] CreateTransactionDto createDto)
   {
     if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -31,6 +34,8 @@ public class TransactionController : ControllerBase
 
   [HttpGet("{id}")]
   [Authorize]
+  [ProducesResponseType(typeof(TransactionDto), StatusCodes.Status200OK)]
+  [ProducesResponseType(StatusCodes.Status404NotFound)]
   public async Task<IActionResult> GetById(Guid id)
   {
     var result = await _transactionService.GetByIdAsync(id);
@@ -40,6 +45,8 @@ public class TransactionController : ControllerBase
 
   [HttpPut("{id}")]
   [Authorize(policy: "StaffAndAdmin")]
+  [ProducesResponseType(typeof(TransactionDto), StatusCodes.Status200OK)]
+  [ProducesResponseType(StatusCodes.Status400BadRequest)]
   public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateTransactionStatusDto updateDto)
   {
     if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -51,6 +58,8 @@ public class TransactionController : ControllerBase
 
   [HttpDelete("{id}")]
   [Authorize]
+  [ProducesResponseType(StatusCodes.Status200OK)]
+  [ProducesResponseType(StatusCodes.Status400BadRequest)]
   public async Task<IActionResult> Delete(Guid id)
   {
     var result = await _transactionService.DeleteAsync(id);
@@ -60,6 +69,7 @@ public class TransactionController : ControllerBase
    
   [HttpGet("{userId}/user")]
   [Authorize]
+  [ProducesResponseType(typeof(IEnumerable<TransactionDto>), StatusCodes.Status200OK)]
   public async Task<IActionResult> GetByUserId(Guid userId)
   {
     var result = await _transactionService.GetAllByUserIdAsync(userId);
@@ -69,6 +79,7 @@ public class TransactionController : ControllerBase
 
   [HttpGet("{orderId}/order")]
   [Authorize]
+  [ProducesResponseType(typeof(IEnumerable<TransactionDto>), StatusCodes.Status200OK)]
   public async Task<IActionResult> GetAllByOrderId(Guid orderId)
   {
     var result = await _transactionService.GetAllByOrderIdAsync(orderId);
@@ -78,6 +89,7 @@ public class TransactionController : ControllerBase
 
   [HttpGet()]
   [Authorize(policy: "StaffAndAdmin")]
+  [ProducesResponseType(typeof(IEnumerable<TransactionDto>), StatusCodes.Status200OK)]
   public async Task<IActionResult> GetAll()
   {
     var result = await _transactionService.GetAllAsync();
@@ -106,10 +118,21 @@ public class TransactionController : ControllerBase
 
   // New: cancel payment link via transaction service
   [HttpPut("cancel/{orderCode:int}")]
+  [ProducesResponseType(StatusCodes.Status200OK)]
   public async Task<IActionResult> CancelPaymentLink([FromRoute] int orderCode)
   {
     var result = await _transactionService.CancelPayOsPaymentLinkAsync(orderCode);
     if (result.IsSuccess) return Ok(new { success = true });
     return BadRequest(new { success = false, error = result.Message });
+  }
+
+  [HttpGet("paymentId/{orderCode:int}")]
+  [ProducesResponseType(typeof(IEnumerable<TransactionDto>), StatusCodes.Status200OK)]
+  [Authorize]
+  public async Task<IActionResult> GetByPaymentId([FromRoute] int orderCode)
+  {
+    var result = await _transactionService.getByOrderCodeAsync(orderCode);
+    if (result.IsSuccess) return Ok(result.Data);
+    return BadRequest(result.Message);
   }
 }

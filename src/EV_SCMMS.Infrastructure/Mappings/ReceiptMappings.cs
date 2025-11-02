@@ -16,7 +16,11 @@ public static class ReceiptMappings
             TransactionId = r.Transactionid,
             CreatedAt = r.Createdat,
             UpdatedAt = r.Updatedat,
-            Items = r.Receiptitemcuongtqs?.Select(i => i.ToDto()).ToList() ?? new List<ReceiptItemDto>()
+            Items = r.Receiptitemcuongtqs?.Select(i => i.ToDto()).ToList() ?? new List<ReceiptItemDto>(),
+            CustomerEmail = r.Customer?.Email,
+            CustomerFullName = r.Customer != null ? $"{r.Customer.Firstname} {r.Customer.Lastname}".Trim() : null,
+            CustomerAddress = r.Customer?.Address,
+            CustomerPhone = r.Customer?.Phonenumber
         };
     }
 
