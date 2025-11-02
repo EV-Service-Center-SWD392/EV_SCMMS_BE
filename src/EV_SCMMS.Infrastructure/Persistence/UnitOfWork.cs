@@ -55,6 +55,10 @@ public class UnitOfWork : IUnitOfWork
     // Service instances
     private IRefreshTokenService? _refreshTokenService;
 
+    // Repository instances
+    private IPaymentmethodrepository? _paymentmethodrepository;
+    // Service instances
+
     public UnitOfWork(AppDbContext context, IConfiguration configuration, ILoggerFactory loggerFactory)
     {
         _context = context;
@@ -335,6 +339,14 @@ public class UnitOfWork : IUnitOfWork
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         return await _context.SaveChangesAsync(cancellationToken);
+    }
+    public IPaymentmethodrepository Paymentmethodrepository
+    {
+        get
+        {
+            _paymentmethodrepository ??= new PaymentMethodRepository(_context);
+            return _paymentmethodrepository;
+        }
     }
 
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)

@@ -240,9 +240,11 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowVercel",
         policy => policy
-            .WithOrigins(["https://ev-web-fe.vercel.app", "http://localhost:3000", "http://localhost:5020"])
+             //.WithOrigins("https://ev-web-fe.vercel.app", "*")
+             .AllowAnyOrigin()
             .AllowAnyHeader()
-            .AllowAnyMethod().AllowCredentials());
+            .AllowAnyMethod());
+
 });
 
 // Fluent Validation 

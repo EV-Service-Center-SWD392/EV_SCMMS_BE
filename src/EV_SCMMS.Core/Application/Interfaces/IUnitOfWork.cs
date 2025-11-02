@@ -121,6 +121,7 @@ public interface IUnitOfWork : IDisposable
   /// <summary>
   /// Save all changes made in this context to the database
   /// </summary>
+  /// 
   Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
   /// <summary>
   /// Refresh Transaction Repository
@@ -147,6 +148,7 @@ public interface IUnitOfWork : IDisposable
 
   IVehicleModelRepository VehicleModelRepository { get; }
 
+  IPaymentmethodrepository Paymentmethodrepository { get; }
   /// <summary>
   /// Begin a database transaction
   /// </summary>
