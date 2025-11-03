@@ -30,8 +30,8 @@ public class UserWorkScheduleService : IUserWorkScheduleService
                 return ServiceResult<UserWorkScheduleDto>.Failure("Invalid shift value. Must be Morning, Evening, or Night");
             }
 
-            // Validate center exists
-            var center = await _unitOfWork.CenterRepository.GetByIdAsync(dto.CenterId);
+            // Get center by name
+            var center = await _unitOfWork.CenterRepository.GetByNameAsync(dto.CenterName);
             if (center == null)
             {
                 return ServiceResult<UserWorkScheduleDto>.Failure("Center not found");
@@ -50,32 +50,44 @@ public class UserWorkScheduleService : IUserWorkScheduleService
             {
                 "Morning" => new WorkScheduleDto
                 {
-                    CenterId = dto.CenterId,
+                    CenterId = center.Centerid,
                     Starttime = workDate.AddHours(7),   // 7 AM
                     Endtime = workDate.AddHours(12)     // 12 PM
                 },
                 "Evening" => new WorkScheduleDto
                 {
-                    CenterId = dto.CenterId,
+                    CenterId = center.Centerid,
                     Starttime = workDate.AddHours(13),  // 1 PM
                     Endtime = workDate.AddHours(19)     // 7 PM
                 },
                 "Night" => new WorkScheduleDto
                 {
-                    CenterId = dto.CenterId,
+                    CenterId = center.Centerid,
                     Starttime = workDate.AddHours(20),  // 8 PM
                     Endtime = workDate.AddDays(1).AddHours(6) // 6 AM next day
                 },
                 _ => throw new ArgumentException("Invalid shift")
             };
 
-            var scheduleEntity = shiftSchedule.ToEntity();
-            var createdSchedule = await _unitOfWork.WorkScheduleRepository.AddAsync(scheduleEntity);
-            await _unitOfWork.SaveChangesAsync();
+            // Check if work schedule already exists
+            var existingSchedule = await _unitOfWork.WorkScheduleRepository.GetExistingScheduleAsync(
+                center.Centerid, shiftSchedule.Starttime, shiftSchedule.Endtime);
+            
+            Workscheduletuantm workSchedule;
+            if (existingSchedule != null)
+            {
+                workSchedule = existingSchedule;
+            }
+            else
+            {
+                var scheduleEntity = shiftSchedule.ToEntity();
+                workSchedule = await _unitOfWork.WorkScheduleRepository.AddAsync(scheduleEntity);
+                await _unitOfWork.SaveChangesAsync();
+            }
 
             // Create user work schedule assignment
             var entity = dto.ToEntity();
-            entity.Workscheduleid = createdSchedule.Workscheduleid;
+            entity.Workscheduleid = workSchedule.Workscheduleid;
             await _unitOfWork.UserWorkScheduleRepository.AddAsync(entity);
             await _unitOfWork.SaveChangesAsync();
 
@@ -212,8 +224,8 @@ public class UserWorkScheduleService : IUserWorkScheduleService
                 return ServiceResult<AssignmentResultDto>.Failure("Invalid shift value. Must be Morning, Evening, or Night");
             }
 
-            // Validate center exists
-            var center = await _unitOfWork.CenterRepository.GetByIdAsync(dto.CenterId);
+            // Get center by name
+            var center = await _unitOfWork.CenterRepository.GetByNameAsync(dto.CenterName);
             if (center == null)
             {
                 return ServiceResult<AssignmentResultDto>.Failure("Center not found");
@@ -225,28 +237,40 @@ public class UserWorkScheduleService : IUserWorkScheduleService
             {
                 "Morning" => new WorkScheduleDto
                 {
-                    CenterId = dto.CenterId,
+                    CenterId = center.Centerid,
                     Starttime = workDate.AddHours(7),
                     Endtime = workDate.AddHours(12)
                 },
                 "Evening" => new WorkScheduleDto
                 {
-                    CenterId = dto.CenterId,
+                    CenterId = center.Centerid,
                     Starttime = workDate.AddHours(13),
                     Endtime = workDate.AddHours(19)
                 },
                 "Night" => new WorkScheduleDto
                 {
-                    CenterId = dto.CenterId,
+                    CenterId = center.Centerid,
                     Starttime = workDate.AddHours(20),
                     Endtime = workDate.AddDays(1).AddHours(6)
                 },
                 _ => throw new ArgumentException("Invalid shift")
             };
 
-            var scheduleEntity = shiftSchedule.ToEntity();
-            var createdSchedule = await _unitOfWork.WorkScheduleRepository.AddAsync(scheduleEntity);
-            await _unitOfWork.SaveChangesAsync();
+            // Check if work schedule already exists
+            var existingSchedule = await _unitOfWork.WorkScheduleRepository.GetExistingScheduleAsync(
+                center.Centerid, shiftSchedule.Starttime, shiftSchedule.Endtime);
+            
+            Workscheduletuantm workSchedule;
+            if (existingSchedule != null)
+            {
+                workSchedule = existingSchedule;
+            }
+            else
+            {
+                var scheduleEntity = shiftSchedule.ToEntity();
+                workSchedule = await _unitOfWork.WorkScheduleRepository.AddAsync(scheduleEntity);
+                await _unitOfWork.SaveChangesAsync();
+            }
 
             var result = new AssignmentResultDto();
             var assignments = new List<Userworkscheduletuantm>();
@@ -267,16 +291,16 @@ public class UserWorkScheduleService : IUserWorkScheduleService
                 }
 
                 // Check availability
-                var isAvailable = await _unitOfWork.UserWorkScheduleRepository.IsUserAvailableAsync(technicianId, createdSchedule.Workscheduleid);
+                var isAvailable = await _unitOfWork.UserWorkScheduleRepository.IsUserAvailableAsync(technicianId, workSchedule.Workscheduleid);
                 if (isAvailable)
                 {
                     var assignment = new CreateUserWorkScheduleDto
                     {
                         UserId = technicianId,
-                        CenterId = dto.CenterId,
+                        CenterName = dto.CenterName,
                         Shift = dto.Shift
                     }.ToEntity();
-                    assignment.Workscheduleid = createdSchedule.Workscheduleid;
+                    assignment.Workscheduleid = workSchedule.Workscheduleid;
                     assignments.Add(assignment);
                 }
                 else
@@ -313,8 +337,8 @@ public class UserWorkScheduleService : IUserWorkScheduleService
     {
         try
         {
-            // Validate center exists
-            var center = await _unitOfWork.CenterRepository.GetByIdAsync(dto.CenterId);
+            // Get center by name
+            var center = await _unitOfWork.CenterRepository.GetByNameAsync(dto.CenterName);
             if (center == null)
             {
                 return ServiceResult<AssignmentResultDto>.Failure("Center not found");
@@ -330,7 +354,7 @@ public class UserWorkScheduleService : IUserWorkScheduleService
 
             var bulkDto = new BulkAssignTechniciansDto
             {
-                CenterId = dto.CenterId,
+                CenterName = dto.CenterName,
                 Shift = dto.Shift,
                 WorkDate = dto.WorkDate,
                 TechnicianIds = availableTechnicians
@@ -378,6 +402,42 @@ public class UserWorkScheduleService : IUserWorkScheduleService
         catch (Exception ex)
         {
             return ServiceResult<TechnicianWorkloadDto>.Failure($"Error retrieving workload: {ex.Message}");
+        }
+    }
+
+    public async Task<IServiceResult<List<TechnicianScheduleDto>>> GetAllTechniciansWithSchedulesAsync()
+    {
+        try
+        {
+            var assignments = await _unitOfWork.UserWorkScheduleRepository.GetAllWithUserAndScheduleAsync();
+            
+            var technicianSchedules = assignments
+                .GroupBy(x => new { x.Userid, x.User.Firstname, x.User.Lastname, x.User.Email, x.User.Phonenumber })
+                .Select(g => new TechnicianScheduleDto
+                {
+                    UserId = g.Key.Userid,
+                    UserName = $"{g.Key.Firstname} {g.Key.Lastname}".Trim(),
+                    Email = g.Key.Email ?? string.Empty,
+                    PhoneNumber = g.Key.Phonenumber,
+                    Schedules = g.Select(s => new WorkScheduleAssignmentDto
+                    {
+                        UserWorkScheduleId = s.Userworkscheduleid,
+                        WorkScheduleId = s.Workscheduleid,
+                        StartTime = s.Workschedule.Starttime,
+                        EndTime = s.Workschedule.Endtime,
+                        CenterName = s.Workschedule.Center?.Name ?? string.Empty,
+                        Status = s.Status ?? string.Empty,
+                        CreatedAt = s.Createdat
+                    }).OrderBy(s => s.StartTime).ToList()
+                })
+                .OrderBy(t => t.UserName)
+                .ToList();
+
+            return ServiceResult<List<TechnicianScheduleDto>>.Success(technicianSchedules);
+        }
+        catch (Exception ex)
+        {
+            return ServiceResult<List<TechnicianScheduleDto>>.Failure($"Error retrieving technicians with schedules: {ex.Message}");
         }
     }
 }

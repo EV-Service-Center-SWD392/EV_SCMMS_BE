@@ -146,6 +146,11 @@ public interface IUnitOfWork : IDisposable
 
   IPaymentmethodrepository Paymentmethodrepository { get; }
   /// <summary>
+  /// User Role repository
+  /// </summary>
+  IUserRoleRepository UserRoleRepository { get; }
+
+  /// <summary>
   /// Begin a database transaction
   /// </summary>
   Task BeginTransactionAsync(CancellationToken cancellationToken = default);

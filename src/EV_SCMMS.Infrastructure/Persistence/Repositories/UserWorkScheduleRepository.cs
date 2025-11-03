@@ -91,4 +91,16 @@ public class UserWorkScheduleRepository : GenericRepository<Userworkscheduletuan
             .OrderBy(x => x.Workschedule.Starttime)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<List<Userworkscheduletuantm>> GetAllWithUserAndScheduleAsync(CancellationToken cancellationToken = default)
+    {
+        return await _dbSet.Userworkscheduletuantms
+            .Where(x => x.Isactive == true)
+            .Include(x => x.User)
+            .Include(x => x.Workschedule)
+            .ThenInclude(x => x.Center)
+            .OrderBy(x => x.User.Firstname)
+            .ThenBy(x => x.Workschedule.Starttime)
+            .ToListAsync(cancellationToken);
+    }
 }
