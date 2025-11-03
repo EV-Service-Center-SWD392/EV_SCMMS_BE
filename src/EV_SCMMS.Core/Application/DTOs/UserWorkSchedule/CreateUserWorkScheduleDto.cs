@@ -11,7 +11,7 @@ public class CreateUserWorkScheduleDto
     [Required]
     public Guid UserId { get; set; }
     [Required]
-    public Guid CenterId { get; set; }
+    public string CenterName { get; set; } = string.Empty;
 
     [Required]
     public string Shift { get; set; } = string.Empty;

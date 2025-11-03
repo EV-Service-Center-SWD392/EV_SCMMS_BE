@@ -5,8 +5,8 @@ namespace EV_SCMMS.Core.Application.Interfaces.Services;
 
 public interface IReceiptService
 {
-    Task<ServiceResult<List<ReceiptDto>>> GetAllAsync();
-    Task<ServiceResult<ReceiptDto?>> GetByIdAsync(Guid id);
-    Task<ServiceResult<List<ReceiptDto>>> GetByCustomerIdAsync(Guid customerId);
-    Task<ServiceResult<List<ReceiptDto>>> GetForCurrentUserAsync();
+    Task<IServiceResult<List<ReceiptDto>>> GetAllAsync();
+    Task<IServiceResult<ReceiptDto?>> GetByIdAsync(Guid id);
+    Task<IServiceResult<List<ReceiptDto>>> GetByCustomerIdAsync(Guid customerId);
+    Task<IServiceResult<List<ReceiptDto>>> GetForCurrentUserAsync();
 }

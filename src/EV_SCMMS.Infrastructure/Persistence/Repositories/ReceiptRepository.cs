@@ -33,7 +33,7 @@ public class ReceiptRepository : GenericRepository<Receiptcuongtq>, IReceiptRepo
     {
         return await _context.Receiptcuongtqs
             .Where(r => r.Customerid == customerId)
-            //.Include(r => r.Receiptitemcuongtqs)
+            .Include(r => r.Receiptitemcuongtqs)
             .Include(r => r.Customer)
             .ToListAsync(cancellationToken);
     }

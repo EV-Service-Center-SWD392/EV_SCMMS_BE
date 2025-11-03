@@ -121,6 +121,7 @@ public interface IUnitOfWork : IDisposable
     /// <summary>
     /// Save all changes made in this context to the database
     /// </summary>
+    /// 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
   /// <summary>
   /// Refresh Transaction Repository
@@ -142,6 +143,12 @@ public interface IUnitOfWork : IDisposable
   ICertificateRepository CertificateRepository { get; }
 
   IUserCertificateRepository UserCertificateRepository { get; }
+
+  IPaymentmethodrepository Paymentmethodrepository { get; }
+  /// <summary>
+  /// User Role repository
+  /// </summary>
+  IUserRoleRepository UserRoleRepository { get; }
 
   /// <summary>
   /// Begin a database transaction
