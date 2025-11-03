@@ -144,6 +144,11 @@ public interface IUnitOfWork : IDisposable
   IUserCertificateRepository UserCertificateRepository { get; }
 
   /// <summary>
+  /// User Role repository
+  /// </summary>
+  IUserRoleRepository UserRoleRepository { get; }
+
+  /// <summary>
   /// Begin a database transaction
   /// </summary>
   Task BeginTransactionAsync(CancellationToken cancellationToken = default);

@@ -47,6 +47,7 @@ public class UnitOfWork : IUnitOfWork
     private IUserCenterRepository? _userCenterRepository;
     private ICertificateRepository? _certificateRepository;
     private IUserCertificateRepository? _userCertificateRepository;
+    private IUserRoleRepository? _userRoleRepository;
     
     // Service instances
     private IRefreshTokenService? _refreshTokenService;
@@ -307,6 +308,15 @@ public class UnitOfWork : IUnitOfWork
         {
             _userCertificateRepository ??= new UserCertificateRepository(_context);
             return _userCertificateRepository;
+        }
+    }
+
+    public IUserRoleRepository UserRoleRepository
+    {
+        get
+        {
+            _userRoleRepository ??= new UserRoleRepository(_context);
+            return _userRoleRepository;
         }
     }
 

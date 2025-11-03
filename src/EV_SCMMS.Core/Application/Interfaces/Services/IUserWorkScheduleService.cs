@@ -20,4 +20,5 @@ public interface IUserWorkScheduleService
     Task<IServiceResult<AssignmentResultDto>> AutoAssignAsync(AutoAssignRequestDto dto);
     Task<IServiceResult<List<UserWorkScheduleDto>>> GetConflictingAssignmentsAsync(Guid userId, DateTime startTime, DateTime endTime);
     Task<IServiceResult<TechnicianWorkloadDto>> GetTechnicianWorkloadAsync(Guid userId, DateTime date);
+    Task<IServiceResult<List<TechnicianScheduleDto>>> GetAllTechniciansWithSchedulesAsync();
 }

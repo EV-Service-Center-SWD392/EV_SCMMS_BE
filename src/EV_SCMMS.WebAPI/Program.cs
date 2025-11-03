@@ -163,6 +163,7 @@ builder.Services.AddScoped<IChecklistItemService, ChecklistItemService>();
 builder.Services.AddScoped<IWorkOrderService, WorkOrderService>();
 builder.Services.AddScoped<IUserCertificateService, UserCertificateService>();
 builder.Services.AddScoped<ICertificateService, CertificateService>();
+builder.Services.AddScoped<IUserRoleService, UserRoleService>();
 
 // Register ChatBot AI Service
 builder.Services.AddHttpClient<IChatBotService, ChatBotService>();
@@ -235,11 +236,12 @@ builder.Services.AddSwaggerGen(options =>
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowVercel",
+    options.AddPolicy("AllowFrontends",
         policy => policy
-            .WithOrigins("https://ev-web-fe.vercel.app")
+            .WithOrigins("https://ev-web-fe.vercel.app", "http://localhost:3000")
             .AllowAnyHeader()
-            .AllowAnyMethod());
+            .AllowAnyMethod()
+            .AllowCredentials());
 });
 
 var app = builder.Build();
@@ -259,7 +261,7 @@ app.UseSwaggerUI(c =>
 
 app.UseHttpsRedirection();
 
-app.UseCors("AllowVercel");
+app.UseCors("AllowFrontends");
 
 app.UseAuthentication();
 app.UseAuthorization();

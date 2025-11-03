@@ -79,5 +79,14 @@ public class WorkScheduleRepository : GenericRepository<Workscheduletuantm>, IWo
             .Where(x => x.Workscheduleid == workScheduleId && x.Isactive == true)
             .CountAsync(cancellationToken);
     }
+
+    public async Task<Workscheduletuantm?> GetExistingScheduleAsync(Guid centerId, DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet.Workscheduletuantms
+            .FirstOrDefaultAsync(x => x.Centerid == centerId && 
+                                     x.Starttime == startTime && 
+                                     x.Endtime == endTime && 
+                                     x.Isactive == true, cancellationToken);
+    }
 }
 
