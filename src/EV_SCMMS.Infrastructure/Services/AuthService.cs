@@ -181,6 +181,7 @@ public class AuthService : IAuthService
       newUser.Password = hashedPassword;
       // Save user to database
       await _unitOfWork.UserRepository.AddAsync(newUser);
+      await _unitOfWork.SaveChangesAsync();
 
       // Generate tokens
       var expiresAt = _tokenService.GetTokenExpiration();

@@ -11,4 +11,6 @@ public interface ITransactionRepository : IGenericRepository<Transactioncuongtq>
   Task<Transactioncuongtq?> GetByPaymentIdAsync(int paymentId, CancellationToken cancellationToken = default);
 
   Task<Transactioncuongtq?> GetByIdIncludeOrderAsync(Guid id, CancellationToken cancellationToken = default);
+
+  Task<Transactioncuongtq?> GetByOrderCodeAsync(int orderCode, CancellationToken cancellationToken = default);
 }
