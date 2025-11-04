@@ -14,4 +14,5 @@ public interface IUserWorkScheduleRepository : IGenericRepository<Userworkschedu
     Task<List<Userworkscheduletuantm>> GetConflictingAssignmentsAsync(Guid userId, DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default);
     Task<bool> BulkAssignAsync(List<Userworkscheduletuantm> assignments, CancellationToken cancellationToken = default);
     Task<List<Userworkscheduletuantm>> GetTechnicianWorkloadAsync(Guid userId, DateTime date, CancellationToken cancellationToken = default);
+    Task<List<Userworkscheduletuantm>> GetAllWithUserAndScheduleAsync(CancellationToken cancellationToken = default);
 }

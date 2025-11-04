@@ -166,6 +166,7 @@ builder.Services.AddScoped<IWorkOrderService, WorkOrderService>();
 builder.Services.AddScoped<IUserCertificateService, UserCertificateService>();
 builder.Services.AddScoped<ICertificateService, CertificateService>();
 builder.Services.AddScoped<IVehicleService, VehicleService>();
+builder.Services.AddScoped<IUserRoleService, UserRoleService>();
 
 // Register ChatBot AI Service
 builder.Services.AddHttpClient<IChatBotService, ChatBotService>();
@@ -238,13 +239,12 @@ builder.Services.AddSwaggerGen(options =>
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowVercel",
+    options.AddPolicy("AllowFrontends",
         policy => policy
-             //.WithOrigins("https://ev-web-fe.vercel.app", "*")
-             .AllowAnyOrigin()
+            .WithOrigins("https://ev-web-fe.vercel.app", "http://localhost:3000")
             .AllowAnyHeader()
-            .AllowAnyMethod());
-
+            .AllowAnyMethod()
+            .AllowCredentials());
 });
 
 // Fluent Validation 
@@ -275,19 +275,9 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = string.Empty; // Set Swagger UI at app's root
 });
 
-// app.Use(async (context, next) =>
-// {
-//     context.ActionDescriptor.EndpointMetadata.Add(new EndpointFilterDelegate(async (efContext, nextEf) =>
-//     {
-//         var filter = efContext.HttpContext.RequestServices.GetRequiredService<ValidationFilter>();
-//         await filter.OnActionExecutionAsync(efContext.ActionContext.ActionArguments, nextEf);  // Gọi filter
-//         return await nextEf();
-//     }));
-// });
-
 app.UseHttpsRedirection();
 
-app.UseCors("AllowVercel");
+app.UseCors("AllowFrontends");
 
 app.UseAuthentication();
 app.UseAuthorization();

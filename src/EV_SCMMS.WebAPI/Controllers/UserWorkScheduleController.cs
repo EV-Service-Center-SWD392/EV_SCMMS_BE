@@ -79,7 +79,7 @@ public class UserWorkScheduleController : ControllerBase
     /// <remarks>
     /// Required fields:
     /// - UserId: GUID of the technician/user
-    /// - CenterId: GUID of the service center
+    /// - CenterName: Name of the service center (e.g., "EV Service - Quận 1")
     /// - Shift: Must be one of: "Morning", "Evening", "Night"
     /// - WorkDate: Date for the work schedule (YYYY-MM-DD format)
     /// 
@@ -135,7 +135,7 @@ public class UserWorkScheduleController : ControllerBase
     /// <returns>Assignment results with success/failure details</returns>
     /// <remarks>
     /// Required fields:
-    /// - CenterId: GUID of the service center
+    /// - CenterName: Name of the service center (e.g., "EV Service - Quận 1")
     /// - Shift: Must be one of: "Morning", "Evening", "Night"
     /// - WorkDate: Date for the work schedule (YYYY-MM-DD format)
     /// - TechnicianIds: Array of technician GUIDs to assign
@@ -166,7 +166,7 @@ public class UserWorkScheduleController : ControllerBase
     /// <returns>Assignment results with success/failure details</returns>
     /// <remarks>
     /// Required fields:
-    /// - CenterId: GUID of the service center
+    /// - CenterName: Name of the service center (e.g., "EV Service - Quận 1")
     /// - Shift: Must be one of: "Morning", "Evening", "Night"
     /// - WorkDate: Date for the work schedule (YYYY-MM-DD format)
     /// - RequiredTechnicianCount: Number of technicians needed (1-50)
@@ -202,6 +202,29 @@ public class UserWorkScheduleController : ControllerBase
     public async Task<IActionResult> GetWorkload(Guid userId, [FromQuery] DateTime date)
     {
         var result = await _userWorkScheduleService.GetTechnicianWorkloadAsync(userId, date);
+        if (result.IsSuccess) return Ok(result.Data);
+        return BadRequest(result.Message);
+    }
+
+    /// <summary>
+    /// Get all technicians with their assigned work schedules
+    /// </summary>
+    /// <returns>List of technicians with their work schedule assignments</returns>
+    /// <remarks>
+    /// Returns a comprehensive view of all technicians and their assigned work schedules.
+    /// Each technician entry includes:
+    /// - User information (name, email, phone)
+    /// - List of assigned schedules with time, center, and status
+    /// 
+    /// Useful for:
+    /// - Staff management dashboard
+    /// - Schedule overview
+    /// - Workload distribution analysis
+    /// </remarks>
+    [HttpGet("technicians-schedules")]
+    public async Task<IActionResult> GetAllTechniciansWithSchedules()
+    {
+        var result = await _userWorkScheduleService.GetAllTechniciansWithSchedulesAsync();
         if (result.IsSuccess) return Ok(result.Data);
         return BadRequest(result.Message);
     }

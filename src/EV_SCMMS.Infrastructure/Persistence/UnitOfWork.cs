@@ -52,6 +52,8 @@ public class UnitOfWork : IUnitOfWork
 
     private IVehicleRepository? _vehicleRepository;
 
+    private IUserRoleRepository? _userRoleRepository;
+
     // Service instances
     private IRefreshTokenService? _refreshTokenService;
 
@@ -333,6 +335,14 @@ public class UnitOfWork : IUnitOfWork
         {
             _vehicleModelRepository ??= new VehicleModelRepository(_context);
             return _vehicleModelRepository;
+        }
+    }
+    public IUserRoleRepository UserRoleRepository
+    {
+        get
+        {
+            _userRoleRepository ??= new UserRoleRepository(_context);
+            return _userRoleRepository;
         }
     }
 

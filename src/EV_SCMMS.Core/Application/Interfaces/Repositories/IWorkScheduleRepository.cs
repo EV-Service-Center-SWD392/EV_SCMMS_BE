@@ -13,5 +13,6 @@ public interface IWorkScheduleRepository : IGenericRepository<Workscheduletuantm
     Task<List<Workscheduletuantm>> GetByTechnicianIdAsync(Guid technicianId, CancellationToken cancellationToken = default);
     Task<List<Workscheduletuantm>> GetSchedulesWithAvailableCapacityAsync(DateTime startTime, DateTime endTime, Guid? centerId = null, CancellationToken cancellationToken = default);
     Task<int> GetAssignedTechnicianCountAsync(Guid workScheduleId, CancellationToken cancellationToken = default);
+    Task<Workscheduletuantm?> GetExistingScheduleAsync(Guid centerId, DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default);
 }
 
