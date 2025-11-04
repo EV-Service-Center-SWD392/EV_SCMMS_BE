@@ -156,7 +156,7 @@ public class VehicleService : IVehicleService
 
     await _unitOfWork.VehicleRepository.UpdateAsync(currentVehicle);
 
-    await _unitOfWork.VehicleRepository.SaveAsync();
+    await _unitOfWork.SaveChangesAsync(ct);
 
     return ServiceResult<Vehicle>.Success(currentVehicle, "Update Successfully");
   }
