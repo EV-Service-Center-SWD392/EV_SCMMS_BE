@@ -167,6 +167,9 @@ builder.Services.AddScoped<IUserCertificateService, UserCertificateService>();
 builder.Services.AddScoped<ICertificateService, CertificateService>();
 builder.Services.AddScoped<IVehicleService, VehicleService>();
 builder.Services.AddScoped<IUserRoleService, UserRoleService>();
+builder.Services.AddScoped<BookingService>();
+builder.Services.AddScoped<BookingScheduleService>();
+builder.Services.AddScoped<BookingStatusLogService>();
 
 // Register ChatBot AI Service
 builder.Services.AddHttpClient<IChatBotService, ChatBotService>();
@@ -254,6 +257,11 @@ builder.Services.AddScoped<ValidationFilter>();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateVehicleDtoValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<VehicleQueryDtoValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateVehicleDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<BookingScheduleDtoValidator>(includeInternalTypes: true);
+builder.Services.AddValidatorsFromAssemblyContaining<CenterSchedulesQueryDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateBookingDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<UpdateBookingDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<BookingQueryDtoValidator>();
 
 
 

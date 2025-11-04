@@ -168,4 +168,6 @@ public interface IUnitOfWork : IDisposable
   /// Rollback the current transaction
   /// </summary>
   Task RollbackTransactionAsync(CancellationToken cancellationToken = default);
+
+  IBookingStatusLogRepository BookingStatusLogRepository { get; }
 }

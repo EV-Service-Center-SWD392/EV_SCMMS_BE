@@ -11,7 +11,7 @@ public partial class Bookingstatusloghuykt
 
     public string Status { get; set; } = null!;
 
-    public bool? Isseen { get; set; }
+    public bool Isseen { get; set; }
 
     public bool? Isactive { get; set; }
 

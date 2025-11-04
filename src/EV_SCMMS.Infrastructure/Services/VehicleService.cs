@@ -5,6 +5,7 @@ using EV_SCMMS.Core.Application.Results;
 using EV_SCMMS.Core.Domain.Models;
 using EV_SCMMS.Infrastructure.Mappings;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
 using Microsoft.Extensions.Logging;
 
 public class VehicleService : IVehicleService
@@ -16,12 +17,12 @@ public class VehicleService : IVehicleService
     _unitOfWork = unitOfWork;
   }
 
-  public async Task<IServiceResult<PagedResult<VehicleDto>>> GetListVehiclesAsync(VehicleQueryDto query)
+  public async Task<IServiceResult<PagedResult<VehicleDto>>> GetListVehiclesAsync(VehicleQueryDto query, Guid customerId)
   {
-    // Bắt đầu IQueryable
-    var queryable = _unitOfWork.VehicleRepository.GetAllQueryable();
+    var queryable = _unitOfWork.VehicleRepository.GetAllQueryable().AsNoTracking();
 
-    // Áp dụng filters với IQueryable (linq to entities, hiệu suất cao)
+    queryable = queryable.Where(x => x.Customerid == customerId);
+
     if (!string.IsNullOrEmpty(query.Status))
       queryable = queryable.Where(v => v.Status.ToUpper() == query.Status.ToUpper());
 
@@ -101,16 +102,15 @@ public class VehicleService : IVehicleService
     return ServiceResult<Vehicle>.Success(currentVehicle, "Delete vehicle successfully");
   }
 
-  public async Task<IServiceResult<VehicleDetailDto>> GetVehicleAsync(Guid id)
+  public async Task<IServiceResult<VehicleDetailDto>> GetVehicleAsync(Guid id, Guid customerId)
   {
     try
     {
-      // Lấy IQueryable với Include Customer (navigation property)
-      var queryable = _unitOfWork.VehicleRepository.GetAllQueryable();  // Tracking nếu cần
+      var queryable = _unitOfWork.VehicleRepository.GetAllQueryable();
 
       var vehicle = await queryable
-          .Include(v => v.Customer)  // Include Useraccount
-          .FirstOrDefaultAsync(v => v.Vehicleid == id);
+          .Include(v => v.Customer)
+          .FirstOrDefaultAsync(v => v.Vehicleid == id && v.Customerid == customerId);
 
       if (vehicle == null)
       {
@@ -118,47 +118,54 @@ public class VehicleService : IVehicleService
 
       }
 
-      var detailDto = vehicle.ToDetailDto();  // Mapper với Customer nested
+      var detailDto = vehicle.ToDetailDto();
 
       return ServiceResult<VehicleDetailDto>.Success(detailDto, "Get vehicle details successfully");
     }
     catch (Exception ex)
     {
       Console.WriteLine(ex);
-      // Log exception nếu có logger
       return ServiceResult<VehicleDetailDto>.Failure("Error retrieving vehicle");
     }
   }
 
   public async Task<IServiceResult<Vehicle>> UpdateAsync(Guid id, UpdateVehicleDto dto, Guid customerId, CancellationToken ct = default)
   {
-    var user = await _unitOfWork.UserAccountRepository.GetByIdAsync(customerId);
-    var model = await _unitOfWork.VehicleModelRepository.GetByIdAsync(dto.ModelId);
-
-    var currentVehicle = await _unitOfWork.VehicleRepository.GetByIdAsync(id);
-
-    if (user == null)
+    try
     {
-      return ServiceResult<Vehicle>.Failure("User not found");
-    }
+      var user = await _unitOfWork.UserAccountRepository.GetByIdAsync(customerId);
+      var model = await _unitOfWork.VehicleModelRepository.GetByIdAsync(dto.ModelId);
 
-    if (model == null)
+      var currentVehicle = await _unitOfWork.VehicleRepository.GetByIdAsync(id);
+
+      if (user == null)
+      {
+        return ServiceResult<Vehicle>.Failure("User not found");
+      }
+
+      if (model == null)
+      {
+        return ServiceResult<Vehicle>.Failure("Assign vehicle model not found");
+      }
+
+      if (currentVehicle == null)
+      {
+        return ServiceResult<Vehicle>.Failure("Vehicle was not found");
+      }
+
+      currentVehicle.UpdateFromDto(dto);
+
+      await _unitOfWork.VehicleRepository.UpdateAsync(currentVehicle);
+
+      await _unitOfWork.VehicleRepository.SaveAsync();
+
+      return ServiceResult<Vehicle>.Success(currentVehicle, "Update Successfully");
+    }
+    catch (System.Exception)
     {
-      return ServiceResult<Vehicle>.Failure("Assign vehicle model not found");
+
+      return ServiceResult<Vehicle>.Failure("Failed to create a vehicle");
     }
-
-    if (currentVehicle == null)
-    {
-      return ServiceResult<Vehicle>.Failure("Vehicle was not found");
-    }
-
-    currentVehicle.UpdateFromDto(dto);
-
-    await _unitOfWork.VehicleRepository.UpdateAsync(currentVehicle);
-
-    await _unitOfWork.SaveChangesAsync(ct);
-
-    return ServiceResult<Vehicle>.Success(currentVehicle, "Update Successfully");
   }
 
   public async Task<IServiceResult<List<Vehiclemodel>>> GetListVehicleModel()

@@ -61,6 +61,8 @@ public class UnitOfWork : IUnitOfWork
     private IPaymentmethodrepository? _paymentmethodrepository;
     // Service instances
 
+    private IBookingStatusLogRepository? _bookingStatusLogRepository;
+
     public UnitOfWork(AppDbContext context, IConfiguration configuration, ILoggerFactory loggerFactory)
     {
         _context = context;
@@ -404,5 +406,14 @@ public class UnitOfWork : IUnitOfWork
     {
         _transaction?.Dispose();
         _context.Dispose();
+    }
+
+    public IBookingStatusLogRepository BookingStatusLogRepository
+    {
+        get
+        {
+            _bookingStatusLogRepository ??= new BookingStatusLogRepository(_context);
+            return _bookingStatusLogRepository;
+        }
     }
 }

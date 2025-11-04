@@ -9,9 +9,9 @@ public partial class Bookingschedule
 
     public Guid Centerid { get; set; }
 
-    public DateTime Startutc { get; set; }
+    public string Startutc { get; set; }
 
-    public DateTime Endutc { get; set; }
+    public string Endutc { get; set; }
 
     public int? Capacity { get; set; }
 
@@ -20,6 +20,10 @@ public partial class Bookingschedule
     public string? Status { get; set; }
 
     public bool? Isactive { get; set; }
+
+    public string DayOfWeek { get; set; }
+
+    public int Slot { get; set; }
 
     public DateTime? Createdat { get; set; }
 
