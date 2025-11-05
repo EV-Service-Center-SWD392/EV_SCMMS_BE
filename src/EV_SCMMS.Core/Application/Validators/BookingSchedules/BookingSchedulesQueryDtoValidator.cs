@@ -6,13 +6,13 @@ public class CenterSchedulesQueryDtoValidator : AbstractValidator<CenterSchedule
   public CenterSchedulesQueryDtoValidator()
   {
     RuleFor(x => x.StartDate)
-        .NotEmpty().WithMessage("StartDate là bắt buộc")
-        .Must(TimeHelper.BeValidDateFormat).WithMessage("StartDate phải có format 'yyyy-MM-dd', ví dụ: '2025-11-03'");
+    .NotEmpty().WithMessage("StartDate is required.")
+    .Must(TimeHelper.BeValidDateFormat).When(x => !string.IsNullOrEmpty(x.StartDate)).WithMessage("StartDate must be in the format 'yyyy-MM-dd', e.g., '2025-11-03'.");
 
     RuleFor(x => x.EndDate)
-        .NotEmpty().WithMessage("EndDate là bắt buộc")
-        .Must(TimeHelper.BeValidDateFormat).WithMessage("EndDate phải có format 'yyyy-MM-dd', ví dụ: '2025-11-09'")
-        .Must(BeEndDateAfterStartDate).WithMessage("EndDate phải sau hoặc bằng StartDate");
+        .NotEmpty().WithMessage("EndDate is required.")
+        .Must(TimeHelper.BeValidDateFormat).When(x => !string.IsNullOrEmpty(x.EndDate)).WithMessage("EndDate must be in the format 'yyyy-MM-dd', e.g., '2025-11-09'.")
+        .Must(BeEndDateAfterStartDate).When(x => !string.IsNullOrEmpty(x.EndDate) && !string.IsNullOrEmpty(x.StartDate)).WithMessage("EndDate must be the same as or after StartDate.");
   }
 
 

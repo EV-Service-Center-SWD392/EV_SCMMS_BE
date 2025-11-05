@@ -10,9 +10,11 @@ public class BookingApprovalDto
     public Guid CustomerId { get; set; }
     public Guid VehicleId { get; set; }
     public Guid? ServiceTypeId { get; set; }
-    public DateTime? PreferredStartUtc { get; set; }
-    public DateTime? PreferredEndUtc { get; set; }
+    public string? PreferredStart { get; set; }
+    public string? PreferredEnd { get; set; }
     public string Status { get; set; } = string.Empty;
+
+    public DateOnly BookingDate { get; set; }
     public Guid? ApprovedBy { get; set; }
     public DateTime? ApprovedAt { get; set; }
     public Guid? RejectedBy { get; set; }

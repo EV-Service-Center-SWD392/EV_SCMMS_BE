@@ -1,3 +1,4 @@
+using System.Globalization;
 using EV_SCMMS.Core.Application.DTOs.BookingApproval;
 using EV_SCMMS.Core.Application.Interfaces;
 using EV_SCMMS.Core.Application.Interfaces.Services;
@@ -40,11 +41,19 @@ public class BookingApprovalService : IBookingApprovalService
         }
     }
 
-    public async Task<IServiceResult<List<BookingApprovalDto>>> GetPendingAsync(Guid? centerId, DateOnly? date, CancellationToken ct = default)
+    public async Task<IServiceResult<List<BookingApprovalDto>>> GetPendingAsync(Guid? centerId, CenterSchedulesQueryDto? dto, CancellationToken ct = default)
     {
+        DateOnly? startDate = null;
+        DateOnly? endDate = null;
         try
         {
-            var bookings = await _unitOfWork.BookingRepository.GetPendingAsync(centerId, date, ct);
+            if (!string.IsNullOrWhiteSpace(dto.StartDate))
+                startDate = DateOnly.Parse(dto.StartDate);
+
+            if (!string.IsNullOrWhiteSpace(dto.EndDate))
+                endDate = DateOnly.Parse(dto.EndDate);
+
+            var bookings = await _unitOfWork.BookingRepository.GetPendingAsync(centerId, startDate, endDate, ct);
             var dtos = bookings.ToBookingApprovalDto().ToList();
             return ServiceResult<List<BookingApprovalDto>>.Success(dtos);
         }
@@ -52,6 +61,11 @@ public class BookingApprovalService : IBookingApprovalService
         {
             return ServiceResult<List<BookingApprovalDto>>.Failure($"Error retrieving pending bookings: {ex.Message}");
         }
+    }
+
+    private IServiceResult<List<BookingApprovalDto>> BadRequest(string v)
+    {
+        throw new NotImplementedException();
     }
 
     public async Task<IServiceResult<BookingApprovalDto>> ApproveAsync(ApproveBookingDto dto, Guid staffId, CancellationToken ct = default)

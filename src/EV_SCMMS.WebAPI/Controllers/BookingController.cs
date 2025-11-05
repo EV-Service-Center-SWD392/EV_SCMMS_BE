@@ -39,7 +39,7 @@ namespace EV_SCMMS.WebAPI.Controllers
     }
 
     [HttpGet("{bookingId}")]
-    public async Task<ActionResult<PagedResult<Bookinghuykt>>> GetDetails(Guid bookingId)
+    public async Task<ActionResult<BookingDetailDto>> GetDetails(Guid bookingId)
     {
       var customerIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
       if (!Guid.TryParse(customerIdClaim, out var customerId) || customerId == Guid.Empty)
@@ -66,7 +66,12 @@ namespace EV_SCMMS.WebAPI.Controllers
       if (!result.IsSuccess)
         return BadRequest(new { Message = result.Message });
 
-      return CreatedAtAction(nameof(GetDetails), result.Data);
+      return CreatedAtAction(
+          actionName: nameof(GetDetails),
+          controllerName: "ClientBooking",
+          routeValues: new { bookingId = result.Data },
+          value: new { bookingId = result.Data }
+      );
     }
 
 

@@ -10,7 +10,8 @@ namespace EV_SCMMS.WebAPI.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "STAFF,ADVISOR")]
+//[Authorize(Roles = "STAFF,ADVISOR")]
+[ServiceFilter(typeof(ValidationFilter))]
 public class BookingApprovalController : ControllerBase
 {
     private readonly IBookingApprovalService _bookingApprovalService;
@@ -33,9 +34,9 @@ public class BookingApprovalController : ControllerBase
     }
 
     [HttpGet("pending")]
-    public async Task<IActionResult> GetPending([FromQuery] Guid? centerId, [FromQuery] DateOnly? date, CancellationToken ct)
+    public async Task<IActionResult> GetPending([FromQuery] Guid? centerId, [FromQuery] CenterSchedulesQueryDto dto, CancellationToken ct)
     {
-        var result = await _bookingApprovalService.GetPendingAsync(centerId, date, ct);
+        var result = await _bookingApprovalService.GetPendingAsync(centerId, dto, ct);
         if (result.IsSuccess)
         {
             return Ok(result.Data);
