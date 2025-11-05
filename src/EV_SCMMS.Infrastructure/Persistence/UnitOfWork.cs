@@ -18,7 +18,7 @@ public class UnitOfWork : IUnitOfWork
     private readonly IConfiguration _configuration;
     private readonly ILoggerFactory _loggerFactory;
     private IDbContextTransaction? _transaction;
-    
+
     // Repository instances
     private IUserRepository? _userRepository;
     private IRoleRepository? _roleRepository;
@@ -47,255 +47,262 @@ public class UnitOfWork : IUnitOfWork
     private IUserCenterRepository? _userCenterRepository;
     private ICertificateRepository? _certificateRepository;
     private IUserCertificateRepository? _userCertificateRepository;
+
+    private IVehicleModelRepository? _vehicleModelRepository;
+
+    private IVehicleRepository? _vehicleRepository;
+
     private IUserRoleRepository? _userRoleRepository;
-    
+
     // Service instances
     private IRefreshTokenService? _refreshTokenService;
 
-  // Repository instances
-  private IPaymentmethodrepository? _paymentmethodrepository;
-  // Service instances
+    // Repository instances
+    private IPaymentmethodrepository? _paymentmethodrepository;
+    // Service instances
 
-  public UnitOfWork(AppDbContext context, IConfiguration configuration, ILoggerFactory loggerFactory)
-  {
-    _context = context;
-    _configuration = configuration;
-    _loggerFactory = loggerFactory;
-  }
+    private IBookingStatusLogRepository? _bookingStatusLogRepository;
 
-  public IUserRepository UserRepository
-  {
-    get
+    public UnitOfWork(AppDbContext context, IConfiguration configuration, ILoggerFactory loggerFactory)
     {
-      _userRepository ??= new UserRepository(_context);
-      return _userRepository;
+        _context = context;
+        _configuration = configuration;
+        _loggerFactory = loggerFactory;
     }
-  }
 
-  public IRoleRepository RoleRepository
-  {
-    get
+    public IUserRepository UserRepository
     {
-      _roleRepository ??= new RoleRepository(_context);
-      return _roleRepository;
+        get
+        {
+            _userRepository ??= new UserRepository(_context);
+            return _userRepository;
+        }
     }
-  }
 
-  public ICenterRepository CenterRepository
-  {
-    get
+    public IRoleRepository RoleRepository
     {
-      _centerRepository ??= new CenterRepository(_context);
-      return _centerRepository;
+        get
+        {
+            _roleRepository ??= new RoleRepository(_context);
+            return _roleRepository;
+        }
     }
-  }
 
-  public IInventoryRepository InventoryRepository
-  {
-    get
+    public ICenterRepository CenterRepository
     {
-      _inventoryRepository ??= new InventoryRepository(_context);
-      return _inventoryRepository;
+        get
+        {
+            _centerRepository ??= new CenterRepository(_context);
+            return _centerRepository;
+        }
     }
-  }
 
-  public ISparepartRepository SparepartRepository
-  {
-    get
+    public IInventoryRepository InventoryRepository
     {
-      _sparepartRepository ??= new SparepartRepository(_context);
-      return _sparepartRepository;
+        get
+        {
+            _inventoryRepository ??= new InventoryRepository(_context);
+            return _inventoryRepository;
+        }
     }
-  }
 
-  public ISparepartTypeRepository SparepartTypeRepository
-  {
-    get
+    public ISparepartRepository SparepartRepository
     {
-      _sparepartTypeRepository ??= new SparepartTypeRepository(_context);
-      return _sparepartTypeRepository;
+        get
+        {
+            _sparepartRepository ??= new SparepartRepository(_context);
+            return _sparepartRepository;
+        }
     }
-  }
 
-  public ISparepartForecastRepository SparepartForecastRepository
-  {
-    get
+    public ISparepartTypeRepository SparepartTypeRepository
     {
-      _sparepartForecastRepository ??= new SparepartForecastRepository(_context);
-      return _sparepartForecastRepository;
+        get
+        {
+            _sparepartTypeRepository ??= new SparepartTypeRepository(_context);
+            return _sparepartTypeRepository;
+        }
     }
-  }
 
-  public ISparepartReplenishmentRequestRepository SparepartReplenishmentRequestRepository
-  {
-    get
+    public ISparepartForecastRepository SparepartForecastRepository
     {
-      _sparepartReplenishmentRequestRepository ??= new SparepartReplenishmentRequestRepository(_context);
-      return _sparepartReplenishmentRequestRepository;
+        get
+        {
+            _sparepartForecastRepository ??= new SparepartForecastRepository(_context);
+            return _sparepartForecastRepository;
+        }
     }
-  }
 
-  public ISparepartUsageHistoryRepository SparepartUsageHistoryRepository
-  {
-    get
+    public ISparepartReplenishmentRequestRepository SparepartReplenishmentRequestRepository
     {
-      _sparepartUsageHistoryRepository ??= new SparepartUsageHistoryRepository(_context);
-      return _sparepartUsageHistoryRepository;
+        get
+        {
+            _sparepartReplenishmentRequestRepository ??= new SparepartReplenishmentRequestRepository(_context);
+            return _sparepartReplenishmentRequestRepository;
+        }
     }
-  }
 
-  public IBookingRepository BookingRepository
-  {
-    get
+    public ISparepartUsageHistoryRepository SparepartUsageHistoryRepository
     {
-      _bookingRepository ??= new BookingRepository(_context);
-      return _bookingRepository;
+        get
+        {
+            _sparepartUsageHistoryRepository ??= new SparepartUsageHistoryRepository(_context);
+            return _sparepartUsageHistoryRepository;
+        }
     }
-  }
 
-  public IBookingScheduleRepository BookingScheduleRepository
-  {
-    get
+    public IBookingRepository BookingRepository
     {
-      _bookingScheduleRepository ??= new BookingScheduleRepository(_context);
-      return _bookingScheduleRepository;
+        get
+        {
+            _bookingRepository ??= new BookingRepository(_context);
+            return _bookingRepository;
+        }
     }
-  }
 
-  public IRefreshTokenRepository RefreshTokenRepository
-  {
-    get
+    public IBookingScheduleRepository BookingScheduleRepository
     {
-      _refreshTokenRepository ??= new RefreshTokenRepository(_context);
-      return _refreshTokenRepository;
+        get
+        {
+            _bookingScheduleRepository ??= new BookingScheduleRepository(_context);
+            return _bookingScheduleRepository;
+        }
     }
-  }
 
-  public ITransactionRepository TransactionRepository
-  {
-    get
+    public IRefreshTokenRepository RefreshTokenRepository
     {
-      _transactionRepository ??= new TransactionRepository(_context);
-      return _transactionRepository;
+        get
+        {
+            _refreshTokenRepository ??= new RefreshTokenRepository(_context);
+            return _refreshTokenRepository;
+        }
     }
-  }
 
-  public IOrderRepository OrderRepository
-  {
-    get
+    public ITransactionRepository TransactionRepository
     {
-      _orderRepository ??= new OrderRepository(_context);
-      return _orderRepository;
+        get
+        {
+            _transactionRepository ??= new TransactionRepository(_context);
+            return _transactionRepository;
+        }
     }
-  }
 
-  public IReceiptRepository ReceiptRepository
-  {
-    get
+    public IOrderRepository OrderRepository
     {
-      _receiptRepository ??= new ReceiptRepository(_context);
-      return _receiptRepository;
+        get
+        {
+            _orderRepository ??= new OrderRepository(_context);
+            return _orderRepository;
+        }
     }
-  }
 
-  public IReceiptItemRepository ReceiptItemRepository
-  {
-    get
+    public IReceiptRepository ReceiptRepository
     {
-      _receiptItemRepository ??= new ReceiptItemRepository(_context);
-      return _receiptItemRepository;
+        get
+        {
+            _receiptRepository ??= new ReceiptRepository(_context);
+            return _receiptRepository;
+        }
     }
-  }
 
-  public IWorkScheduleRepository WorkScheduleRepository
-  {
-    get
+    public IReceiptItemRepository ReceiptItemRepository
     {
-      _workScheduleRepository ??= new WorkScheduleRepository(_context);
-      return _workScheduleRepository;
+        get
+        {
+            _receiptItemRepository ??= new ReceiptItemRepository(_context);
+            return _receiptItemRepository;
+        }
     }
-  }
 
-  public IUserWorkScheduleRepository UserWorkScheduleRepository
-  {
-    get
+    public IWorkScheduleRepository WorkScheduleRepository
     {
-      _userWorkScheduleRepository ??= new UserWorkScheduleRepository(_context);
-      return _userWorkScheduleRepository;
+        get
+        {
+            _workScheduleRepository ??= new WorkScheduleRepository(_context);
+            return _workScheduleRepository;
+        }
     }
-  }
 
-  public IUserAccountRepository UserAccountRepository
-  {
-    get
+    public IUserWorkScheduleRepository UserWorkScheduleRepository
     {
-      _userAccountRepository ??= new UserAccountRepository(_context);
-      return _userAccountRepository;
+        get
+        {
+            _userWorkScheduleRepository ??= new UserWorkScheduleRepository(_context);
+            return _userWorkScheduleRepository;
+        }
     }
-  }
 
-  public IAssignmentRepository AssignmentRepository
-  {
-    get
+    public IUserAccountRepository UserAccountRepository
     {
-      _assignmentRepository ??= new AssignmentRepository(_context);
-      return _assignmentRepository;
+        get
+        {
+            _userAccountRepository ??= new UserAccountRepository(_context);
+            return _userAccountRepository;
+        }
     }
-  }
 
-  public IServiceIntakeRepository ServiceIntakeRepository
-  {
-    get
+    public IAssignmentRepository AssignmentRepository
     {
-      _serviceIntakeRepository ??= new ServiceIntakeRepository(_context);
-      return _serviceIntakeRepository;
+        get
+        {
+            _assignmentRepository ??= new AssignmentRepository(_context);
+            return _assignmentRepository;
+        }
     }
-  }
 
-  public IChecklistRepository ChecklistRepository
-  {
-    get
+    public IServiceIntakeRepository ServiceIntakeRepository
     {
-      _checklistRepository ??= new ChecklistRepository(_context);
-      return _checklistRepository;
+        get
+        {
+            _serviceIntakeRepository ??= new ServiceIntakeRepository(_context);
+            return _serviceIntakeRepository;
+        }
     }
-  }
 
-  public IChecklistItemRepository ChecklistItemRepository
-  {
-    get
+    public IChecklistRepository ChecklistRepository
     {
-      _checklistItemRepository ??= new ChecklistItemRepository(_context);
-      return _checklistItemRepository;
+        get
+        {
+            _checklistRepository ??= new ChecklistRepository(_context);
+            return _checklistRepository;
+        }
     }
-  }
 
-  public IWorkOrderRepository WorkOrderRepository
-  {
-    get
+    public IChecklistItemRepository ChecklistItemRepository
     {
-      _workOrderRepository ??= new WorkOrderRepository(_context);
-      return _workOrderRepository;
+        get
+        {
+            _checklistItemRepository ??= new ChecklistItemRepository(_context);
+            return _checklistItemRepository;
+        }
     }
-  }
 
-  public IUserCenterRepository UserCenterRepository
-  {
-    get
+    public IWorkOrderRepository WorkOrderRepository
     {
-      _userCenterRepository ??= new UserCenterRepository(_context);
-      return _userCenterRepository;
+        get
+        {
+            _workOrderRepository ??= new WorkOrderRepository(_context);
+            return _workOrderRepository;
+        }
     }
-  }
 
-  public IRefreshTokenService RefreshTokenService
-  {
-    get
+    public IUserCenterRepository UserCenterRepository
     {
-      _refreshTokenService ??= new RefreshTokenService(this, _configuration, _loggerFactory.CreateLogger<RefreshTokenService>());
-      return _refreshTokenService;
+        get
+        {
+            _userCenterRepository ??= new UserCenterRepository(_context);
+            return _userCenterRepository;
+        }
     }
-  }
+
+    public IRefreshTokenService RefreshTokenService
+    {
+        get
+        {
+            _refreshTokenService ??= new RefreshTokenService(this, _configuration, _loggerFactory.CreateLogger<RefreshTokenService>());
+            return _refreshTokenService;
+        }
+    }
 
     public ICertificateRepository CertificateRepository
     {
@@ -315,6 +322,23 @@ public class UnitOfWork : IUnitOfWork
         }
     }
 
+    public IVehicleRepository VehicleRepository
+    {
+        get
+        {
+            _vehicleRepository ??= new VehicleRepository(_context);
+            return _vehicleRepository;
+        }
+    }
+
+    public IVehicleModelRepository VehicleModelRepository
+    {
+        get
+        {
+            _vehicleModelRepository ??= new VehicleModelRepository(_context);
+            return _vehicleModelRepository;
+        }
+    }
     public IUserRoleRepository UserRoleRepository
     {
         get
@@ -328,59 +352,68 @@ public class UnitOfWork : IUnitOfWork
     {
         return await _context.SaveChangesAsync(cancellationToken);
     }
-  public IPaymentmethodrepository Paymentmethodrepository
-  {
-    get
+    public IPaymentmethodrepository Paymentmethodrepository
     {
-      _paymentmethodrepository ??= new PaymentMethodRepository(_context);
-      return _paymentmethodrepository;
+        get
+        {
+            _paymentmethodrepository ??= new PaymentMethodRepository(_context);
+            return _paymentmethodrepository;
+        }
     }
-  }
 
-  public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
-  {
-    _transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
-  }
-
-  public async Task CommitTransactionAsync(CancellationToken cancellationToken = default)
-  {
-    try
+    public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
     {
-      await SaveChangesAsync(cancellationToken);
+        _transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+    }
 
-      if (_transaction != null)
-      {
-        await _transaction.CommitAsync(cancellationToken);
-      }
-    }
-    catch
+    public async Task CommitTransactionAsync(CancellationToken cancellationToken = default)
     {
-      await RollbackTransactionAsync(cancellationToken);
-      throw;
-    }
-    finally
-    {
-      if (_transaction != null)
-      {
-        await _transaction.DisposeAsync();
-        _transaction = null;
-      }
-    }
-  }
+        try
+        {
+            await SaveChangesAsync(cancellationToken);
 
-  public async Task RollbackTransactionAsync(CancellationToken cancellationToken = default)
-  {
-    if (_transaction != null)
-    {
-      await _transaction.RollbackAsync(cancellationToken);
-      await _transaction.DisposeAsync();
-      _transaction = null;
+            if (_transaction != null)
+            {
+                await _transaction.CommitAsync(cancellationToken);
+            }
+        }
+        catch
+        {
+            await RollbackTransactionAsync(cancellationToken);
+            throw;
+        }
+        finally
+        {
+            if (_transaction != null)
+            {
+                await _transaction.DisposeAsync();
+                _transaction = null;
+            }
+        }
     }
-  }
 
-  public void Dispose()
-  {
-    _transaction?.Dispose();
-    _context.Dispose();
-  }
+    public async Task RollbackTransactionAsync(CancellationToken cancellationToken = default)
+    {
+        if (_transaction != null)
+        {
+            await _transaction.RollbackAsync(cancellationToken);
+            await _transaction.DisposeAsync();
+            _transaction = null;
+        }
+    }
+
+    public void Dispose()
+    {
+        _transaction?.Dispose();
+        _context.Dispose();
+    }
+
+    public IBookingStatusLogRepository BookingStatusLogRepository
+    {
+        get
+        {
+            _bookingStatusLogRepository ??= new BookingStatusLogRepository(_context);
+            return _bookingStatusLogRepository;
+        }
+    }
 }

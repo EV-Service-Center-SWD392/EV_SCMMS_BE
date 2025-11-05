@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EV_SCMMS.Core.Domain.Models;
 
@@ -22,6 +23,9 @@ public partial class Bookinghuykt
     public DateTime? Createdat { get; set; }
 
     public DateTime? Updatedat { get; set; }
+
+    [Column(TypeName = "date")]
+    public DateOnly BookingDate { get; set; }
 
     public virtual ICollection<Assignmentthaontt> Assignmentthaontts { get; set; } = new List<Assignmentthaontt>();
 
