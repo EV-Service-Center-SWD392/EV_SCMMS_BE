@@ -37,6 +37,7 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
         return entity;
     }
 
+
     public void Update(T entity)
     {
         var tracker = _dbSet.Attach(entity);
@@ -110,5 +111,17 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
     public IQueryable<T> GetAllQueryable()
     {
         return _dbSet.Set<T>().AsQueryable();
+    }
+
+    public async Task<bool> RemoveMultipleEntitiesAsync(List<T> entities)
+    {
+        _dbSet.RemoveRange(entities);
+        return true;
+    }
+
+    public async Task<List<T>> AddMultipleAsync(List<T> entities)
+    {
+        await _dbSet.AddRangeAsync(entities);
+        return entities;
     }
 }

@@ -16,8 +16,10 @@ using Microsoft.OpenApi.Models;
 using Net.payOS;
 using EV_SCMMS.Infrastructure.Configuration;
 using EV_SCMMS.WebAPI.Services;
+using FluentValidation;
 
 var builder = WebApplication.CreateBuilder(args);
+
 
 // Add services to the container
 builder.Services.AddControllers();
@@ -45,18 +47,18 @@ builder.Services.AddDbContext<AppDbContext>(
         // Fix timezone issue
         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
-      // Logging & debugging — chỉ bật khi đang ở môi trường dev
-      if (builder.Environment.IsDevelopment())
-      {
-        options.EnableSensitiveDataLogging(); // hiển thị parameter trong query
-        options.EnableDetailedErrors();       // hiển thị lỗi chi tiết
-        options.LogTo(Console.WriteLine, LogLevel.Information);
-      }
-      else
-      {
-        // Trong production chỉ log cảnh báo trở lên để tiết kiệm hiệu năng
-        options.LogTo(Console.WriteLine, LogLevel.Warning);
-      }
+        // Logging & debugging — chỉ bật khi đang ở môi trường dev
+        if (builder.Environment.IsDevelopment())
+        {
+            options.EnableSensitiveDataLogging(); // hiển thị parameter trong query
+            options.EnableDetailedErrors();       // hiển thị lỗi chi tiết
+            options.LogTo(Console.WriteLine, LogLevel.Information);
+        }
+        else
+        {
+            // Trong production chỉ log cảnh báo trở lên để tiết kiệm hiệu năng
+            options.LogTo(Console.WriteLine, LogLevel.Warning);
+        }
     },
     ServiceLifetime.Scoped // 🔒 Scoped để mỗi request có 1 DbContext riêng
 );
@@ -79,57 +81,57 @@ var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException(
 
 builder.Services.AddAuthentication(options =>
 {
-  options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-  options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-  options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
 })
 .AddJwtBearer(options =>
 {
-  options.SaveToken = true;
-  options.RequireHttpsMetadata = false;
-  options.TokenValidationParameters = new TokenValidationParameters
-  {
-    ValidateIssuer = true,
-    ValidateAudience = true,
-    ValidateLifetime = true,
-    ValidateIssuerSigningKey = true,
-    ValidIssuer = jwtSettings["Issuer"],
-    ValidAudience = jwtSettings["Audience"],
-    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
-    ClockSkew = TimeSpan.Zero
-  };
+    options.SaveToken = true;
+    options.RequireHttpsMetadata = false;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtSettings["Issuer"],
+        ValidAudience = jwtSettings["Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
+        ClockSkew = TimeSpan.Zero
+    };
 });
 
 builder.Services.AddAuthorization(options =>
 {
-  // Default policy: JWT validation + refresh token validation (ensures token not revoked)
-  options.DefaultPolicy = new AuthorizationPolicyBuilder()
-      .RequireAuthenticatedUser()
-      .AddRequirements(new ValidRefreshTokenRequirement())
-      .Build();
+    // Default policy: JWT validation + refresh token validation (ensures token not revoked)
+    options.DefaultPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .AddRequirements(new ValidRefreshTokenRequirement())
+        .Build();
 
-  // JwtOnly policy for token management endpoints (login, refresh, revoke)
-  options.AddPolicy("JwtOnly", new AuthorizationPolicyBuilder()
-      .RequireAuthenticatedUser()
-      .Build());
+    // JwtOnly policy for token management endpoints (login, refresh, revoke)
+    options.AddPolicy("JwtOnly", new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build());
 
-  // Role-based policies (still include refresh token validation by default)
-  options.AddPolicy("AdminOnly", new AuthorizationPolicyBuilder()
-      .RequireAuthenticatedUser()
-      .RequireRole("ADMIN")
-      .AddRequirements(new ValidRefreshTokenRequirement())
-      .Build());
+    // Role-based policies (still include refresh token validation by default)
+    options.AddPolicy("AdminOnly", new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .RequireRole("ADMIN")
+        .AddRequirements(new ValidRefreshTokenRequirement())
+        .Build());
 
-  options.AddPolicy("TechnicianAndStaff", new AuthorizationPolicyBuilder()
-      .RequireAuthenticatedUser()
-      .RequireRole("TECHNICIAN", "STAFF")
-      .AddRequirements(new ValidRefreshTokenRequirement())
-      .Build());
-  options.AddPolicy("StaffAndAdmin", new AuthorizationPolicyBuilder()
-      .RequireAuthenticatedUser()
-      .RequireRole("STAFF", "ADMIN")
-      .AddRequirements(new ValidRefreshTokenRequirement())
-      .Build());
+    options.AddPolicy("TechnicianAndStaff", new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .RequireRole("TECHNICIAN", "STAFF")
+        .AddRequirements(new ValidRefreshTokenRequirement())
+        .Build());
+    options.AddPolicy("StaffAndAdmin", new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .RequireRole("STAFF", "ADMIN")
+        .AddRequirements(new ValidRefreshTokenRequirement())
+        .Build());
 });
 
 // Register Application Services
@@ -163,7 +165,11 @@ builder.Services.AddScoped<IChecklistItemService, ChecklistItemService>();
 builder.Services.AddScoped<IWorkOrderService, WorkOrderService>();
 builder.Services.AddScoped<IUserCertificateService, UserCertificateService>();
 builder.Services.AddScoped<ICertificateService, CertificateService>();
+builder.Services.AddScoped<IVehicleService, VehicleService>();
 builder.Services.AddScoped<IUserRoleService, UserRoleService>();
+builder.Services.AddScoped<BookingService>();
+builder.Services.AddScoped<BookingScheduleService>();
+builder.Services.AddScoped<BookingStatusLogService>();
 
 // Register ChatBot AI Service
 builder.Services.AddHttpClient<IChatBotService, ChatBotService>();
@@ -191,34 +197,34 @@ builder.Services.AddHealthChecks();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-  options.SwaggerDoc("v1", new OpenApiInfo
-  {
-    Title = "EV_SCMMS API",
-    Version = "v1.0.0",
-    Description = "EV Service Center Maintenance Management System API",
-    Contact = new OpenApiContact
+    options.SwaggerDoc("v1", new OpenApiInfo
     {
-      Name = "EV_SCMMS SWD392 Group 7"
-    }
-  });
+        Title = "EV_SCMMS API",
+        Version = "v1.0.0",
+        Description = "EV Service Center Maintenance Management System API",
+        Contact = new OpenApiContact
+        {
+            Name = "EV_SCMMS SWD392 Group 7"
+        }
+    });
 
-  // Enable XML comments
-  var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
-  var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-  options.IncludeXmlComments(xmlPath);
+    // Enable XML comments
+    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    options.IncludeXmlComments(xmlPath);
 
-  // Add JWT Authentication to Swagger
-  options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-  {
-    Name = "Authorization",
-    Type = SecuritySchemeType.Http,
-    Scheme = "Bearer",
-    BearerFormat = "JWT",
-    In = ParameterLocation.Header,
-    Description = "Enter 'Bearer' [space] and then your valid token in the text input below.\n\nExample: \"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\""
-  });
+    // Add JWT Authentication to Swagger
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter 'Bearer' [space] and then your valid token in the text input below.\n\nExample: \"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\""
+    });
 
-  options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
             new OpenApiSecurityScheme
@@ -244,6 +250,21 @@ builder.Services.AddCors(options =>
             .AllowCredentials());
 });
 
+// Fluent Validation 
+
+builder.Services.AddScoped<ValidationFilter>();
+
+builder.Services.AddValidatorsFromAssemblyContaining<CreateVehicleDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<VehicleQueryDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<UpdateVehicleDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<BookingScheduleDtoValidator>(includeInternalTypes: true);
+builder.Services.AddValidatorsFromAssemblyContaining<CenterSchedulesQueryDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateBookingDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<UpdateBookingDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<BookingQueryDtoValidator>();
+
+
+
 var app = builder.Build();
 // Configure the HTTP request pipeline
 
@@ -252,11 +273,14 @@ var app = builder.Build();
 // app.UseMiddleware<RequestLoggingMiddleware>();
 // app.UseMiddleware<PerformanceMonitoringMiddleware>();
 
+
+
+
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-  c.SwaggerEndpoint("/swagger/v1/swagger.json", "EV_SCMMS API V1");
-  c.RoutePrefix = string.Empty; // Set Swagger UI at app's root
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "EV_SCMMS API V1");
+    c.RoutePrefix = string.Empty; // Set Swagger UI at app's root
 });
 
 app.UseHttpsRedirection();

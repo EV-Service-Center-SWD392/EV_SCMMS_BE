@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using EV_SCMMS.Core.Application.DTOs.BookingApproval;
 using EV_SCMMS.Core.Application.Interfaces;
 using EV_SCMMS.Core.Application.Interfaces.Services;
@@ -18,12 +13,13 @@ namespace EV_SCMMS.Infrastructure.Services;
 /// </summary>
 public class BookingApprovalService : IBookingApprovalService
 {
-    private static readonly string[] PendingStatuses = { "PENDING", "REQUESTED" };
     private readonly IUnitOfWork _unitOfWork;
+    private readonly BookingStatusLogService _bookingStatusLogService;
 
-    public BookingApprovalService(IUnitOfWork unitOfWork)
+    public BookingApprovalService(IUnitOfWork unitOfWork, BookingStatusLogService bookingStatusLogService)
     {
         _unitOfWork = unitOfWork;
+        _bookingStatusLogService = bookingStatusLogService;
     }
 
     public async Task<IServiceResult<BookingApprovalDto>> GetByIdAsync(Guid id, CancellationToken ct = default)
@@ -73,40 +69,13 @@ public class BookingApprovalService : IBookingApprovalService
                 return ServiceResult<BookingApprovalDto>.Failure("Booking not found");
             }
 
-            if (!IsPending(booking.Status))
+            if (!BookingStatusConstant.IsPending(booking.Status))
             {
                 return ServiceResult<BookingApprovalDto>.Failure("Only pending bookings can be approved");
             }
 
-            var (startUtc, endUtc) = GetTimeWindow(booking);
-            if (!startUtc.HasValue || !endUtc.HasValue)
-            {
-                return ServiceResult<BookingApprovalDto>.Failure("Booking must include a preferred time window");
-            }
-
-            if (startUtc.Value >= endUtc.Value)
-            {
-                return ServiceResult<BookingApprovalDto>.Failure("PreferredStartUtc must be earlier than PreferredEndUtc");
-            }
-
-            var centerId = booking.Slot?.Centerid;
-            if (!centerId.HasValue)
-            {
-                return ServiceResult<BookingApprovalDto>.Failure("Booking must specify a service center");
-            }
-
-            var normalizedStart = EnsureUtc(startUtc.Value);
-            var normalizedEnd = EnsureUtc(endUtc.Value);
-
-            var hasConflict = await _unitOfWork.BookingRepository
-                .ExistsApprovedOverlapAsync(centerId.Value, normalizedStart, normalizedEnd, ct);
-            if (hasConflict)
-            {
-                return ServiceResult<BookingApprovalDto>.Failure("Time slot conflict at center");
-            }
-
             var now = DateTime.UtcNow;
-            booking.Status = "APPROVED";
+            booking.Status = BookingStatusConstant.Approved;
             booking.Updatedat = now;
 
             if (!string.IsNullOrWhiteSpace(dto.Note))
@@ -115,6 +84,9 @@ public class BookingApprovalService : IBookingApprovalService
             }
 
             await _unitOfWork.SaveChangesAsync(ct);
+
+            await _bookingStatusLogService.AddLogAsync(dto.BookingId);
+
 
             // Build response and include actor if applicable
             var response = booking.ToBookingApprovalDto();
@@ -144,22 +116,25 @@ public class BookingApprovalService : IBookingApprovalService
             }
 
             var booking = await LoadBookingForUpdateAsync(dto.BookingId, ct);
+
             if (booking == null)
             {
                 return ServiceResult<BookingApprovalDto>.Failure("Booking not found");
             }
 
-            if (!IsPending(booking.Status))
+            if (!BookingStatusConstant.IsPending(booking.Status))
             {
                 return ServiceResult<BookingApprovalDto>.Failure("Only pending bookings can be rejected");
             }
 
             var now = DateTime.UtcNow;
-            booking.Status = "REJECTED";
+            booking.Status = BookingStatusConstant.Rejected;
             booking.Updatedat = now;
             booking.Notes = dto.Reason;
 
             await _unitOfWork.SaveChangesAsync(ct);
+            await _bookingStatusLogService.AddLogAsync(dto.BookingId);
+
 
             var response = booking.ToBookingApprovalDto();
             response.RejectedBy = staffId;
@@ -173,7 +148,7 @@ public class BookingApprovalService : IBookingApprovalService
         }
     }
 
-    
+
 
     private async Task<Bookinghuykt?> LoadBookingForUpdateAsync(Guid bookingId, CancellationToken ct)
     {
@@ -181,18 +156,6 @@ public class BookingApprovalService : IBookingApprovalService
             .GetAllQueryable()
             .Include(b => b.Slot)
             .FirstOrDefaultAsync(b => b.Bookingid == bookingId, ct);
-    }
-
-    private static bool IsPending(string? status)
-    {
-        if (string.IsNullOrWhiteSpace(status)) return false;
-        return PendingStatuses.Contains(status, StringComparer.OrdinalIgnoreCase);
-    }
-
-    private static (DateTime?, DateTime?) GetTimeWindow(Bookinghuykt booking)
-    {
-        if (booking.Slot == null) return (null, null);
-        return (booking.Slot.Startutc, booking.Slot.Endutc);
     }
 
     private static DateTime EnsureUtc(DateTime value)

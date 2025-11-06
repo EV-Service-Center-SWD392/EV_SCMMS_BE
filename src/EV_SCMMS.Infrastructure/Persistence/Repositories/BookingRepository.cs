@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EV_SCMMS.Core.Application.Interfaces.Repositories;
 using EV_SCMMS.Core.Domain.Models;
+using EV_SCMMS.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace EV_SCMMS.Infrastructure.Persistence.Repositories
@@ -28,7 +29,7 @@ namespace EV_SCMMS.Infrastructure.Persistence.Repositories
             var query = _dbSet.Bookinghuykts
                 .AsNoTracking()
                 .Include(b => b.Slot)
-                .Where(b => b.Status != null && (b.Status == "PENDING" || b.Status == "REQUESTED"));
+                .Where(b => b.Status != null && BookingStatusConstant.IsPending(b.Status));
 
             if (centerId.HasValue)
             {
@@ -40,14 +41,16 @@ namespace EV_SCMMS.Infrastructure.Persistence.Repositories
             {
                 var dayStart = date.Value.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
                 var dayEnd = dayStart.AddDays(1);
-                query = query.Where(b => b.Slot != null && b.Slot.Startutc >= dayStart && b.Slot.Startutc < dayEnd);
+                query = query.Where(b => b.Slot != null && b.Slot.Createdat >= dayStart && b.Slot.Createdat < dayEnd);
             }
 
             return await query
-                .OrderBy(b => b.Slot != null ? b.Slot.Startutc : b.Createdat ?? DateTime.MaxValue)
+                .OrderBy(b => b.Createdat ?? DateTime.MaxValue)
                 .ToListAsync(ct);
         }
 
+
+        // ! Deprecated
         public async Task<bool> ExistsApprovedOverlapAsync(Guid centerId, DateTime startUtc, DateTime endUtc, CancellationToken ct = default)
         {
             var overlapping = await _dbSet.Bookinghuykts
@@ -55,7 +58,7 @@ namespace EV_SCMMS.Infrastructure.Persistence.Repositories
                 .Include(b => b.Slot)
                 .Where(b => b.Status == "APPROVED")
                 .Where(b => b.Slot != null && b.Slot.Centerid == centerId)
-                .Where(b => b.Slot!.Startutc < endUtc && startUtc < b.Slot.Endutc)
+                // .Where(b => b.Slot!.Startutc < endUtc && startUtc < b.Slot.Endutc)
                 .ToListAsync(ct);
 
             if (overlapping.Count == 0)

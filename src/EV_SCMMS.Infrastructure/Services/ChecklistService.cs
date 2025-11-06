@@ -150,7 +150,7 @@ public class ChecklistService : IChecklistService
             // Save common note for this intake submission if provided
             if (!string.IsNullOrWhiteSpace(dto.Note))
             {
-                intake.IntakeResponseNote = dto.Note;
+                // intake.IntakeResponseNote = dto.Note;
             }
 
             intake.Updatedat = now;
