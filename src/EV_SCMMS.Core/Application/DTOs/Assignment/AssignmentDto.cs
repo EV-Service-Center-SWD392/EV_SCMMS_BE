@@ -11,6 +11,4 @@ public class AssignmentDto
     public DateTime PlannedStartUtc { get; set; }
     public DateTime PlannedEndUtc { get; set; }
     public string Status { get; set; } = string.Empty;
-    [System.ComponentModel.DataAnnotations.MaxLength(1000)]
-    public string? Note { get; set; }
 }

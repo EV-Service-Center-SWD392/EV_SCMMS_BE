@@ -42,13 +42,32 @@ public class ServiceIntakeService : IServiceIntakeService
                 .AsNoTracking()
                 .Include(b => b.Slot)
                 .Include(b => b.Vehicle)
-                .Include(b => b.Assignmentthaontts)
                 .FirstOrDefaultAsync(b => b.Bookingid == dto.BookingId, ct);
 
             if (booking == null)
             {
                 return ServiceResult<ServiceIntakeDto>.Failure("Booking not found");
             }
+
+            // Load assignments separately to avoid querying non-existent note column
+            var assignments = await _unitOfWork.AssignmentRepository.GetAllQueryable()
+                .AsNoTracking()
+                .Where(a => a.Bookingid == booking.Bookingid)
+                .Select(a => new Assignmentthaontt
+                {
+                    Assignmentid = a.Assignmentid,
+                    Bookingid = a.Bookingid,
+                    Technicianid = a.Technicianid,
+                    Queueno = a.Queueno,
+                    Plannedstartutc = a.Plannedstartutc,
+                    Plannedendutc = a.Plannedendutc,
+                    Status = a.Status,
+                    Isactive = a.Isactive,
+                    Createdat = a.Createdat,
+                    Updatedat = a.Updatedat
+                })
+                .ToListAsync(ct);
+            booking.Assignmentthaontts = assignments;
 
             // Optional business rule: allow intake creation only for approved bookings
             if (!string.Equals(booking.Status, "APPROVED", StringComparison.OrdinalIgnoreCase))
@@ -95,10 +114,9 @@ public class ServiceIntakeService : IServiceIntakeService
             }
             catch { /* best-effort; do not fail intake creation */ }
 
-            var reloaded = await _unitOfWork.ServiceIntakeRepository.GetByIdWithIncludesAsync(entity.Intakeid, ct) ?? entity;
-            reloaded.Booking = reloaded.Booking ?? booking;
-
-            var resultDto = reloaded.ToDto();
+            // Map to DTO without reloading to avoid querying assignment.note column
+            entity.Booking = booking;
+            var resultDto = entity.ToDto();
             return ServiceResult<ServiceIntakeDto>.Success(resultDto, "Service intake created successfully");
         }
         catch (Exception ex)
@@ -264,13 +282,35 @@ public class ServiceIntakeService : IServiceIntakeService
 
     private async Task<Serviceintakethaontt?> LoadTrackedIntakeAsync(Guid id, CancellationToken ct)
     {
-        return await _unitOfWork.ServiceIntakeRepository.GetAllQueryable()
+        var intake = await _unitOfWork.ServiceIntakeRepository.GetAllQueryable()
             .Include(si => si.Booking)
                 .ThenInclude(b => b.Slot)
             .Include(si => si.Booking)
                 .ThenInclude(b => b.Vehicle)
-            .Include(si => si.Booking)
-                .ThenInclude(b => b.Assignmentthaontts)
             .FirstOrDefaultAsync(si => si.Intakeid == id, ct);
+
+        if (intake?.Booking != null)
+        {
+            // Load assignments separately to avoid querying non-existent note column
+            var assignments = await _unitOfWork.AssignmentRepository.GetAllQueryable()
+                .Where(a => a.Bookingid == intake.Booking.Bookingid)
+                .Select(a => new Assignmentthaontt
+                {
+                    Assignmentid = a.Assignmentid,
+                    Bookingid = a.Bookingid,
+                    Technicianid = a.Technicianid,
+                    Queueno = a.Queueno,
+                    Plannedstartutc = a.Plannedstartutc,
+                    Plannedendutc = a.Plannedendutc,
+                    Status = a.Status,
+                    Isactive = a.Isactive,
+                    Createdat = a.Createdat,
+                    Updatedat = a.Updatedat
+                })
+                .ToListAsync(ct);
+            intake.Booking.Assignmentthaontts = assignments;
+        }
+
+        return intake;
     }
 }

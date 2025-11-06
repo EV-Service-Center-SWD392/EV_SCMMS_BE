@@ -13,7 +13,6 @@ public class ServiceIntakeDto
     public Guid? BookingId { get; set; }
     public int? Odometer { get; set; }
     public int? BatteryPercent { get; set; }
-    public string? Notes { get; set; }
     public string Status { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
