@@ -11,7 +11,7 @@ namespace EV_SCMMS.WebAPI.Controllers
   [ApiController]
   [Route("api/client/Booking")]
   [ServiceFilter(typeof(ValidationFilter))]
-  [Authorize(Roles = "CUSTOMER")]
+  [Authorize(Roles = "CUSTOMER, STAFF")]
 
   public class ClientBookingController : ControllerBase
   {
