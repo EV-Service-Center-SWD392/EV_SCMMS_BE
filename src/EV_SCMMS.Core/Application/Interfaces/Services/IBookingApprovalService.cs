@@ -13,7 +13,7 @@ namespace EV_SCMMS.Core.Application.Interfaces.Services;
 public interface IBookingApprovalService
 {
     Task<IServiceResult<BookingApprovalDto>> GetByIdAsync(Guid id, CancellationToken ct = default);
-    Task<IServiceResult<List<BookingApprovalDto>>> GetPendingAsync(Guid? centerId, DateOnly? date, CancellationToken ct = default);
+    Task<IServiceResult<List<BookingApprovalDto>>> GetPendingAsync(Guid? centerId, CenterSchedulesQueryDto? dto, CancellationToken ct = default);
     Task<IServiceResult<BookingApprovalDto>> ApproveAsync(ApproveBookingDto dto, Guid staffId, CancellationToken ct = default);
     Task<IServiceResult<BookingApprovalDto>> RejectAsync(RejectBookingDto dto, Guid staffId, CancellationToken ct = default);
 }

@@ -272,7 +272,7 @@ public class BookingService
 
   // Create booking information
 
-  public async Task<IServiceResult<object>> CreateBookingAsync(Guid customerId, CreateBookingDto dto, CancellationToken ct = default)
+  public async Task<IServiceResult<Guid>> CreateBookingAsync(Guid customerId, CreateBookingDto dto, CancellationToken ct = default)
   {
     try
     {
@@ -283,26 +283,26 @@ public class BookingService
           .FirstOrDefaultAsync(s => s.Centerid == dto.CenterId && s.Slot == dto.Slot);
 
       if (slot is null)
-        return ServiceResult<object>.Failure("Slot not found");
+        return ServiceResult<Guid>.Failure("Slot not found");
 
       // optional: ensure center matches payload if provided
       if (dto.CenterId.HasValue && dto.CenterId.Value != slot.Centerid)
-        return ServiceResult<object>.Failure("Slot does not belong to provided center");
+        return ServiceResult<Guid>.Failure("Slot does not belong to provided center");
 
       // verify center exists (slot.Center already checked)
       if (slot.Center == null)
-        return ServiceResult<object>.Failure("Center not found");
+        return ServiceResult<Guid>.Failure("Center not found");
 
       // vehicle exists
       var vehicleExists = await _unitOfWork.VehicleRepository.GetAllQueryable()
           .AnyAsync(v => v.Vehicleid == dto.VehicleId && v.Customerid == customerId, ct);
       if (!vehicleExists)
-        return ServiceResult<object>.Failure("Vehicle not found");
+        return ServiceResult<Guid>.Failure("Vehicle not found");
 
       // capacity check
       var currentCount = BookingScheduleService.NumberOfCurrentBookingRecord(slot, DateOnly.Parse(dto.BookingDate));
       if (slot.Capacity.HasValue && currentCount >= slot.Capacity.Value)
-        return ServiceResult<object>.Failure("Slot is full");
+        return ServiceResult<Guid>.Failure("Slot is full");
 
       var newBooking = new Bookinghuykt
       {
@@ -324,12 +324,12 @@ public class BookingService
       // Handle save log
       await _bookingStatusLogService.AddLogAsync(newBooking.Bookingid);
 
-      return ServiceResult<object>.Success(new { Id = newBooking.Bookingid }, "Create booking successfully");
+      return ServiceResult<Guid>.Success(newBooking.Bookingid, "Create booking successfully");
     }
     catch (Exception ex)
     {
       Console.WriteLine($"Error in CreateBookingAsync: {ex.Message}");
-      return ServiceResult<object>.Failure("Something was wrong");
+      return ServiceResult<Guid>.Failure("Something was wrong");
     }
   }
 }
