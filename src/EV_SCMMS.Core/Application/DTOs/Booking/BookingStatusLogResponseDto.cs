@@ -14,3 +14,11 @@ public class BookingStatusLogResponseDto
 
   public bool IsSeen { get; set; }
 }
+
+public class BookingStatusLogResponseWithUnseenLogCount
+{
+  public int UnseenLogsCount { get; set; }
+  public List<BookingStatusLogResponseDto> Result { get; set; }
+
+
+}
