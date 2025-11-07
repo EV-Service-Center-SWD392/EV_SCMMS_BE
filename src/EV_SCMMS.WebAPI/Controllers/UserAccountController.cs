@@ -71,4 +71,37 @@ public class UserAccountController : ControllerBase
         if (result.IsSuccess) return Ok(new { message = "User account deleted successfully" });
         return BadRequest(result.Message);
     }
+
+    /// <summary>
+    /// Get all technicians with their certificate information
+    /// </summary>
+    /// <returns>List of technicians with their assigned certificates</returns>
+    /// <remarks>
+    /// Returns all users with "TECHNICIAN" role including:
+    /// - userId: GUID - Technician's unique identifier
+    /// - userName: string - Full name (e.g., "Kỹ thuật An Nguyễn Văn")
+    /// - email: string - Email address (e.g., "tech1@ev.com")
+    /// - phoneNumber: string - Phone number (e.g., "0910000001")
+    /// - isActive: boolean - Account status
+    /// - certificates: array - List of assigned certificates with:
+    ///   - userCertificateId: GUID - Assignment ID
+    ///   - certificateId: GUID - Certificate ID
+    ///   - certificateName: string - Certificate name
+    ///   - status: string - "Pending", "Approved", "Revoked"
+    ///   - isActive: boolean - Assignment status
+    /// - validCertificatesCount: int - Number of valid certificates
+    /// - expiredCertificatesCount: int - Number of expired certificates
+    /// 
+    /// This endpoint is essential for:
+    /// - Getting userId and certificateId for certificate management
+    /// - Viewing technician certificate status overview
+    /// - Certificate assignment planning
+    /// </remarks>
+    [HttpGet("technicians")]
+    public async Task<IActionResult> GetAllTechnicians()
+    {
+        var result = await _userAccountService.GetAllTechniciansAsync();
+        if (result.IsSuccess) return Ok(result.Data);
+        return BadRequest(result.Message);
+    }
 }

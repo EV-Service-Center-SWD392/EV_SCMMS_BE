@@ -3,6 +3,7 @@ using EV_SCMMS.Core.Application.Interfaces;
 using EV_SCMMS.Core.Application.Interfaces.Services;
 using EV_SCMMS.Core.Application.Results;
 using EV_SCMMS.Infrastructure.Mappings;
+using EV_SCMMS.Core.Application.DTOs.UserCertificate;
 
 namespace EV_SCMMS.Infrastructure.Services;
 
@@ -175,6 +176,39 @@ public class UserAccountService : IUserAccountService
         catch (Exception ex)
         {
             return ServiceResult<List<UserAccountDto>>.Failure($"Error retrieving users by role: {ex.Message}");
+        }
+    }
+
+    public async Task<IServiceResult<List<TechnicianWithCertificatesDto>>> GetAllTechniciansAsync()
+    {
+        try
+        {
+            var technicians = await _unitOfWork.UserAccountRepository.GetByRoleAsync("TECHNICIAN");
+            var result = new List<TechnicianWithCertificatesDto>();
+
+            foreach (var tech in technicians)
+            {
+                var certificates = await _unitOfWork.UserCertificateRepository.GetByUserIdAsync(tech.Userid);
+                var validCerts = certificates.Where(c => c.Isactive == true).Count();
+
+                result.Add(new TechnicianWithCertificatesDto
+                {
+                    UserId = tech.Userid,
+                    UserName = $"{tech.Firstname} {tech.Lastname}".Trim(),
+                    Email = tech.Email ?? string.Empty,
+                    PhoneNumber = tech.Phonenumber,
+                    IsActive = tech.Isactive ?? false,
+                    Certificates = certificates.Select(c => c.ToDto()).ToList(),
+                    ValidCertificatesCount = validCerts,
+                    ExpiredCertificatesCount = 0
+                });
+            }
+
+            return ServiceResult<List<TechnicianWithCertificatesDto>>.Success(result);
+        }
+        catch (Exception ex)
+        {
+            return ServiceResult<List<TechnicianWithCertificatesDto>>.Failure($"Error retrieving technicians: {ex.Message}");
         }
     }
 }

@@ -15,4 +15,5 @@ public interface IUserAccountService
     Task<IServiceResult<UserAccountDto>> GetByIdAsync(Guid id);
     Task<IServiceResult<List<UserAccountDto>>> GetAllAsync();
     Task<IServiceResult<List<UserAccountDto>>> GetByRoleAsync(string role);
+    Task<IServiceResult<List<TechnicianWithCertificatesDto>>> GetAllTechniciansAsync();
 }
