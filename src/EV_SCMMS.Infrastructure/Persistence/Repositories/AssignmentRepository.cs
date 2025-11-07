@@ -119,9 +119,41 @@ public class AssignmentRepository : GenericRepository<Assignmentthaontt>, IAssig
             query = query.Where(a => a.Status != null && a.Status == status);
         }
 
-        return await query
+        // Use projection to avoid selecting 'note' column which doesn't exist in DB
+        var results = await query
+            .Select(a => new
+            {
+                a.Assignmentid,
+                a.Bookingid,
+                a.Technicianid,
+                a.Plannedstartutc,
+                a.Plannedendutc,
+                a.Queueno,
+                a.Status,
+                a.Isactive,
+                a.Createdat,
+                a.Updatedat,
+                a.Booking
+            })
             .OrderBy(a => a.Plannedstartutc)
             .ThenBy(a => a.Technicianid)
             .ToListAsync(ct);
+
+        // Map back to entity
+        return results.Select(r => new Assignmentthaontt
+        {
+            Assignmentid = r.Assignmentid,
+            Bookingid = r.Bookingid,
+            Technicianid = r.Technicianid,
+            Plannedstartutc = r.Plannedstartutc,
+            Plannedendutc = r.Plannedendutc,
+            Queueno = r.Queueno,
+            Status = r.Status,
+            Note = null,
+            Isactive = r.Isactive,
+            Createdat = r.Createdat,
+            Updatedat = r.Updatedat,
+            Booking = r.Booking
+        }).ToList();
     }
 }
