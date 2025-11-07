@@ -143,11 +143,66 @@ public class UserCertificateController : ControllerBase
     }
 
     /// <summary>
+    /// Get all user certificate assignments in the system
+    /// </summary>
+    /// <returns>List of all user certificate assignments</returns>
+    /// <remarks>
+    /// Returns all user certificate assignments with complete information including:
+    /// - userCertificateId: GUID - Assignment ID
+    /// - userId: GUID - Technician's user ID  
+    /// - userName: string - Technician's full name (e.g., "Kỹ thuật An Nguyễn Văn")
+    /// - certificateId: GUID - Certificate ID
+    /// - certificateName: string - Certificate name (e.g., "Chứng chỉ sửa chữa xe điện cấp 1")
+    /// - status: string - Assignment status ("PENDING", "APPROVED", "REJECTED")
+    /// - isActive: boolean - Assignment active status
+    /// - createdAt: DateTime - When the assignment was created
+    /// - updatedAt: DateTime - When the assignment was last updated
+    /// - expiryDate: DateTime - When the certificate will expire
+    /// - isExpired: boolean - Whether the certificate has expired
+    /// - daysUntilExpiry: int - Days until expiry
+    /// 
+    /// Use cases:
+    /// - Admin dashboard to view all certificate assignments
+    /// - Certificate management overview
+    /// - Audit and reporting purposes
+    /// - Filter and search certificate assignments
+    /// 
+    /// Sample response:
+    /// ```json
+    /// {
+    ///   "data": [
+    ///     {
+    ///       "userCertificateId": "5d276020-e2e2-464d-af47-415d6e4ebfde",
+    ///       "userId": "f20f31c9-c84b-4baf-b9df-7e66c91b91fb",
+    ///       "userName": "Kỹ thuật An Nguyễn Văn",
+    ///       "certificateId": "16bc380d-5e7d-4c73-954c-81662e9f2678",
+    ///       "certificateName": "Chứng chỉ sửa chữa xe điện cấp 1",
+    ///       "status": "APPROVED",
+    ///       "isActive": true,
+    ///       "createdAt": "2025-11-07T02:50:39.543832",
+    ///       "updatedAt": "2025-11-07T02:50:59.166145",
+    ///       "expiryDate": "2026-11-07T02:50:39.543832",
+    ///       "isExpired": false,
+    ///       "daysUntilExpiry": 364
+    ///     }
+    ///   ],
+    ///   "isSuccess": true
+    /// }
+    /// ```
+    /// </remarks>
+    [HttpGet]
+    public async Task<IActionResult> GetAllUserCertificates()
+    {
+        var result = await _userCertificateService.GetAllUserCertificatesAsync();
+        return result.IsSuccess ? Ok(result) : BadRequest(result);
+    }
+
+    /// <summary>
     /// Get all pending certificate assignments for staff review
     /// </summary>
     /// <returns>List of pending certificate assignments</returns>
     /// <remarks>
-    /// Returns all certificate assignments with status "Pending" that require staff approval or rejection.
+    /// Returns all certificate assignments with status "PENDING" that require staff approval or rejection.
     /// This endpoint is designed for staff/admin dashboard to review and manage pending certificate requests.
     /// 
     /// Response includes:
@@ -156,7 +211,7 @@ public class UserCertificateController : ControllerBase
     /// - userName: string - Technician's full name (e.g., "Kỹ thuật An Nguyễn Văn")
     /// - certificateId: GUID - Certificate ID
     /// - certificateName: string - Certificate name (e.g., "Chứng chỉ sửa chữa xe điện cấp 1")
-    /// - status: "Pending" - All returned items have pending status
+    /// - status: "PENDING" - All returned items have pending status
     /// - createdAt: DateTime - When the assignment was requested
     /// - expiryDate: DateTime - When the certificate will expire (if approved)
     /// - daysUntilExpiry: int - Days until expiry (364 for new assignments)
@@ -165,26 +220,6 @@ public class UserCertificateController : ControllerBase
     /// - Staff dashboard to show pending certificate requests
     /// - Bulk approval/rejection workflows
     /// - Certificate request management
-    /// 
-    /// Sample response:
-    /// ```json
-    /// {
-    ///   "data": [
-    ///     {
-    ///       "userCertificateId": "fc94f180-8592-4eb6-9236-3393b50288f5",
-    ///       "userId": "13aaf907-f391-40a6-9fcb-b94781ffdba3",
-    ///       "userName": "John Technician",
-    ///       "certificateId": "39fac911-2c26-49bb-afec-593970ff64f3",
-    ///       "certificateName": "Chứng chỉ hệ thống lái VinFast",
-    ///       "status": "Pending",
-    ///       "createdAt": "2025-11-07T07:05:38.329081Z",
-    ///       "expiryDate": "2026-11-07T07:05:38.329081Z",
-    ///       "daysUntilExpiry": 364
-    ///     }
-    ///   ],
-    ///   "isSuccess": true
-    /// }
-    /// ```
     /// </remarks>
     [HttpGet("pending")]
     public async Task<IActionResult> GetPendingCertificates()

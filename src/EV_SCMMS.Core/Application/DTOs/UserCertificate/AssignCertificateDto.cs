@@ -9,6 +9,4 @@ public class AssignCertificateDto
     
     [Required]
     public Guid CertificateId { get; set; }
-    
-    public string Status { get; set; } = "ACTIVE";
 }

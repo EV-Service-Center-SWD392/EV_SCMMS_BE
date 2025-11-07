@@ -23,6 +23,7 @@ public static class UserCertificateMapperExtensions
             UpdatedAt = entity.Updatedat,
             UserName = $"{entity.User?.Firstname} {entity.User?.Lastname}".Trim(),
             CertificateName = entity.Certificate?.Name,
+            CertificateImage = entity.Certificate?.Image,
             ExpiryDate = expiryDate,
             IsExpired = expiryDate.HasValue && expiryDate.Value < DateTime.UtcNow,
             DaysUntilExpiry = Math.Max(0, daysUntilExpiry)
@@ -35,10 +36,9 @@ public static class UserCertificateMapperExtensions
 
         return new Usercertificatetuantm
         {
-            Usercertificateid = Guid.NewGuid(),
             Userid = assignDto.UserId,
             Certificateid = assignDto.CertificateId,
-            Status = assignDto.Status,
+            Status = "PENDING",
             Isactive = true,
             Createdat = DateTime.UtcNow
         };

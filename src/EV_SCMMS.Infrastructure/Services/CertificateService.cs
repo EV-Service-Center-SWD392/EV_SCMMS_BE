@@ -9,10 +9,12 @@ namespace EV_SCMMS.Infrastructure.Services;
 public class CertificateService : ICertificateService
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ICloudinaryService _cloudinaryService;
 
-    public CertificateService(IUnitOfWork unitOfWork)
+    public CertificateService(IUnitOfWork unitOfWork, ICloudinaryService cloudinaryService)
     {
         _unitOfWork = unitOfWork;
+        _cloudinaryService = cloudinaryService;
     }
 
     public async Task<IServiceResult<CertificateDto>> CreateAsync(CreateCertificateDto dto)
@@ -26,6 +28,12 @@ public class CertificateService : ICertificateService
             }
 
             var entity = dto.ToEntity();
+            
+            if (dto.ImageFile != null)
+            {
+                entity.Image = await _cloudinaryService.UploadImageAsync(dto.ImageFile, "certificates");
+            }
+            
             await _unitOfWork.CertificateRepository.AddAsync(entity);
             await _unitOfWork.SaveChangesAsync();
 
@@ -47,6 +55,11 @@ public class CertificateService : ICertificateService
                 return ServiceResult<CertificateDto>.Failure("Certificate not found");
             }
 
+            if (dto.ImageFile != null)
+            {
+                existing.Image = await _cloudinaryService.UploadImageAsync(dto.ImageFile, "certificates");
+            }
+            
             existing.UpdateFromDto(dto);
             await _unitOfWork.CertificateRepository.UpdateAsync(existing);
             await _unitOfWork.SaveChangesAsync();
