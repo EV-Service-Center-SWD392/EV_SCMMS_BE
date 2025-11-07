@@ -77,7 +77,7 @@ public class SparepartReplenishmentRequestService : ISparepartReplenishmentReque
             }
 
             var request = createDto.ToEntity();
-            request.Status = "Pending";
+            request.Status = "PENDING";
 
             var createdRequest = await _unitOfWork.SparepartReplenishmentRequestRepository.AddAsync(request);
             await _unitOfWork.SaveChangesAsync();
@@ -206,7 +206,7 @@ public class SparepartReplenishmentRequestService : ISparepartReplenishmentReque
                 return ServiceResult<SparepartReplenishmentRequestDto>.Failure("Replenishment request not found");
             }
 
-            if (request.Status == "Approved")
+            if (request.Status == "APPROVED")
             {
                 return ServiceResult<SparepartReplenishmentRequestDto>.Failure("Request is already approved");
             }
@@ -215,7 +215,7 @@ public class SparepartReplenishmentRequestService : ISparepartReplenishmentReque
             // For now, we'll leave it null or you might need to convert it to Guid
             // request.Approvedby = Guid.Parse(approvedBy); // If approvedBy is a valid Guid string
             request.Approvedat = DateTime.UtcNow;
-            request.Status = "Approved";
+            request.Status = "APPROVED";
             request.Updatedat = DateTime.UtcNow;
 
             await _unitOfWork.SparepartReplenishmentRequestRepository.UpdateAsync(request);

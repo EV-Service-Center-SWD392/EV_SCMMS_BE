@@ -48,4 +48,14 @@ public class UserCertificateRepository : GenericRepository<Usercertificatetuantm
         return await _dbSet.Usercertificatetuantms
             .AnyAsync(x => x.Userid == userId && x.Certificateid == certificateId && x.Isactive == true, cancellationToken);
     }
+
+    public async Task<List<Usercertificatetuantm>> GetPendingCertificatesAsync(CancellationToken cancellationToken = default)
+    {
+        return await _dbSet.Usercertificatetuantms
+            .Where(x => x.Status == "PENDING" && x.Isactive == true)
+            .Include(x => x.Certificate)
+            .Include(x => x.User)
+            .OrderBy(x => x.Createdat)
+            .ToListAsync(cancellationToken);
+    }
 }

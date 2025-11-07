@@ -13,17 +13,18 @@ public class UserAccountRepository : GenericRepository<Useraccount>, IUserAccoun
     {
     }
 
-    public async Task<List<Useraccount>> GetByRoleAsync(Guid role, CancellationToken cancellationToken = default)
+    public async Task<List<Useraccount>> GetByRoleAsync(string role, CancellationToken cancellationToken = default)
     {
         return await _dbSet.Useraccounts
-            .Where(x => x.Roleid == role && x.Isactive == true)
+            .Include(x => x.Role)
+            .Where(x => x.Role.Name == role && x.Isactive == true)
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<Useraccount?> GetByUsernameAsync(string firstname, CancellationToken cancellationToken = default)
+    public async Task<Useraccount?> GetByUsernameAsync(string username, CancellationToken cancellationToken = default)
     {
         return await _dbSet.Useraccounts
-            .FirstOrDefaultAsync(x => x.Firstname == firstname, cancellationToken);
+            .FirstOrDefaultAsync(x => x.Firstname == username, cancellationToken);
     }
 
     public async Task<Useraccount?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
@@ -50,15 +51,5 @@ public class UserAccountRepository : GenericRepository<Useraccount>, IUserAccoun
         {
             return false;
         }
-    }
-
-    Task<List<Useraccount>> IUserAccountRepository.GetByRoleAsync(string role, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
-
-    Task<Useraccount?> IUserAccountRepository.GetByUsernameAsync(string username, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
     }
 }
