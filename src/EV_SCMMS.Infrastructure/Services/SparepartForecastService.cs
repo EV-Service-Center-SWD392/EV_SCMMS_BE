@@ -213,7 +213,7 @@ public class SparepartForecastService : ISparepartForecastService
             // Note: ApprovedBy field appears to be Guid in DTO but string parameter
             // You might need to adjust this based on your actual data structure
             forecast.Approveddate = DateTime.UtcNow;
-            forecast.Status = "Approved";
+            forecast.Status = "APPROVED";
             forecast.Updatedat = DateTime.UtcNow;
 
             await _unitOfWork.SparepartForecastRepository.UpdateAsync(forecast);

@@ -14,24 +14,50 @@ namespace EV_SCMMS.Infrastructure.Persistence.Repositories;
 /// </summary>
 public class ServiceIntakeRepository : GenericRepository<Serviceintakethaontt>, IServiceIntakeRepository
 {
+    private readonly AppDbContext _context;
+
     public ServiceIntakeRepository(AppDbContext context) : base(context)
     {
+        _context = context;
     }
 
     public async Task<Serviceintakethaontt?> GetByIdWithIncludesAsync(Guid id, CancellationToken ct = default)
     {
-        return await _dbSet.Serviceintakethaontts
+        var intake = await _dbSet.Serviceintakethaontts
             .AsNoTracking()
             .Include(si => si.Booking)
                 .ThenInclude(b => b.Slot)
             .Include(si => si.Booking)
                 .ThenInclude(b => b.Vehicle)
-            .Include(si => si.Booking)
-                .ThenInclude(b => b.Assignmentthaontts)
-            .Include(si => si.Booking)
-                .ThenInclude(b => b.Assignmentthaontts)
             .Include(si => si.Advisor)
             .FirstOrDefaultAsync(si => si.Intakeid == id, ct);
+
+        if (intake?.Booking != null)
+        {
+            // Load assignments separately to avoid querying note column
+            var assignments = await _context.Set<Assignmentthaontt>()
+                .AsNoTracking()
+                .Where(a => a.Bookingid == intake.Booking.Bookingid)
+                .Select(a => new Assignmentthaontt
+                {
+                    Assignmentid = a.Assignmentid,
+                    Bookingid = a.Bookingid,
+                    Technicianid = a.Technicianid,
+                    Plannedstartutc = a.Plannedstartutc,
+                    Plannedendutc = a.Plannedendutc,
+                    Queueno = a.Queueno,
+                    Status = a.Status,
+                    Isactive = a.Isactive,
+                    Createdat = a.Createdat,
+                    Updatedat = a.Updatedat
+                    // Explicitly exclude Note field
+                })
+                .ToListAsync(ct);
+
+            intake.Booking.Assignmentthaontts = assignments;
+        }
+
+        return intake;
     }
 
     public async Task<List<Serviceintakethaontt>> GetRangeAsync(
@@ -47,8 +73,6 @@ public class ServiceIntakeRepository : GenericRepository<Serviceintakethaontt>, 
                 .ThenInclude(b => b.Slot)
             .Include(si => si.Booking)
                 .ThenInclude(b => b.Vehicle)
-            .Include(si => si.Booking)
-                .ThenInclude(b => b.Assignmentthaontts)
             .Where(si => si.Isactive != false);
 
         if (centerId.HasValue)
@@ -73,12 +97,44 @@ public class ServiceIntakeRepository : GenericRepository<Serviceintakethaontt>, 
         if (technicianId.HasValue)
         {
             var techId = technicianId.Value;
-            // Filter by assigned technician via Booking -> Assignmentthaontts
-            query = query.Where(si => si.Booking.Assignmentthaontts.Any(a => a.Isactive == true && a.Technicianid == techId));
+            // Filter by checking if technician has any active assignment for this booking
+            var bookingIdsWithTech = await _context.Set<Assignmentthaontt>()
+                .AsNoTracking()
+                .Where(a => a.Isactive == true && a.Technicianid == techId)
+                .Select(a => a.Bookingid)
+                .ToListAsync(ct);
+
+            query = query.Where(si => bookingIdsWithTech.Contains(si.Bookingid));
         }
 
-        return await query
+        var intakes = await query
             .OrderByDescending(si => si.Createdat)
             .ToListAsync(ct);
+
+        // Load assignments separately for each intake
+        foreach (var intake in intakes.Where(i => i.Booking != null))
+        {
+            var assignments = await _context.Set<Assignmentthaontt>()
+                .AsNoTracking()
+                .Where(a => a.Bookingid == intake.Booking!.Bookingid)
+                .Select(a => new Assignmentthaontt
+                {
+                    Assignmentid = a.Assignmentid,
+                    Bookingid = a.Bookingid,
+                    Technicianid = a.Technicianid,
+                    Plannedstartutc = a.Plannedstartutc,
+                    Plannedendutc = a.Plannedendutc,
+                    Queueno = a.Queueno,
+                    Status = a.Status,
+                    Isactive = a.Isactive,
+                    Createdat = a.Createdat,
+                    Updatedat = a.Updatedat
+                })
+                .ToListAsync(ct);
+
+            intake.Booking.Assignmentthaontts = assignments;
+        }
+
+        return intakes;
     }
 }

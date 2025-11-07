@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using EV_SCMMS.Core.Application.Interfaces.Repositories;
 using EV_SCMMS.Core.Domain.Models;
-using EV_SCMMS.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace EV_SCMMS.Infrastructure.Persistence.Repositories
@@ -24,12 +23,12 @@ namespace EV_SCMMS.Infrastructure.Persistence.Repositories
                 .FirstOrDefaultAsync(b => b.Bookingid == id, ct);
         }
 
-        public async Task<List<Bookinghuykt>> GetPendingAsync(Guid? centerId, DateOnly? date, CancellationToken ct = default)
+        public async Task<List<Bookinghuykt>> GetPendingAsync(Guid? centerId, DateOnly? startDate, DateOnly? endDate, CancellationToken ct = default)
         {
             var query = _dbSet.Bookinghuykts
                 .AsNoTracking()
                 .Include(b => b.Slot)
-                .Where(b => b.Status != null && BookingStatusConstant.IsPending(b.Status));
+                .Where(b => b.Status == BookingStatusConstant.Pending || b.Status == BookingStatusConstant.Requested);
 
             if (centerId.HasValue)
             {
@@ -37,20 +36,26 @@ namespace EV_SCMMS.Infrastructure.Persistence.Repositories
                 query = query.Where(b => b.Slot != null && b.Slot.Centerid == center);
             }
 
-            if (date.HasValue)
+            if (startDate.HasValue)
             {
-                var dayStart = date.Value.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
-                var dayEnd = dayStart.AddDays(1);
-                query = query.Where(b => b.Slot != null && b.Slot.Createdat >= dayStart && b.Slot.Createdat < dayEnd);
+                query = query.Where(b => b.Slot != null && b.BookingDate >= startDate);
             }
 
+            if (endDate.HasValue)
+            {
+                query = query.Where(b => b.Slot != null && b.BookingDate <= endDate);
+            }
+
+
+
             return await query
-                .OrderBy(b => b.Createdat ?? DateTime.MaxValue)
+                .OrderByDescending(x => x.BookingDate)
+                .ThenByDescending(x => x.Slot.Startutc)
                 .ToListAsync(ct);
         }
 
-
         // ! Deprecated
+
         public async Task<bool> ExistsApprovedOverlapAsync(Guid centerId, DateTime startUtc, DateTime endUtc, CancellationToken ct = default)
         {
             var overlapping = await _dbSet.Bookinghuykts

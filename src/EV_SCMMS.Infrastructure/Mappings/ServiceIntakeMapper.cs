@@ -34,7 +34,6 @@ public static class ServiceIntakeMapper
             BookingId = entity.Bookingid,
             Odometer = entity.Odometerkm,
             BatteryPercent = entity.Batterysoc,
-            Notes = entity.Notes,
             Status = entity.Status ?? string.Empty,
             CreatedAt = createdAt,
             UpdatedAt = updatedAt
@@ -63,7 +62,6 @@ public static class ServiceIntakeMapper
             Checkintimeutc = now,
             Odometerkm = dto.Odometer,
             Batterysoc = dto.BatteryPercent,
-            Notes = dto.Notes,
             Status = "CHECKED_IN",
             Isactive = true,
             Createdat = now,
@@ -77,7 +75,6 @@ public static class ServiceIntakeMapper
 
         entity.Odometerkm = dto.Odometer;
         entity.Batterysoc = dto.BatteryPercent;
-        entity.Notes = dto.Notes;
         entity.Updatedat = DateTime.UtcNow;
     }
 

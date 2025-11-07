@@ -14,6 +14,4 @@ public class CreateServiceIntakeDto
     public int? Odometer { get; set; }
 
     public int? BatteryPercent { get; set; }
-
-    public string? Notes { get; set; }
 }

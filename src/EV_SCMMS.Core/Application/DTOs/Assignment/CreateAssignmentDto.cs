@@ -18,7 +18,4 @@ public class CreateAssignmentDto
 
     [Required]
     public DateTime PlannedEndUtc { get; set; }
-
-    [MaxLength(1000)]
-    public string? Note { get; set; }
 }

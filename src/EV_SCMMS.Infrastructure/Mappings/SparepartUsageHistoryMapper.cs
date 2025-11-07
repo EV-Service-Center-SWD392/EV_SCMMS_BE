@@ -66,7 +66,7 @@ public static class SparepartUsageHistoryMapperExtensions
             Centerid = createDto.CenterId,
             Quantityused = createDto.QuantityUsed,
             Useddate = createDto.UsageDate,
-            Status = "Active",
+            Status = "ACTIVE",
             Isactive = true,
             Createdat = DateTime.UtcNow,
             Updatedat = null

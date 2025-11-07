@@ -4,13 +4,13 @@ public class BookingQueryDtoValidator : AbstractValidator<BookingQueryDto>
 {
   public BookingQueryDtoValidator()
   {
-    RuleFor(x => x.Page).GreaterThan(0).WithMessage("Page phải lớn hơn 0");
-    RuleFor(x => x.PageSize).InclusiveBetween(1, 100).WithMessage("PageSize từ 1 đến 100");
-    RuleFor(x => x.Status).Must(BeValidStatus).WithMessage("Status phải là một trong: " + string.Join(", ", BookingStatusConstant.BookingStatus))
+    RuleFor(x => x.Page).GreaterThan(0).WithMessage("Page must be larger than 0");
+    RuleFor(x => x.PageSize).InclusiveBetween(1, 100).WithMessage("PageSize must be from 1 to 100");
+    RuleFor(x => x.Status).Must(BeValidStatus).WithMessage("Status must be one of: " + string.Join(", ", BookingStatusConstant.BookingStatus))
         .When(x => !string.IsNullOrEmpty(x.Status));
-    RuleFor(x => x.DayOfWeek).Must(BeValidDayOfWeek).WithMessage("DayOfWeek phải là một trong: " + string.Join(", ", DayOfWeekConstant.All))
+    RuleFor(x => x.DayOfWeek).Must(BeValidDayOfWeek).WithMessage("DayOfWeek must be one of: " + string.Join(", ", DayOfWeekConstant.All))
         .When(x => !string.IsNullOrEmpty(x.DayOfWeek));
-    RuleFor(x => x.FromDate).LessThanOrEqualTo(x => x.ToDate).WithMessage("FromDate không được sau ToDate")
+    RuleFor(x => x.FromDate).LessThanOrEqualTo(x => x.ToDate).WithMessage("From Date must not been behind To Date")
         .When(x => x.FromDate.HasValue && x.ToDate.HasValue);
   }
 

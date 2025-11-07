@@ -35,5 +35,5 @@ public class CreateSparepartReplenishmentRequestDto
     public string? Notes { get; set; }
 
     public DateTime? ExpectedDeliveryDate { get; set; }
-    public string Status { get; set; } = "Pending";
+    public string Status { get; set; } = "PENDING";
 }

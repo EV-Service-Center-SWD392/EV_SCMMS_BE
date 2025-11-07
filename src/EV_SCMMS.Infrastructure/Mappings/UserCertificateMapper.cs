@@ -5,7 +5,7 @@ namespace EV_SCMMS.Infrastructure.Mappings;
 
 public static class UserCertificateMapperExtensions
 {
-    public static UserCertificateDto ToDto(this Usercertificatetuantm entity)
+    public static UserCertificateDto? ToDto(this Usercertificatetuantm? entity)
     {
         if (entity == null) return null;
 
@@ -29,7 +29,7 @@ public static class UserCertificateMapperExtensions
         };
     }
 
-    public static Usercertificatetuantm ToEntity(this AssignCertificateDto assignDto)
+    public static Usercertificatetuantm? ToEntity(this AssignCertificateDto? assignDto)
     {
         if (assignDto == null) return null;
 

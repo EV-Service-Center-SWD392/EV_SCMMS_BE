@@ -28,7 +28,7 @@ public static class SparepartReplenishmentRequestMapperExtensions
             SupplierId = null, // Not available in model
             EstimatedCost = null, // Not available in model
             Priority = "", // Not available in model
-            Status = request.Status ?? "Pending",
+            Status = request.Status ?? "PENDING",
             Notes = request.Notes,
             RequestDate = request.Createdat ?? DateTime.Now,
             ApprovalDate = request.Approvedat,

@@ -54,14 +54,14 @@ public class SparepartForecastRepository : GenericRepository<SparepartforecastTu
     public async Task<IEnumerable<SparepartforecastTuht>> GetActiveForecastsAsync(CancellationToken cancellationToken = default)
     {
         return await _dbSet.SparepartforecastTuhts
-            .Where(x => x.Status == "Active")
+            .Where(x => x.Status == "ACTIVE")
             .ToListAsync(cancellationToken);
     }
 
     public async Task<IEnumerable<SparepartforecastTuht>> GetPendingApprovalsAsync(CancellationToken cancellationToken = default)
     {
         return await _dbSet.SparepartforecastTuhts
-            .Where(x => x.Status == "Pending")
+            .Where(x => x.Status == "PENDING")
             .ToListAsync(cancellationToken);
     }
 

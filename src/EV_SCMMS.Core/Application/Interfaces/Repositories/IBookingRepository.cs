@@ -9,7 +9,7 @@ namespace EV_SCMMS.Core.Application.Interfaces.Repositories
     public interface IBookingRepository : IGenericRepository<Bookinghuykt>
     {
         Task<Bookinghuykt?> GetByIdAsync(Guid id, CancellationToken ct = default);
-        Task<List<Bookinghuykt>> GetPendingAsync(Guid? centerId, DateOnly? date, CancellationToken ct = default);
+        Task<List<Bookinghuykt>> GetPendingAsync(Guid? centerId, DateOnly? startDate, DateOnly? endDate, CancellationToken ct = default);
         Task<bool> ExistsApprovedOverlapAsync(Guid centerId, DateTime startUtc, DateTime endUtc, CancellationToken ct = default);
     }
 }

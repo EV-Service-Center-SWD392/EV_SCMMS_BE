@@ -22,8 +22,7 @@ public static class AssignmentMapper
             CenterId = centerId,
             PlannedStartUtc = entity.Plannedstartutc ?? default,
             PlannedEndUtc = entity.Plannedendutc ?? default,
-            Status = entity.Status ?? string.Empty,
-            Note = entity.Note
+            Status = entity.Status ?? string.Empty
         };
     }
 
@@ -47,7 +46,6 @@ public static class AssignmentMapper
             Queueno = null,
             Status = "PENDING",
             Isactive = true,
-            Note = dto.Note,
             Createdat = DateTime.UtcNow,
             Updatedat = DateTime.UtcNow
         };
