@@ -7,6 +7,7 @@ public class CertificateDto
     public string? Description { get; set; }
     public string? Status { get; set; }
     public bool IsActive { get; set; }
+    public string? Image { get; set; }
     public DateTime? CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 }

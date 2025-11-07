@@ -46,11 +46,40 @@ public class AssignmentService : IAssignmentService
                 return ServiceResult<AssignmentDto>.Failure("Booking does not have a valid center");
             }
 
-            // Validate technician belongs to the same center
-            var inCenter = await _unitOfWork.UserCenterRepository.IsUserInCenterAsync(technicianId, centerId.Value, ct);
-            if (!inCenter)
+            // Validate technician belongs to the same center via work schedules
+            // Get all work schedules for this technician
+            var technicianWorkSchedules = await _unitOfWork.UserWorkScheduleRepository.GetAllAsync();
+            var userSchedules = technicianWorkSchedules
+                .Where(uws => uws.Userid == technicianId && uws.Isactive == true)
+                .ToList();
+
+            if (!userSchedules.Any())
             {
-                return ServiceResult<AssignmentDto>.Failure("Technician does not belong to booking center");
+                return ServiceResult<AssignmentDto>.Failure(
+                    $"Technician (ID: {technicianId}) has no work schedules assigned. Please create a work schedule for this technician first.");
+            }
+
+            // Get the center IDs from work schedules
+            var workScheduleIds = userSchedules.Select(uws => uws.Workscheduleid).ToList();
+            var allWorkSchedules = await _unitOfWork.WorkScheduleRepository.GetAllAsync();
+            var technicianCenters = allWorkSchedules
+                .Where(ws => workScheduleIds.Contains(ws.Workscheduleid) && ws.Isactive == true)
+                .Select(ws => ws.Centerid)
+                .Distinct()
+                .ToList();
+
+            if (!technicianCenters.Any())
+            {
+                return ServiceResult<AssignmentDto>.Failure(
+                    $"Technician (ID: {technicianId}) has no active work schedules. Please activate work schedules for this technician.");
+            }
+
+            // Check if technician has work schedule in the booking's center
+            if (!technicianCenters.Contains(centerId.Value))
+            {
+                return ServiceResult<AssignmentDto>.Failure(
+                    $"Technician (ID: {technicianId}) does not have work schedules in booking center (ID: {centerId.Value}). " +
+                    $"Technician has work schedules in centers: {string.Join(", ", technicianCenters)}");
             }
             var startUtc = DateTime.SpecifyKind(dto.PlannedStartUtc, DateTimeKind.Utc);
             var endUtc = DateTime.SpecifyKind(dto.PlannedEndUtc, DateTimeKind.Utc);
@@ -61,9 +90,9 @@ public class AssignmentService : IAssignmentService
             // Schedules for this technician that overlap the requested window
             var schedules = await _unitOfWork.WorkScheduleRepository.GetByTechnicianIdAsync(technicianId, ct);
             var matchingSchedules = schedules
-                .Where(s => s.Isactive == true && 
+                .Where(s => s.Isactive == true &&
                            s.Starttime.Date == workDate.ToDateTime(TimeOnly.MinValue).Date &&
-                           startTime.ToTimeSpan() < s.Endtime.TimeOfDay && 
+                           startTime.ToTimeSpan() < s.Endtime.TimeOfDay &&
                            s.Starttime.TimeOfDay < endTime.ToTimeSpan())
                 .ToList();
 
@@ -103,7 +132,12 @@ public class AssignmentService : IAssignmentService
         }
         catch (Exception ex)
         {
-            return ServiceResult<AssignmentDto>.Failure($"Error creating assignment: {ex.Message}");
+            var errorMessage = $"Error creating assignment: {ex.Message}";
+            if (ex.InnerException != null)
+            {
+                errorMessage += $" | Inner Exception: {ex.InnerException.Message}";
+            }
+            return ServiceResult<AssignmentDto>.Failure(errorMessage);
         }
     }
 
@@ -132,9 +166,9 @@ public class AssignmentService : IAssignmentService
             // Schedule availability for the same technician
             var schedules = await _unitOfWork.WorkScheduleRepository.GetByTechnicianIdAsync(entity.Technicianid, ct);
             var matchingSchedules = schedules
-                .Where(s => s.Isactive == true && 
+                .Where(s => s.Isactive == true &&
                            s.Starttime.Date == workDate.ToDateTime(TimeOnly.MinValue).Date &&
-                           startTime.ToTimeSpan() < s.Endtime.TimeOfDay && 
+                           startTime.ToTimeSpan() < s.Endtime.TimeOfDay &&
                            s.Starttime.TimeOfDay < endTime.ToTimeSpan())
                 .ToList();
             if (matchingSchedules.Count == 0)
@@ -206,9 +240,9 @@ public class AssignmentService : IAssignmentService
             // Schedules for new technician overlapping current window
             var schedules = await _unitOfWork.WorkScheduleRepository.GetByTechnicianIdAsync(newTechId, ct);
             var matchingSchedules = schedules
-                .Where(s => s.Isactive == true && 
+                .Where(s => s.Isactive == true &&
                            s.Starttime.Date == workDate.ToDateTime(TimeOnly.MinValue).Date &&
-                           startTime.ToTimeSpan() < s.Endtime.TimeOfDay && 
+                           startTime.ToTimeSpan() < s.Endtime.TimeOfDay &&
                            s.Starttime.TimeOfDay < endTime.ToTimeSpan())
                 .ToList();
             if (matchingSchedules.Count == 0)

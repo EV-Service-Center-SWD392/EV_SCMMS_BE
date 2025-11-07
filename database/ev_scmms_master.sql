@@ -338,6 +338,7 @@ CREATE TABLE CertificateTuantm (
     Name            VARCHAR(256) NOT NULL,
     Description     TEXT,
     Status          VARCHAR(50) DEFAULT 'ACTIVE',
+    Image           VARCHAR(256) NOT NULL,
     IsActive        BOOLEAN DEFAULT TRUE,
     createdAt       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updatedAt       TIMESTAMP DEFAULT CURRENT_TIMESTAMP

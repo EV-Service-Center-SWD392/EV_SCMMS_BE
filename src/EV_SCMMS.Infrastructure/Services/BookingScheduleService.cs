@@ -138,7 +138,7 @@ public class BookingScheduleService
     }
   }
 
-  private string GetDayOfWeekValue(DayOfWeek dayOfWeek)
+  public static string GetDayOfWeekValue(DayOfWeek dayOfWeek)
   {
     return dayOfWeek switch
     {

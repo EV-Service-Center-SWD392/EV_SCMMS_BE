@@ -16,6 +16,7 @@ public static class CertificateMapperExtensions
             Description = entity.Description,
             Status = entity.Status,
             IsActive = entity.Isactive ?? false,
+            Image = entity.Image,
             CreatedAt = entity.Createdat,
             UpdatedAt = entity.Updatedat
         };
@@ -30,7 +31,7 @@ public static class CertificateMapperExtensions
             Certificateid = Guid.NewGuid(),
             Name = createDto.Name,
             Description = createDto.Description,
-            Status = createDto.Status,
+            Status = "PENDING",
             Isactive = true,
             Createdat = DateTime.UtcNow
         };

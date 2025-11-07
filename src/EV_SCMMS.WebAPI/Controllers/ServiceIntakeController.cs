@@ -72,7 +72,12 @@ public class ServiceIntakeController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetRange([FromQuery] Guid? centerId, [FromQuery] DateOnly? date, [FromQuery] string? status, [FromQuery] Guid? technicianId, CancellationToken ct)
+    public async Task<IActionResult> GetRange(
+        [FromQuery] Guid? centerId,
+        [FromQuery] DateOnly? date,
+        [FromQuery] string? status,
+        [FromQuery] Guid? technicianId,
+        CancellationToken ct)
     {
         var result = await _serviceIntakeService.GetRangeAsync(centerId, date, status, technicianId, ct);
         if (result.IsSuccess) return Ok(result.Data);

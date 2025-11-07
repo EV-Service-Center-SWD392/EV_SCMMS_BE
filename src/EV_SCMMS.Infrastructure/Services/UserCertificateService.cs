@@ -193,6 +193,21 @@ public class UserCertificateService : IUserCertificateService
         }
     }
 
+    public async Task<IServiceResult<List<UserCertificateDto>>> GetAllUserCertificatesAsync()
+    {
+        try
+        {
+            var allUserCertificates = await _unitOfWork.UserCertificateRepository.GetAllWithDetailsAsync();
+            var result = allUserCertificates.Select(c => c.ToDto()).Where(c => c != null).ToList()!;
+            
+            return ServiceResult<List<UserCertificateDto>>.Success(result);
+        }
+        catch (Exception ex)
+        {
+            return ServiceResult<List<UserCertificateDto>>.Failure($"Error retrieving all user certificates: {ex.Message}");
+        }
+    }
+
     public async Task<IServiceResult<object>> GetCertificateExpiryStatusAsync(Guid certificateId)
     {
         try
@@ -221,6 +236,31 @@ public class UserCertificateService : IUserCertificateService
         catch (Exception ex)
         {
             return ServiceResult<object>.Failure($"Error validating certificate: {ex.Message}");
+        }
+    }
+
+    public async Task<IServiceResult<bool>> SetCertificateStatusRevokedAsync(Guid userCertificateId)
+    {
+        try
+        {
+            var entity = await _unitOfWork.UserCertificateRepository.GetByIdAsync(userCertificateId);
+            if (entity == null)
+            {
+                return ServiceResult<bool>.Failure("Certificate assignment not found");
+            }
+
+            entity.Status = "REVOKED";
+            entity.Isactive = false;
+            entity.Updatedat = DateTime.UtcNow;
+            
+            await _unitOfWork.UserCertificateRepository.UpdateAsync(entity);
+            await _unitOfWork.SaveChangesAsync();
+
+            return ServiceResult<bool>.Success(true, "Certificate status set to REVOKED successfully");
+        }
+        catch (Exception ex)
+        {
+            return ServiceResult<bool>.Failure($"Error setting certificate status to REVOKED: {ex.Message}");
         }
     }
 }

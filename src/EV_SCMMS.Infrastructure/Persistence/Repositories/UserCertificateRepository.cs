@@ -58,4 +58,13 @@ public class UserCertificateRepository : GenericRepository<Usercertificatetuantm
             .OrderBy(x => x.Createdat)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<List<Usercertificatetuantm>> GetAllWithDetailsAsync(CancellationToken cancellationToken = default)
+    {
+        return await _dbSet.Usercertificatetuantms
+            .Include(x => x.Certificate)
+            .Include(x => x.User)
+            .OrderBy(x => x.Createdat)
+            .ToListAsync(cancellationToken);
+    }
 }

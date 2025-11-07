@@ -91,7 +91,8 @@ public class ServiceIntakeRepository : GenericRepository<Serviceintakethaontt>, 
 
         if (!string.IsNullOrWhiteSpace(status))
         {
-            query = query.Where(si => si.Status != null && si.Status!.Equals(status, StringComparison.OrdinalIgnoreCase));
+            var normalizedStatus = status.Trim().ToUpperInvariant();
+            query = query.Where(si => si.Status != null && si.Status.ToUpper() == normalizedStatus);
         }
 
         if (technicianId.HasValue)
