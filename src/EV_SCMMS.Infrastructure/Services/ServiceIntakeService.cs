@@ -236,11 +236,11 @@ public class ServiceIntakeService : IServiceIntakeService
         }
     }
 
-    public async Task<IServiceResult<List<ServiceIntakeDto>>> GetRangeAsync(Guid? centerId, DateOnly? date, string? status, Guid? technicianId, CancellationToken ct = default)
+    public async Task<IServiceResult<List<ServiceIntakeDto>>> GetRangeAsync(Guid? centerId, DateOnly? date, Guid? technicianId, CancellationToken ct = default)
     {
         try
         {
-            var entities = await _unitOfWork.ServiceIntakeRepository.GetRangeAsync(centerId, date, status, technicianId, ct);
+            var entities = await _unitOfWork.ServiceIntakeRepository.GetRangeAsync(centerId, date, technicianId, ct);
             var list = entities.ToDto();
             return ServiceResult<List<ServiceIntakeDto>>.Success(list);
         }

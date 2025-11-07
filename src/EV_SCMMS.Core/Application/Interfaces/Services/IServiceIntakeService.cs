@@ -13,6 +13,6 @@ public interface IServiceIntakeService
     Task<IServiceResult<ServiceIntakeDto>> VerifyAsync(Guid id, CancellationToken ct = default);
     Task<IServiceResult<ServiceIntakeDto>> FinalizeAsync(Guid id, CancellationToken ct = default);
     Task<IServiceResult<ServiceIntakeDto>> GetByIdAsync(Guid id, CancellationToken ct = default);
-    Task<IServiceResult<List<ServiceIntakeDto>>> GetRangeAsync(Guid? centerId, DateOnly? date, string? status, Guid? technicianId, CancellationToken ct = default);
+    Task<IServiceResult<List<ServiceIntakeDto>>> GetRangeAsync(Guid? centerId, DateOnly? date, Guid? technicianId, CancellationToken ct = default);
     Task<IServiceResult<bool>> CancelAsync(Guid id, CancellationToken ct = default);
 }

@@ -63,7 +63,6 @@ public class ServiceIntakeRepository : GenericRepository<Serviceintakethaontt>, 
     public async Task<List<Serviceintakethaontt>> GetRangeAsync(
         Guid? centerId,
         DateOnly? date,
-        string? status,
         Guid? technicianId,
         CancellationToken ct = default)
     {
@@ -87,11 +86,6 @@ public class ServiceIntakeRepository : GenericRepository<Serviceintakethaontt>, 
             query = query.Where(si =>
                 si.Createdat.HasValue &&
                 DateOnly.FromDateTime(DateTime.SpecifyKind(si.Createdat.Value, DateTimeKind.Utc)) == expectedDate);
-        }
-
-        if (!string.IsNullOrWhiteSpace(status))
-        {
-            query = query.Where(si => si.Status != null && si.Status!.Equals(status, StringComparison.OrdinalIgnoreCase));
         }
 
         if (technicianId.HasValue)
