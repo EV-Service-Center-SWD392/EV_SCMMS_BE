@@ -41,7 +41,7 @@ public class BookingStatusLogService
     _logger.LogInformation("Inserted booking status log for booking {BookingId} with status {Status}", bookingId, existed.Status);
   }
 
-  public async Task<List<BookingStatusLogResponseDto>> GetLogsAsync(Guid customerId, Guid? bookingId)
+  public async Task<BookingStatusLogResponseWithUnseenLogCount> GetLogsAsync(Guid customerId, Guid? bookingId)
   {
     try
     {
@@ -57,8 +57,8 @@ public class BookingStatusLogService
       }
 
 
-      var logs = await queryBuilder.Where(x => x.Booking.Customerid == customerId)
-      .OrderByDescending(x => x.Updatedat)
+      var logs = await queryBuilder.Where(x => x.Booking.Customerid == customerId).OrderByDescending(x => x.Isseen)
+      .ThenByDescending(x => x.Updatedat)
       .Select(x => new BookingStatusLogResponseDto
       {
         LogId = x.Logid,
@@ -74,14 +74,39 @@ public class BookingStatusLogService
       })
       .ToListAsync();
 
+      var numberOfUnseenLogs = logs.Count(x => !x.IsSeen);
+
       _logger.LogInformation("Fetched {Count} booking status logs for customer {CustomerId}", logs.Count, customerId);
 
-      return logs;
+      return new BookingStatusLogResponseWithUnseenLogCount { UnseenLogsCount = numberOfUnseenLogs, Result = logs };
     }
     catch (Exception e)
     {
       _logger.LogError("Get log asyncs error", e);
-      return new List<BookingStatusLogResponseDto>();
+      return new BookingStatusLogResponseWithUnseenLogCount { Result = new List<BookingStatusLogResponseDto>(), UnseenLogsCount = 0 };
+    }
+  }
+
+  public async Task<Boolean> UpdateSeenLogs(Guid customerId)
+  {
+    try
+    {
+      var queryBuilder = _unitOfWork.BookingStatusLogRepository.GetAllQueryable()
+        .Include(x => x.Booking);
+
+
+      await queryBuilder.Where(x => x.Booking.Customerid == customerId && x.Isseen == false)
+      .OrderByDescending(x => x.Updatedat)
+      .ExecuteUpdateAsync(setters => setters
+        .SetProperty(x => x.Isseen, true)
+        .SetProperty(x => x.Updatedat, DateTime.UtcNow)
+    );
+      return true;
+    }
+    catch (Exception e)
+    {
+      _logger.LogError("Update log asyncs error", e);
+      return false;
     }
   }
 }

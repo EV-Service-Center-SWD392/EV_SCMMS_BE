@@ -24,4 +24,20 @@ public class BookingStatusLogsController : ControllerBase
     var logs = await _logService.GetLogsAsync(customerId, bookingId);
     return Ok(logs);
   }
+
+  [HttpPatch("customer/notification/seen-all")]
+  public async Task<IActionResult> UpdateSeenForALlLogs()
+  {
+    var customerIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    if (!Guid.TryParse(customerIdClaim, out var customerId) || customerId == Guid.Empty)
+      return Unauthorized("Invalid user identity");
+
+    var result = await _logService.UpdateSeenLogs(customerId);
+
+    if (!result)
+    {
+      return Problem();
+    }
+    return Ok();
+  }
 }
