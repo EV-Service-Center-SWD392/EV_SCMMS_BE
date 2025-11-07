@@ -235,9 +235,10 @@ public class BookingService
       // Update fields (SlotId change requires capacity check)
       if (dto.Slot != booking.Slot.Slot || parsedBookingDate != booking.BookingDate)
       {
+        var bookingDayOfWeek = BookingScheduleService.GetDayOfWeekValue(parsedBookingDate.DayOfWeek);
         var newSlot = await _unitOfWork.BookingScheduleRepository.GetAllQueryable()
             .Include(s => s.Bookinghuykts)
-            .FirstOrDefaultAsync(s => s.Centerid == dto.CenterId && dto.Slot == s.Slot);
+            .FirstOrDefaultAsync(s => s.Centerid == dto.CenterId && s.DayOfWeek == bookingDayOfWeek && dto.Slot == s.Slot);
 
         if (newSlot is null)
           return ServiceResult.Failure("New slot was not found");
@@ -277,10 +278,11 @@ public class BookingService
     try
     {
       // Load slot with booking records and center
+      var currentDayOfWeek = BookingScheduleService.GetDayOfWeekValue(DateOnly.Parse(dto.BookingDate).DayOfWeek);
       var slot = await _unitOfWork.BookingScheduleRepository.GetAllQueryable()
           .Include(s => s.Bookinghuykts)
           .Include(s => s.Center)
-          .FirstOrDefaultAsync(s => s.Centerid == dto.CenterId && s.Slot == dto.Slot);
+          .FirstOrDefaultAsync(s => s.Centerid == dto.CenterId && s.DayOfWeek == currentDayOfWeek && s.Slot == dto.Slot);
 
       if (slot is null)
         return ServiceResult<Guid>.Failure("Slot not found");
