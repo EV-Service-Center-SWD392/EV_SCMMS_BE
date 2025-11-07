@@ -341,6 +341,8 @@ public partial class AppDbContext : DbContext
                 .HasMaxLength(50)
                 .HasDefaultValueSql("'ACTIVE'::character varying")
                 .HasColumnName("status");
+            entity.Property(e => e.Image)
+                .HasColumnName("image");
             entity.Property(e => e.Updatedat)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp without time zone")

@@ -15,6 +15,8 @@ public partial class Certificatetuantm
 
     public bool? Isactive { get; set; }
 
+    public string? Image { get; set; }
+
     public DateTime? Createdat { get; set; }
 
     public DateTime? Updatedat { get; set; }

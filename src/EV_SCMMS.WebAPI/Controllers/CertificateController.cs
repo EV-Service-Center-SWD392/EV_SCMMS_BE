@@ -81,7 +81,7 @@ public class CertificateController : ControllerBase
     }
 
     /// <summary>
-    /// Create a new certificate
+    /// Create a new certificate with optional image upload
     /// </summary>
     /// <param name="dto">Certificate creation data</param>
     /// <returns>Created certificate information</returns>
@@ -89,22 +89,18 @@ public class CertificateController : ControllerBase
     /// Required fields to create a certificate:
     /// - name: string (Required) - Certificate name (e.g., "Chứng chỉ bảo dưỡng Tesla Model 3")
     /// - description: string (Optional) - Detailed description of the certificate
+    /// - imageFile: IFormFile (Optional) - Certificate image file
     /// 
     /// Status and timestamps are automatically set by the system:
     /// - status: Defaults to "ACTIVE"
     /// - isActive: Defaults to true
     /// - createdAt/updatedAt: Set automatically
+    /// - image: Cloudinary URL if image uploaded
     /// 
-    /// Sample request:
-    /// ```json
-    /// {
-    ///   "name": "Chứng chỉ bảo dưỡng VinFast VF8",
-    ///   "description": "Chứng chỉ chuyên về bảo dưỡng và sửa chữa xe VinFast VF8"
-    /// }
-    /// ```
+    /// Use multipart/form-data for image upload.
     /// </remarks>
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateCertificateDto dto)
+    public async Task<IActionResult> Create([FromForm] CreateCertificateDto dto)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
@@ -114,7 +110,7 @@ public class CertificateController : ControllerBase
     }
 
     /// <summary>
-    /// Update an existing certificate
+    /// Update an existing certificate with optional image upload
     /// </summary>
     /// <param name="id">GUID - Certificate ID to update</param>
     /// <param name="dto">Certificate update data</param>
@@ -125,23 +121,16 @@ public class CertificateController : ControllerBase
     /// - description: string (Optional) - New description
     /// - status: string (Optional) - New status ("ACTIVE", "INACTIVE")
     /// - isActive: boolean (Optional) - Active flag
+    /// - imageFile: IFormFile (Optional) - New certificate image
     /// 
     /// Only provide fields you want to update. Null/empty fields will be ignored.
     /// updatedAt timestamp is automatically set.
     /// 
-    /// Sample request:
-    /// ```json
-    /// {
-    ///   "name": "Chứng chỉ bảo dưỡng VinFast VF8 - Cập nhật 2025",
-    ///   "description": "Phiên bản cập nhật với quy trình mới",
-    ///   "status": "ACTIVE"
-    /// }
-    /// ```
-    /// 
+    /// Use multipart/form-data for image upload.
     /// Sample URL: PUT /api/Certificate/16bc380d-5e7d-4c73-954c-81662e9f2678
     /// </remarks>
     [HttpPut("{id:guid}")]
-    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateCertificateDto dto)
+    public async Task<IActionResult> Update(Guid id, [FromForm] UpdateCertificateDto dto)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);

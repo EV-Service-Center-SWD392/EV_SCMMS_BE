@@ -12,6 +12,7 @@ public class UserCertificateDto
     
     public string? UserName { get; set; }
     public string? CertificateName { get; set; }
+    public string? CertificateImage { get; set; }
     public DateTime? ExpiryDate { get; set; }
     public bool IsExpired { get; set; }
     public int DaysUntilExpiry { get; set; }
