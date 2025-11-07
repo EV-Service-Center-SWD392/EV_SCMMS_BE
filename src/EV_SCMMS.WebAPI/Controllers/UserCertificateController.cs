@@ -119,7 +119,7 @@ public class UserCertificateController : ControllerBase
     }
 
     /// <summary>
-    /// Revoke a certificate assignment from a user
+    /// Revoke a certificate assignment from a user (soft delete)
     /// </summary>
     /// <param name="userCertificateId">User certificate assignment ID</param>
     /// <returns>Revocation result</returns>
@@ -127,6 +127,33 @@ public class UserCertificateController : ControllerBase
     public async Task<IActionResult> RevokeCertificate(Guid userCertificateId)
     {
         var result = await _userCertificateService.RevokeCertificateAsync(userCertificateId);
+        return result.IsSuccess ? Ok(result) : BadRequest(result);
+    }
+
+    /// <summary>
+    /// Set certificate status to REVOKED
+    /// </summary>
+    /// <param name="userCertificateId">User certificate assignment ID</param>
+    /// <returns>Status update result</returns>
+    /// <remarks>
+    /// Changes certificate status to "REVOKED" and sets:
+    /// - status: "REVOKED"
+    /// - isActive: false
+    /// - updatedAt: current timestamp
+    /// 
+    /// This is different from DELETE (soft delete) - this specifically sets REVOKED status.
+    /// Use this when you want to track that a certificate was formally revoked.
+    /// 
+    /// Returns:
+    /// - Success: { "isSuccess": true, "message": "Certificate status set to REVOKED successfully" }
+    /// - Error: { "isSuccess": false, "message": "Error message" }
+    /// 
+    /// Sample URL: POST /api/UserCertificate/8052c2aa-6899-4fb3-bc56-e3ce8bf16f68/revoke
+    /// </remarks>
+    [HttpPost("{userCertificateId}/revoke")]
+    public async Task<IActionResult> SetCertificateStatusRevoked(Guid userCertificateId)
+    {
+        var result = await _userCertificateService.SetCertificateStatusRevokedAsync(userCertificateId);
         return result.IsSuccess ? Ok(result) : BadRequest(result);
     }
 

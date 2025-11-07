@@ -31,7 +31,7 @@ public static class CertificateMapperExtensions
             Certificateid = Guid.NewGuid(),
             Name = createDto.Name,
             Description = createDto.Description,
-            Status = "ACTIVE",
+            Status = "PENDING",
             Isactive = true,
             Createdat = DateTime.UtcNow
         };

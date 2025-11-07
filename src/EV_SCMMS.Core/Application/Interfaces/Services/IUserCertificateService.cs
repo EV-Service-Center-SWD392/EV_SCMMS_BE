@@ -7,6 +7,7 @@ public interface IUserCertificateService
 {
     Task<IServiceResult<UserCertificateDto>> AssignCertificateAsync(AssignCertificateDto dto);
     Task<IServiceResult<bool>> RevokeCertificateAsync(Guid userCertificateId);
+    Task<IServiceResult<bool>> SetCertificateStatusRevokedAsync(Guid userCertificateId);
     Task<IServiceResult<List<UserCertificateDto>>> GetUserCertificatesAsync(Guid userId);
     Task<IServiceResult<List<UserCertificateDto>>> GetCertificateHoldersAsync(Guid certificateId);
     Task<IServiceResult<List<UserCertificateDto>>> GetExpiringCertificatesAsync(int daysAhead = 30);
