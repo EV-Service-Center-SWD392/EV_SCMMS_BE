@@ -85,7 +85,8 @@ public class BookingApprovalService : IBookingApprovalService
 
             if (!BookingStatusConstant.IsPending(booking.Status))
             {
-                return ServiceResult<BookingApprovalDto>.Failure("Only pending bookings can be approved");
+                return ServiceResult<BookingApprovalDto>.Failure(
+                    $"Only pending bookings can be approved. Current status: '{booking.Status}' (Length: {booking.Status?.Length ?? 0})");
             }
 
             var now = DateTime.UtcNow;
@@ -138,7 +139,8 @@ public class BookingApprovalService : IBookingApprovalService
 
             if (!BookingStatusConstant.IsPending(booking.Status))
             {
-                return ServiceResult<BookingApprovalDto>.Failure("Only pending bookings can be rejected");
+                return ServiceResult<BookingApprovalDto>.Failure(
+                    $"Only pending bookings can be rejected. Current status: '{booking.Status}' (Length: {booking.Status?.Length ?? 0})");
             }
 
             var now = DateTime.UtcNow;
