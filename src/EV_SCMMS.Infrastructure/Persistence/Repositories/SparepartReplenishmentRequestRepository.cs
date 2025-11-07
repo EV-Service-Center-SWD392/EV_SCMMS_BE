@@ -69,7 +69,7 @@ public class SparepartReplenishmentRequestRepository : GenericRepository<Sparepa
     public async Task<IEnumerable<Sparepartreplenishmentrequest>> GetPendingRequestsAsync(CancellationToken cancellationToken = default)
     {
         return await _dbSet.Sparepartreplenishmentrequests
-            .Where(x => x.Status == "Pending")
+            .Where(x => x.Status == "PENDING")
             .ToListAsync(cancellationToken);
     }
 

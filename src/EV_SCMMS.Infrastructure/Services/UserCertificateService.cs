@@ -26,7 +26,7 @@ public class UserCertificateService : IUserCertificateService
             }
 
             var entity = dto.ToEntity();
-            entity.Status = "Pending";
+            entity.Status = "PENDING";
             
             await _unitOfWork.UserCertificateRepository.AddAsync(entity);
             await _unitOfWork.SaveChangesAsync();
@@ -134,7 +134,7 @@ public class UserCertificateService : IUserCertificateService
                 return ServiceResult<bool>.Failure("Certificate assignment not found");
             }
 
-            entity.Status = "Approved";
+            entity.Status = "APPROVED";
             entity.Updatedat = DateTime.UtcNow;
             
             await _unitOfWork.UserCertificateRepository.UpdateAsync(entity);
@@ -145,6 +145,51 @@ public class UserCertificateService : IUserCertificateService
         catch (Exception ex)
         {
             return ServiceResult<bool>.Failure($"Error approving certificate: {ex.Message}");
+        }
+    }
+
+    public async Task<IServiceResult<bool>> RejectCertificateAsync(Guid userCertificateId)
+    {
+        try
+        {
+            var entity = await _unitOfWork.UserCertificateRepository.GetByIdAsync(userCertificateId);
+            if (entity == null)
+            {
+                return ServiceResult<bool>.Failure("Certificate assignment not found");
+            }
+
+            if (entity.Status != "PENDING")
+            {
+                return ServiceResult<bool>.Failure("Only pending certificates can be rejected");
+            }
+
+            entity.Status = "REJECTED";
+            entity.Isactive = false;
+            entity.Updatedat = DateTime.UtcNow;
+            
+            await _unitOfWork.UserCertificateRepository.UpdateAsync(entity);
+            await _unitOfWork.SaveChangesAsync();
+
+            return ServiceResult<bool>.Success(true, "Certificate rejected successfully");
+        }
+        catch (Exception ex)
+        {
+            return ServiceResult<bool>.Failure($"Error rejecting certificate: {ex.Message}");
+        }
+    }
+
+    public async Task<IServiceResult<List<UserCertificateDto>>> GetPendingCertificatesAsync()
+    {
+        try
+        {
+            var pendingCertificates = await _unitOfWork.UserCertificateRepository.GetPendingCertificatesAsync();
+            var result = pendingCertificates.Select(c => c.ToDto()).Where(c => c != null).ToList()!;
+            
+            return ServiceResult<List<UserCertificateDto>>.Success(result);
+        }
+        catch (Exception ex)
+        {
+            return ServiceResult<List<UserCertificateDto>>.Failure($"Error retrieving pending certificates: {ex.Message}");
         }
     }
 

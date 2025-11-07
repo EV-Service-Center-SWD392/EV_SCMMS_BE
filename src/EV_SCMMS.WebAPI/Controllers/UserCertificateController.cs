@@ -43,6 +43,33 @@ public class UserCertificateController : ControllerBase
     }
 
     /// <summary>
+    /// Reject a pending certificate assignment
+    /// </summary>
+    /// <param name="userCertificateId">User certificate assignment ID</param>
+    /// <returns>Rejection result</returns>
+    /// <remarks>
+    /// Rejects a pending certificate assignment by setting:
+    /// - status: "Rejected"
+    /// - isActive: false
+    /// - updatedAt: current timestamp
+    /// 
+    /// Only pending certificates can be rejected.
+    /// Already approved or active certificates cannot be rejected.
+    /// 
+    /// Returns:
+    /// - Success: { "isSuccess": true, "message": "Certificate rejected successfully" }
+    /// - Error: { "isSuccess": false, "message": "Error message" }
+    /// 
+    /// Sample URL: POST /api/UserCertificate/8052c2aa-6899-4fb3-bc56-e3ce8bf16f68/reject
+    /// </remarks>
+    [HttpPost("{userCertificateId}/reject")]
+    public async Task<IActionResult> RejectCertificate(Guid userCertificateId)
+    {
+        var result = await _userCertificateService.RejectCertificateAsync(userCertificateId);
+        return result.IsSuccess ? Ok(result) : BadRequest(result);
+    }
+
+    /// <summary>
     /// Get expiry status for a specific certificate
     /// </summary>
     /// <param name="certificateId">Certificate ID</param>
@@ -112,6 +139,57 @@ public class UserCertificateController : ControllerBase
     public async Task<IActionResult> GetExpiringCertificates([FromQuery] int daysAhead = 30)
     {
         var result = await _userCertificateService.GetExpiringCertificatesAsync(daysAhead);
+        return result.IsSuccess ? Ok(result) : BadRequest(result);
+    }
+
+    /// <summary>
+    /// Get all pending certificate assignments for staff review
+    /// </summary>
+    /// <returns>List of pending certificate assignments</returns>
+    /// <remarks>
+    /// Returns all certificate assignments with status "Pending" that require staff approval or rejection.
+    /// This endpoint is designed for staff/admin dashboard to review and manage pending certificate requests.
+    /// 
+    /// Response includes:
+    /// - userCertificateId: GUID - Assignment ID for approve/reject actions
+    /// - userId: GUID - Technician's user ID
+    /// - userName: string - Technician's full name (e.g., "Kỹ thuật An Nguyễn Văn")
+    /// - certificateId: GUID - Certificate ID
+    /// - certificateName: string - Certificate name (e.g., "Chứng chỉ sửa chữa xe điện cấp 1")
+    /// - status: "Pending" - All returned items have pending status
+    /// - createdAt: DateTime - When the assignment was requested
+    /// - expiryDate: DateTime - When the certificate will expire (if approved)
+    /// - daysUntilExpiry: int - Days until expiry (364 for new assignments)
+    /// 
+    /// Use cases:
+    /// - Staff dashboard to show pending certificate requests
+    /// - Bulk approval/rejection workflows
+    /// - Certificate request management
+    /// 
+    /// Sample response:
+    /// ```json
+    /// {
+    ///   "data": [
+    ///     {
+    ///       "userCertificateId": "fc94f180-8592-4eb6-9236-3393b50288f5",
+    ///       "userId": "13aaf907-f391-40a6-9fcb-b94781ffdba3",
+    ///       "userName": "John Technician",
+    ///       "certificateId": "39fac911-2c26-49bb-afec-593970ff64f3",
+    ///       "certificateName": "Chứng chỉ hệ thống lái VinFast",
+    ///       "status": "Pending",
+    ///       "createdAt": "2025-11-07T07:05:38.329081Z",
+    ///       "expiryDate": "2026-11-07T07:05:38.329081Z",
+    ///       "daysUntilExpiry": 364
+    ///     }
+    ///   ],
+    ///   "isSuccess": true
+    /// }
+    /// ```
+    /// </remarks>
+    [HttpGet("pending")]
+    public async Task<IActionResult> GetPendingCertificates()
+    {
+        var result = await _userCertificateService.GetPendingCertificatesAsync();
         return result.IsSuccess ? Ok(result) : BadRequest(result);
     }
 }

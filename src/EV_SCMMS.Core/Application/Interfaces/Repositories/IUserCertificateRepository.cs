@@ -8,4 +8,5 @@ public interface IUserCertificateRepository : IGenericRepository<Usercertificate
     Task<List<Usercertificatetuantm>> GetByCertificateIdAsync(Guid certificateId, CancellationToken cancellationToken = default);
     Task<List<Usercertificatetuantm>> GetExpiringCertificatesAsync(int daysAhead = 30, CancellationToken cancellationToken = default);
     Task<bool> HasCertificateAsync(Guid userId, Guid certificateId, CancellationToken cancellationToken = default);
+    Task<List<Usercertificatetuantm>> GetPendingCertificatesAsync(CancellationToken cancellationToken = default);
 }

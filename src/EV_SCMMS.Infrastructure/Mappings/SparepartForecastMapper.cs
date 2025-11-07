@@ -72,7 +72,7 @@ public static class SparepartForecastMapperExtensions
             Forecastdate = createDto.ForecastDate,
             Approvedby = null, // Will be set during approval
             Approveddate = null, // Will be set during approval
-            Status = createDto.Status ?? "Pending",
+            Status = createDto.Status ?? "PENDING",
             Isactive = true,
             Createdat = DateTime.UtcNow,
             Updatedat = null
