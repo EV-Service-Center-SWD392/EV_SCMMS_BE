@@ -131,9 +131,8 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Plannedstartutc)
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("plannedstartutc");
-            entity.Property(e => e.Note)
-                .HasColumnType("text")
-                .HasColumnName("note");
+            // Note: Property 'Note' is ignored as the column doesn't exist in database
+            entity.Ignore(e => e.Note);
             entity.Property(e => e.Queueno).HasColumnName("queueno");
             entity.Property(e => e.Status)
                 .HasMaxLength(50)

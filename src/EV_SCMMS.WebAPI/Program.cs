@@ -6,6 +6,7 @@ using EV_SCMMS.Infrastructure.Services;
 using EV_SCMMS.Infrastructure.Adapters;
 using EV_SCMMS.WebAPI.Authorization;
 using EV_SCMMS.WebAPI.Middleware;
+using EV_SCMMS.WebAPI.Converters;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -24,7 +25,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 
 // Add services to the container
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Add custom DateTime converter to support multiple formats
+        options.JsonSerializerOptions.Converters.Add(new FlexibleDateTimeConverter());
+        // Support enum string conversion
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
 
 // Configure request size limits for file uploads
 builder.Services.Configure<IISServerOptions>(options =>
