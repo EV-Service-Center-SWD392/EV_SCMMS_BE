@@ -193,6 +193,21 @@ public class UserCertificateService : IUserCertificateService
         }
     }
 
+    public async Task<IServiceResult<List<UserCertificateDto>>> GetAllUserCertificatesAsync()
+    {
+        try
+        {
+            var allUserCertificates = await _unitOfWork.UserCertificateRepository.GetAllWithDetailsAsync();
+            var result = allUserCertificates.Select(c => c.ToDto()).Where(c => c != null).ToList()!;
+            
+            return ServiceResult<List<UserCertificateDto>>.Success(result);
+        }
+        catch (Exception ex)
+        {
+            return ServiceResult<List<UserCertificateDto>>.Failure($"Error retrieving all user certificates: {ex.Message}");
+        }
+    }
+
     public async Task<IServiceResult<object>> GetCertificateExpiryStatusAsync(Guid certificateId)
     {
         try

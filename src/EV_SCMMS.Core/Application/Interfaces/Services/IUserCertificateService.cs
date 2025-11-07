@@ -14,6 +14,7 @@ public interface IUserCertificateService
     Task<IServiceResult<bool>> ApproveCertificateAsync(Guid userCertificateId);
     Task<IServiceResult<bool>> RejectCertificateAsync(Guid userCertificateId);
     Task<IServiceResult<List<UserCertificateDto>>> GetPendingCertificatesAsync();
+    Task<IServiceResult<List<UserCertificateDto>>> GetAllUserCertificatesAsync();
     Task<IServiceResult<object>> GetCertificateExpiryStatusAsync(Guid certificateId);
     Task<IServiceResult<object>> ValidateUserCertificateAsync(Guid userId, Guid certificateId);
 }
