@@ -21,7 +21,8 @@ public class BookingStatusConstant
   public static bool IsPending(string? status)
   {
     if (string.IsNullOrWhiteSpace(status)) return false;
-    return PendingStatuses.Contains(status, StringComparer.OrdinalIgnoreCase);
+    var trimmedStatus = status.Trim();
+    return PendingStatuses.Contains(trimmedStatus, StringComparer.OrdinalIgnoreCase);
   }
 
 }
