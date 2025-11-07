@@ -13,7 +13,6 @@ namespace EV_SCMMS.Core.Application.Interfaces.Repositories
         Task<List<Serviceintakethaontt>> GetRangeAsync(
             Guid? centerId,
             DateOnly? date,
-            string? status,
             Guid? technicianId,
             CancellationToken ct = default);
     }
