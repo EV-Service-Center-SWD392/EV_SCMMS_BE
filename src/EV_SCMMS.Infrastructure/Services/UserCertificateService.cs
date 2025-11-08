@@ -52,8 +52,9 @@ public class UserCertificateService : IUserCertificateService
                 return ServiceResult<bool>.Failure("Certificate assignment not found");
             }
 
-            entity.Isactive = false;
+            entity.Status = "REVOKED";
             entity.Updatedat = DateTime.UtcNow;
+            // isactive remains true - status change indicates revocation
             
             await _unitOfWork.UserCertificateRepository.UpdateAsync(entity);
             await _unitOfWork.SaveChangesAsync();
@@ -164,8 +165,8 @@ public class UserCertificateService : IUserCertificateService
             }
 
             entity.Status = "REJECTED";
-            entity.Isactive = false;
             entity.Updatedat = DateTime.UtcNow;
+            // isactive remains true - status change indicates rejection
             
             await _unitOfWork.UserCertificateRepository.UpdateAsync(entity);
             await _unitOfWork.SaveChangesAsync();
@@ -250,8 +251,8 @@ public class UserCertificateService : IUserCertificateService
             }
 
             entity.Status = "REVOKED";
-            entity.Isactive = false;
             entity.Updatedat = DateTime.UtcNow;
+            // isactive remains true - status change indicates revocation
             
             await _unitOfWork.UserCertificateRepository.UpdateAsync(entity);
             await _unitOfWork.SaveChangesAsync();
