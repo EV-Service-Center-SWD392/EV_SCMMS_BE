@@ -288,27 +288,76 @@ public class AssignmentService : IAssignmentService
         }
     }
 
-    public async Task<IServiceResult<bool>> CancelAsync(Guid id, CancellationToken ct = default)
+    /// <summary>
+    /// Cancel an assignment and update booking status if needed
+    /// When the last active assignment is cancelled, the booking remains APPROVED
+    /// and becomes available for reassignment
+    /// </summary>
+    public async Task<IServiceResult<CancelAssignmentResponseDto>> CancelAsync(Guid id, CancellationToken ct = default)
     {
         try
         {
             var entity = await _unitOfWork.AssignmentRepository.GetByIdAsync(id);
             if (entity == null)
             {
-                return ServiceResult<bool>.Failure("Assignment not found");
+                return ServiceResult<CancelAssignmentResponseDto>.Failure("Assignment not found");
             }
 
+            // Store booking ID before cancelling
+            var bookingId = entity.Bookingid;
+
+            // Cancel the assignment
             entity.Status = "CANCELLED";
             entity.Isactive = false;
             entity.Updatedat = DateTime.UtcNow;
             await _unitOfWork.AssignmentRepository.UpdateAsync(entity);
+
+            // Check if there are any other active assignments for this booking
+            var allAssignments = await _unitOfWork.AssignmentRepository.GetAllAsync();
+            var activeAssignmentsForBooking = allAssignments
+                .Where(a => a.Bookingid == bookingId
+                    && a.Assignmentid != id
+                    && a.Isactive == true
+                    && !string.Equals(a.Status, "CANCELLED", StringComparison.OrdinalIgnoreCase)
+                    && !string.Equals(a.Status, "NOSHOW", StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            var hasActiveAssignments = activeAssignmentsForBooking.Any();
+
+            // Get booking to check current status
+            var booking = await _unitOfWork.BookingRepository.GetByIdAsync(bookingId, ct);
+            string bookingStatus = booking?.Status ?? "UNKNOWN";
+            string message = "Assignment cancelled successfully";
+
+            // If no active assignments remain, update booking to make it ready for reassignment
+            if (!hasActiveAssignments)
+            {
+                if (booking != null && string.Equals(booking.Status, "APPROVED", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Booking stays APPROVED but now has no active assignments
+                    // This makes it ready for reassignment without changing workflow
+                    booking.Updatedat = DateTime.UtcNow;
+                    await _unitOfWork.BookingRepository.UpdateAsync(booking);
+                    message = "Assignment cancelled successfully. Booking is now available for reassignment.";
+                }
+            }
+
             await _unitOfWork.SaveChangesAsync(ct);
 
-            return ServiceResult<bool>.Success(true, "Assignment cancelled successfully");
+            var response = new CancelAssignmentResponseDto
+            {
+                AssignmentId = id,
+                BookingId = bookingId,
+                HasActiveAssignments = hasActiveAssignments,
+                BookingStatus = bookingStatus,
+                Message = message
+            };
+
+            return ServiceResult<CancelAssignmentResponseDto>.Success(response, message);
         }
         catch (Exception ex)
         {
-            return ServiceResult<bool>.Failure($"Error cancelling assignment: {ex.Message}");
+            return ServiceResult<CancelAssignmentResponseDto>.Failure($"Error cancelling assignment: {ex.Message}");
         }
     }
 
@@ -384,5 +433,21 @@ public class AssignmentService : IAssignmentService
         {
             return ServiceResult<AssignmentDto>.Failure($"Error retrieving assignment: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Check if a booking has any active assignments
+    /// </summary>
+    /// <param name="bookingId">The booking ID to check</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>True if booking has active assignments, false otherwise</returns>
+    private async Task<bool> HasActiveAssignmentsAsync(Guid bookingId, CancellationToken ct = default)
+    {
+        var allAssignments = await _unitOfWork.AssignmentRepository.GetAllAsync();
+        return allAssignments.Any(a =>
+            a.Bookingid == bookingId
+            && a.Isactive == true
+            && !string.Equals(a.Status, "CANCELLED", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(a.Status, "NOSHOW", StringComparison.OrdinalIgnoreCase));
     }
 }

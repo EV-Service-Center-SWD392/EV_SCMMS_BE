@@ -50,11 +50,14 @@ public class AssignmentController : ControllerBase
         return BadRequest(result.Message);
     }
 
+    /// <summary>
+    /// Cancel an assignment. Returns booking availability status for reassignment.
+    /// </summary>
     [HttpDelete("{id}")]
     public async Task<IActionResult> Cancel(Guid id, CancellationToken ct)
     {
         var result = await _assignmentService.CancelAsync(id, ct);
-        if (result.IsSuccess) return Ok(new { success = true, message = "Assignment cancelled successfully" });
+        if (result.IsSuccess) return Ok(result.Data);
         return BadRequest(result.Message);
     }
 
