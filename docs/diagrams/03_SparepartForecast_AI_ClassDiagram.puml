@@ -1,0 +1,168 @@
+@startuml SparepartForecast_AI_Management
+
+' ===== STYLE =====
+skinparam linetype ortho
+skinparam class {
+  BackgroundColor<<WebAPI>> LightBlue
+  BackgroundColor<<Application>> LightGreen
+  BackgroundColor<<Infrastructure>> LightYellow
+  BackgroundColor<<Domain>> LightCoral
+  BorderColor Black
+  ArrowColor Black
+}
+
+' ===== WEBAPI =====
+package "WebAPI Layer" {
+  class SparepartForecastController <<WebAPI>> {
+    + GetAll()
+    + GetById(Guid)
+    + Create(CreateSparepartForecastDto)
+    + Update(Guid, UpdateSparepartForecastDto)
+    + Delete(Guid)
+    + GetBySparepart(Guid)
+    + GetByCenter(Guid)
+    + Approve(Guid, ApproveDto)
+  }
+}
+
+' ===== APPLICATION =====
+package "Application Layer" {
+
+  interface ISparepartForecastService <<Application>> {
+    + GetAllAsync(): Task<IServiceResult<List<SparepartForecastDto>>>
+    + GetByIdAsync(Guid): Task<IServiceResult<SparepartForecastDto>>
+    + CreateAsync(CreateSparepartForecastDto): Task<IServiceResult<SparepartForecastDto>>
+    + UpdateAsync(Guid, UpdateSparepartForecastDto): Task<IServiceResult<SparepartForecastDto>>
+    + DeleteAsync(Guid): Task<IServiceResult<bool>>
+    + GetBySparepartIdAsync(Guid): Task<IServiceResult<List<SparepartForecastDto>>>
+    + GetByCenterIdAsync(Guid): Task<IServiceResult<List<SparepartForecastDto>>>
+    + ApproveAsync(Guid, ApproveDto): Task<IServiceResult<SparepartForecastDto>>
+  }
+
+  interface ISparepartForecastRepository <<Application>> {
+    + GetAllAsync(): Task<List<SparepartforecastTuht>>
+    + GetByIdAsync(Guid): Task<SparepartforecastTuht?>
+    + AddAsync(SparepartforecastTuht): Task<SparepartforecastTuht>
+    + UpdateAsync(SparepartforecastTuht): Task<SparepartforecastTuht>
+    + DeleteAsync(Guid): Task<bool>
+    + GetBySparepartIdAsync(Guid): Task<List<SparepartforecastTuht>>
+    + GetByCenterIdAsync(Guid): Task<List<SparepartforecastTuht>>
+  }
+
+  interface IUnitOfWork <<Application>> {
+    + SparepartForecastRepository: ISparepartForecastRepository
+    + SaveChangesAsync(): Task<int>
+  }
+
+  class SparepartForecastDto <<Application>> {
+    + ForecastId: Guid
+    + SparepartId: Guid
+    + CenterId: Guid
+    + PredictedUsage: int?
+    + SafetyStock: int?
+    + ReorderPoint: int?
+    + ForecastedBy: string?
+    + ForecastConfidence: decimal?
+    + Status: string?
+  }
+
+  class CreateSparepartForecastDto <<Application>> {
+    + SparepartId: Guid
+    + CenterId: Guid
+    + PredictedUsage: int?
+    + SafetyStock: int?
+    + ReorderPoint: int?
+    + ForecastedBy: string?
+    + ForecastConfidence: decimal?
+  }
+
+  class UpdateSparepartForecastDto <<Application>> {
+    + PredictedUsage: int?
+    + SafetyStock: int?
+    + ReorderPoint: int?
+    + ForecastConfidence: decimal?
+    + Status: string?
+  }
+
+  class ApproveDto <<Application>> {
+    + ApprovedBy: Guid
+    + Notes: string?
+  }
+}
+
+' ===== INFRASTRUCTURE =====
+package "Infrastructure Layer" {
+  class SparepartForecastService <<Infrastructure>> {
+    - _unitOfWork: IUnitOfWork
+    + GetAllAsync()
+    + GetByIdAsync()
+    + CreateAsync()
+    + UpdateAsync()
+    + DeleteAsync()
+    + GetBySparepartIdAsync()
+    + GetByCenterIdAsync()
+    + ApproveAsync()
+  }
+
+  class SparepartForecastRepository <<Infrastructure>> {
+    - _context: AppDbContext
+    + GetAllAsync()
+    + GetByIdAsync()
+    + AddAsync()
+    + UpdateAsync()
+    + DeleteAsync()
+    + GetBySparepartIdAsync()
+    + GetByCenterIdAsync()
+  }
+}
+
+' ===== DOMAIN =====
+package "Domain Layer" {
+  class SparepartforecastTuht <<Domain>> {
+    + Forecastid: Guid
+    + Sparepartid: Guid
+    + Centerid: Guid
+    + Predictedusage: int?
+    + Safetystock: int?
+    + Reorderpoint: int?
+    + Forecastedby: string?
+    + Forecastconfidence: decimal?
+    + Forecastdate: DateTime?
+    + Approvedby: Guid?
+    + Approveddate: DateTime?
+    + Status: string?
+    + Isactive: bool?
+    + Createdat: DateTime?
+    + Updatedat: DateTime?
+  }
+
+  class SparepartTuht <<Domain>> {
+    + Sparepartid: Guid
+    + Name: string
+  }
+
+  class Centertuantm <<Domain>> {
+    + Centerid: Guid
+    + Name: string
+  }
+
+  class Sparepartreplenishmentrequest <<Domain>> {
+    + Requestid: Guid
+    + Forecastid: Guid?
+    + Status: string?
+  }
+}
+
+' ===== RELATIONSHIPS =====
+SparepartForecastController --> ISparepartForecastService : calls
+ISparepartForecastService <|.. SparepartForecastService : implements
+SparepartForecastService --> IUnitOfWork : uses
+IUnitOfWork --> ISparepartForecastRepository : provides
+ISparepartForecastRepository <|.. SparepartForecastRepository : implements
+SparepartForecastRepository --> SparepartforecastTuht : manages
+
+SparepartforecastTuht --> SparepartTuht : forecasts
+SparepartforecastTuht --> Centertuantm : for_center
+SparepartforecastTuht --> Sparepartreplenishmentrequest : generates
+
+@enduml

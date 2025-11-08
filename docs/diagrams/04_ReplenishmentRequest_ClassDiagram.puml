@@ -1,0 +1,171 @@
+@startuml ReplenishmentRequest_ApprovalWorkflow
+
+' ===== STYLE =====
+skinparam linetype ortho
+skinparam class {
+  BackgroundColor<<WebAPI>> LightBlue
+  BackgroundColor<<Application>> LightGreen
+  BackgroundColor<<Infrastructure>> LightYellow
+  BackgroundColor<<Domain>> LightCoral
+  BorderColor Black
+  ArrowColor Black
+}
+
+' ===== WEBAPI =====
+package "WebAPI Layer" {
+  class SparepartReplenishmentRequestController <<WebAPI>> {
+    + GetAll()
+    + GetById(Guid)
+    + Create(CreateReplenishmentRequestDto)
+    + Update(Guid, UpdateReplenishmentRequestDto)
+    + Delete(Guid)
+    + GetByStatus(string)
+    + Approve(Guid, ApproveRequestDto)
+    + Reject(Guid, RejectRequestDto)
+    + GetPending()
+  }
+}
+
+' ===== APPLICATION =====
+package "Application Layer" {
+
+  interface ISparepartReplenishmentRequestService <<Application>> {
+    + GetAllAsync(): Task<IServiceResult<List<SparepartReplenishmentRequestDto>>>
+    + GetByIdAsync(Guid): Task<IServiceResult<SparepartReplenishmentRequestDto>>
+    + CreateAsync(CreateReplenishmentRequestDto): Task<IServiceResult<SparepartReplenishmentRequestDto>>
+    + UpdateAsync(Guid, UpdateReplenishmentRequestDto): Task<IServiceResult<SparepartReplenishmentRequestDto>>
+    + DeleteAsync(Guid): Task<IServiceResult<bool>>
+    + GetByStatusAsync(string): Task<IServiceResult<List<SparepartReplenishmentRequestDto>>>
+    + ApproveRequestAsync(Guid, ApproveRequestDto): Task<IServiceResult<SparepartReplenishmentRequestDto>>
+    + RejectRequestAsync(Guid, RejectRequestDto): Task<IServiceResult<SparepartReplenishmentRequestDto>>
+    + GetPendingRequestsAsync(): Task<IServiceResult<List<SparepartReplenishmentRequestDto>>>
+  }
+
+  interface ISparepartReplenishmentRequestRepository <<Application>> {
+    + GetAllAsync(): Task<List<Sparepartreplenishmentrequest>>
+    + GetByIdAsync(Guid): Task<Sparepartreplenishmentrequest?>
+    + AddAsync(Sparepartreplenishmentrequest): Task<Sparepartreplenishmentrequest>
+    + UpdateAsync(Sparepartreplenishmentrequest): Task<Sparepartreplenishmentrequest>
+    + DeleteAsync(Guid): Task<bool>
+    + GetByStatusAsync(string): Task<List<Sparepartreplenishmentrequest>>
+    + GetPendingAsync(): Task<List<Sparepartreplenishmentrequest>>
+  }
+
+  interface IUnitOfWork <<Application>> {
+    + SparepartReplenishmentRequestRepository: ISparepartReplenishmentRequestRepository
+    + SaveChangesAsync(): Task<int>
+  }
+
+  class SparepartReplenishmentRequestDto <<Application>> {
+    + RequestId: Guid
+    + CenterId: Guid
+    + SparepartId: Guid
+    + ForecastId: Guid?
+    + SuggestedQuantity: int?
+    + ApprovedBy: Guid?
+    + ApprovedAt: DateTime?
+    + Notes: string?
+    + Status: string?
+  }
+
+  class CreateReplenishmentRequestDto <<Application>> {
+    + CenterId: Guid
+    + SparepartId: Guid
+    + ForecastId: Guid?
+    + SuggestedQuantity: int?
+    + Notes: string?
+  }
+
+  class UpdateReplenishmentRequestDto <<Application>> {
+    + SuggestedQuantity: int?
+    + Notes: string?
+    + Status: string?
+  }
+
+  class ApproveRequestDto <<Application>> {
+    + ApprovedBy: Guid
+    + Notes: string?
+  }
+
+  class RejectRequestDto <<Application>> {
+    + RejectedBy: Guid
+    + Reason: string
+    + Notes: string?
+  }
+}
+
+' ===== INFRASTRUCTURE =====
+package "Infrastructure Layer" {
+  class SparepartReplenishmentRequestService <<Infrastructure>> {
+    - _unitOfWork: IUnitOfWork
+    + GetAllAsync()
+    + GetByIdAsync()
+    + CreateAsync()
+    + UpdateAsync()
+    + DeleteAsync()
+    + GetByStatusAsync()
+    + ApproveRequestAsync()
+    + RejectRequestAsync()
+    + GetPendingRequestsAsync()
+  }
+
+  class SparepartReplenishmentRequestRepository <<Infrastructure>> {
+    - _context: AppDbContext
+    + GetAllAsync()
+    + GetByIdAsync()
+    + AddAsync()
+    + UpdateAsync()
+    + DeleteAsync()
+    + GetByStatusAsync()
+    + GetPendingAsync()
+  }
+}
+
+' ===== DOMAIN =====
+package "Domain Layer" {
+  class Sparepartreplenishmentrequest <<Domain>> {
+    + Requestid: Guid
+    + Centerid: Guid
+    + Sparepartid: Guid
+    + Forecastid: Guid?
+    + Suggestedquantity: int?
+    + Approvedby: Guid?
+    + Approvedat: DateTime?
+    + Notes: string?
+    + Status: string?
+    + Isactive: bool?
+    + Createdat: DateTime?
+    + Updatedat: DateTime?
+  }
+
+  class SparepartTuht <<Domain>> {
+    + Sparepartid: Guid
+    + Name: string
+    + Unitprice: decimal?
+  }
+
+  class Centertuantm <<Domain>> {
+    + Centerid: Guid
+    + Name: string
+  }
+
+  class SparepartforecastTuht <<Domain>> {
+    + Forecastid: Guid
+    + Predictedusage: int?
+    + Reorderpoint: int?
+  }
+}
+
+' ===== RELATIONSHIPS =====
+SparepartReplenishmentRequestController --> ISparepartReplenishmentRequestService : calls
+ISparepartReplenishmentRequestService <|.. SparepartReplenishmentRequestService : implements
+SparepartReplenishmentRequestService --> IUnitOfWork : uses
+IUnitOfWork --> ISparepartReplenishmentRequestRepository : provides
+ISparepartReplenishmentRequestRepository <|.. SparepartReplenishmentRequestRepository : implements
+SparepartReplenishmentRequestRepository --> Sparepartreplenishmentrequest : manages
+
+Sparepartreplenishmentrequest --> SparepartTuht : requests
+Sparepartreplenishmentrequest --> Centertuantm : at_center
+Sparepartreplenishmentrequest --> SparepartforecastTuht : based_on
+
+@enduml

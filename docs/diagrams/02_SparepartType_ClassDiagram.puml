@@ -1,0 +1,118 @@
+@startuml SparepartType_Management
+
+' ===== STYLE =====
+skinparam linetype ortho
+skinparam class {
+  BackgroundColor<<WebAPI>> LightBlue
+  BackgroundColor<<Application>> LightGreen
+  BackgroundColor<<Infrastructure>> LightYellow
+  BackgroundColor<<Domain>> LightCoral
+  BorderColor Black
+  ArrowColor Black
+}
+
+' ===== WEBAPI =====
+package "WebAPI Layer" {
+  class SparepartTypeController <<WebAPI>> {
+    + GetAll()
+    + GetById(Guid)
+    + Create(CreateSparepartTypeDto)
+    + Update(Guid, UpdateSparepartTypeDto)
+    + Delete(Guid)
+  }
+}
+
+' ===== APPLICATION =====
+package "Application Layer" {
+
+  interface ISparepartTypeService <<Application>> {
+    + GetAllAsync(): Task<IServiceResult<List<SparepartTypeDto>>>
+    + GetByIdAsync(Guid): Task<IServiceResult<SparepartTypeDto>>
+    + CreateAsync(CreateSparepartTypeDto): Task<IServiceResult<SparepartTypeDto>>
+    + UpdateAsync(Guid, UpdateSparepartTypeDto): Task<IServiceResult<SparepartTypeDto>>
+    + DeleteAsync(Guid): Task<IServiceResult<bool>>
+  }
+
+  interface ISparepartTypeRepository <<Application>> {
+    + GetAllAsync(): Task<List<SpareparttypeTuht>>
+    + GetByIdAsync(Guid): Task<SpareparttypeTuht?>
+    + AddAsync(SpareparttypeTuht): Task<SpareparttypeTuht>
+    + UpdateAsync(SpareparttypeTuht): Task<SpareparttypeTuht>
+    + DeleteAsync(Guid): Task<bool>
+  }
+
+  interface IUnitOfWork <<Application>> {
+    + SparepartTypeRepository: ISparepartTypeRepository
+    + SaveChangesAsync(): Task<int>
+  }
+
+  class SparepartTypeDto <<Application>> {
+    + TypeId: Guid
+    + Name: string
+    + Description: string?
+    + Status: string?
+  }
+
+  class CreateSparepartTypeDto <<Application>> {
+    + Name: string
+    + Description: string?
+  }
+
+  class UpdateSparepartTypeDto <<Application>> {
+    + Name: string
+    + Description: string?
+    + Status: string?
+  }
+}
+
+' ===== INFRASTRUCTURE =====
+package "Infrastructure Layer" {
+  class SparepartTypeService <<Infrastructure>> {
+    - _unitOfWork: IUnitOfWork
+    + GetAllAsync()
+    + GetByIdAsync()
+    + CreateAsync()
+    + UpdateAsync()
+    + DeleteAsync()
+  }
+
+  class SparepartTypeRepository <<Infrastructure>> {
+    - _context: AppDbContext
+    + GetAllAsync()
+    + GetByIdAsync()
+    + AddAsync()
+    + UpdateAsync()
+    + DeleteAsync()
+  }
+}
+
+' ===== DOMAIN =====
+package "Domain Layer" {
+  class SpareparttypeTuht <<Domain>> {
+    + Typeid: Guid
+    + Name: string
+    + Description: string?
+    + Status: string?
+    + Isactive: bool?
+    + Createdat: DateTime?
+    + Updatedat: DateTime?
+  }
+
+  class SparepartTuht <<Domain>> {
+    + Sparepartid: Guid
+    + Typeid: Guid?
+    + Name: string
+  }
+}
+
+' ===== RELATIONSHIPS =====
+SparepartTypeController --> ISparepartTypeService : calls
+ISparepartTypeService <|.. SparepartTypeService : implements
+SparepartTypeService --> IUnitOfWork : uses
+IUnitOfWork --> ISparepartTypeRepository : provides
+ISparepartTypeRepository <|.. SparepartTypeRepository : implements
+SparepartTypeRepository --> SpareparttypeTuht : manages
+
+SpareparttypeTuht --> SparepartTuht : categorizes
+
+@enduml

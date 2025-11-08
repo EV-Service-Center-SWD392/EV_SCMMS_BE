@@ -1,0 +1,134 @@
+@startuml Inventory_StockManagement
+
+' ===== STYLE =====
+skinparam linetype ortho
+skinparam class {
+  BackgroundColor<<WebAPI>> LightBlue
+  BackgroundColor<<Application>> LightGreen
+  BackgroundColor<<Infrastructure>> LightYellow
+  BackgroundColor<<Domain>> LightCoral
+  BorderColor Black
+  ArrowColor Black
+}
+
+' ===== WEBAPI =====
+package "WebAPI Layer" {
+  class InventoryController <<WebAPI>> {
+    + GetAll()
+    + GetById(Guid)
+    + Create(CreateInventoryDto)
+    + Update(Guid, UpdateInventoryDto)
+    + GetByCenter(Guid)
+    + CheckLowStock()
+  }
+}
+
+' ===== APPLICATION =====
+package "Application Layer" {
+
+  interface IInventoryService <<Application>> {
+    + GetAllAsync(): Task<IServiceResult<List<InventoryDto>>>
+    + GetByIdAsync(Guid): Task<IServiceResult<InventoryDto>>
+    + CreateAsync(CreateInventoryDto): Task<IServiceResult<InventoryDto>>
+    + UpdateAsync(Guid, UpdateInventoryDto): Task<IServiceResult<InventoryDto>>
+    + GetByCenterIdAsync(Guid): Task<IServiceResult<List<InventoryDto>>>
+    + CheckLowStockAsync(): Task<IServiceResult<List<InventoryDto>>>
+  }
+
+  interface IInventoryRepository <<Application>> {
+    + GetAllAsync(): Task<List<InventoryTuht>>
+    + GetByIdAsync(Guid): Task<InventoryTuht?>
+    + AddAsync(InventoryTuht): Task<InventoryTuht>
+    + UpdateAsync(InventoryTuht): Task<InventoryTuht>
+    + GetByCenterIdAsync(Guid): Task<List<InventoryTuht>>
+    + GetLowStockAsync(): Task<List<InventoryTuht>>
+  }
+
+  interface IUnitOfWork <<Application>> {
+    + InventoryRepository: IInventoryRepository
+    + SaveChangesAsync(): Task<int>
+  }
+
+  class InventoryDto <<Application>> {
+    + InventoryId: Guid
+    + CenterId: Guid
+    + Quantity: int?
+    + MinimumStockLevel: int?
+    + Status: string?
+  }
+
+  class CreateInventoryDto <<Application>> {
+    + CenterId: Guid
+    + Quantity: int?
+    + MinimumStockLevel: int?
+  }
+
+  class UpdateInventoryDto <<Application>> {
+    + Quantity: int?
+    + MinimumStockLevel: int?
+    + Status: string?
+  }
+}
+
+' ===== INFRASTRUCTURE =====
+package "Infrastructure Layer" {
+  class InventoryService <<Infrastructure>> {
+    - _unitOfWork: IUnitOfWork
+    + GetAllAsync()
+    + GetByIdAsync()
+    + CreateAsync()
+    + UpdateAsync()
+    + GetByCenterIdAsync()
+    + CheckLowStockAsync()
+  }
+
+  class InventoryRepository <<Infrastructure>> {
+    - _context: AppDbContext
+    + GetAllAsync()
+    + GetByIdAsync()
+    + AddAsync()
+    + UpdateAsync()
+    + GetByCenterIdAsync()
+    + GetLowStockAsync()
+  }
+}
+
+' ===== DOMAIN =====
+package "Domain Layer" {
+  class InventoryTuht <<Domain>> {
+    + Inventoryid: Guid
+    + Centerid: Guid
+    + Quantity: int?
+    + Minimumstocklevel: int?
+    + Status: string?
+    + Isactive: bool?
+    + Createdat: DateTime?
+    + Updatedat: DateTime?
+  }
+
+  class Centertuantm <<Domain>> {
+    + Centerid: Guid
+    + Name: string
+    + Address: string?
+    + Phone: string?
+  }
+
+  class SparepartTuht <<Domain>> {
+    + Sparepartid: Guid
+    + Inventoryid: Guid?
+    + Name: string
+  }
+}
+
+' ===== RELATIONSHIPS =====
+InventoryController --> IInventoryService : calls
+IInventoryService <|.. InventoryService : implements
+InventoryService --> IUnitOfWork : uses
+IUnitOfWork --> IInventoryRepository : provides
+IInventoryRepository <|.. InventoryRepository : implements
+InventoryRepository --> InventoryTuht : manages
+
+InventoryTuht --> Centertuantm : at_center
+InventoryTuht --> SparepartTuht : contains
+
+@enduml

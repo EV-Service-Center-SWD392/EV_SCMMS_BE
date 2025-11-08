@@ -1,0 +1,156 @@
+@startuml Sparepart_Management
+
+' ===== STYLE =====
+skinparam linetype ortho
+skinparam class {
+  BackgroundColor<<WebAPI>> LightBlue
+  BackgroundColor<<Application>> LightGreen
+  BackgroundColor<<Infrastructure>> LightYellow
+  BackgroundColor<<Domain>> LightCoral
+  BorderColor Black
+  ArrowColor Black
+}
+
+' ===== WEBAPI =====
+package "WebAPI Layer" {
+  class SparepartController <<WebAPI>> {
+    + GetAll()
+    + GetById(Guid)
+    + Create(CreateSparepartDto)
+    + Update(Guid, UpdateSparepartDto)
+    + Delete(Guid)
+    + GetByType(Guid)
+    + GetByInventory(Guid)
+  }
+}
+
+' ===== APPLICATION =====
+package "Application Layer" {
+
+  interface ISparepartService <<Application>> {
+    + GetAllAsync(): Task<IServiceResult<List<SparepartDto>>>
+    + GetByIdAsync(Guid): Task<IServiceResult<SparepartDto>>
+    + CreateAsync(CreateSparepartDto): Task<IServiceResult<SparepartDto>>
+    + UpdateAsync(Guid, UpdateSparepartDto): Task<IServiceResult<SparepartDto>>
+    + DeleteAsync(Guid): Task<IServiceResult<bool>>
+    + GetByTypeIdAsync(Guid): Task<IServiceResult<List<SparepartDto>>>
+    + GetByInventoryIdAsync(Guid): Task<IServiceResult<List<SparepartDto>>>
+  }
+
+  interface ISparepartRepository <<Application>> {
+    + GetAllAsync(): Task<List<SparepartTuht>>
+    + GetByIdAsync(Guid): Task<SparepartTuht?>
+    + AddAsync(SparepartTuht): Task<SparepartTuht>
+    + UpdateAsync(SparepartTuht): Task<SparepartTuht>
+    + DeleteAsync(Guid): Task<bool>
+    + GetByTypeIdAsync(Guid): Task<List<SparepartTuht>>
+    + GetByInventoryIdAsync(Guid): Task<List<SparepartTuht>>
+  }
+
+  interface IUnitOfWork <<Application>> {
+    + SparepartRepository: ISparepartRepository
+    + SaveChangesAsync(): Task<int>
+  }
+
+  class SparepartDto <<Application>> {
+    + SparepartId: Guid
+    + VehicleModelId: int?
+    + InventoryId: Guid?
+    + TypeId: Guid?
+    + Name: string
+    + UnitPrice: decimal?
+    + Manufacture: string?
+    + Status: string?
+  }
+
+  class CreateSparepartDto <<Application>> {
+    + VehicleModelId: int?
+    + InventoryId: Guid?
+    + TypeId: Guid?
+    + Name: string
+    + UnitPrice: decimal?
+    + Manufacture: string?
+  }
+
+  class UpdateSparepartDto <<Application>> {
+    + Name: string
+    + UnitPrice: decimal?
+    + Manufacture: string?
+    + Status: string?
+  }
+}
+
+' ===== INFRASTRUCTURE =====
+package "Infrastructure Layer" {
+  class SparepartService <<Infrastructure>> {
+    - _unitOfWork: IUnitOfWork
+    + GetAllAsync()
+    + GetByIdAsync()
+    + CreateAsync()
+    + UpdateAsync()
+    + DeleteAsync()
+    + GetByTypeIdAsync()
+    + GetByInventoryIdAsync()
+  }
+
+  class SparepartRepository <<Infrastructure>> {
+    - _context: AppDbContext
+    + GetAllAsync()
+    + GetByIdAsync()
+    + AddAsync()
+    + UpdateAsync()
+    + DeleteAsync()
+    + GetByTypeIdAsync()
+    + GetByInventoryIdAsync()
+  }
+}
+
+' ===== DOMAIN =====
+package "Domain Layer" {
+  class SparepartTuht <<Domain>> {
+    + Sparepartid: Guid
+    + Vehiclemodelid: int?
+    + Inventoryid: Guid?
+    + Typeid: Guid?
+    + Name: string
+    + Unitprice: decimal?
+    + Manufacture: string?
+    + Status: string?
+    + Isactive: bool?
+    + Createdat: DateTime?
+    + Updatedat: DateTime?
+  }
+
+  class SpareparttypeTuht <<Domain>> {
+    + Typeid: Guid
+    + Name: string
+    + Description: string?
+  }
+
+  class InventoryTuht <<Domain>> {
+    + Inventoryid: Guid
+    + Centerid: Guid
+    + Quantity: int?
+    + Minimumstocklevel: int?
+  }
+
+  class Vehiclemodel <<Domain>> {
+    + Vehiclemodelid: int
+    + Modelname: string
+    + Manufacturer: string?
+  }
+}
+
+' ===== RELATIONSHIPS =====
+SparepartController --> ISparepartService : calls
+ISparepartService <|.. SparepartService : implements
+SparepartService --> IUnitOfWork : uses
+IUnitOfWork --> ISparepartRepository : provides
+ISparepartRepository <|.. SparepartRepository : implements
+SparepartRepository --> SparepartTuht : manages
+
+SparepartTuht --> SpareparttypeTuht : has_type
+SparepartTuht --> InventoryTuht : belongs_to
+SparepartTuht --> Vehiclemodel : for_model
+
+@enduml
