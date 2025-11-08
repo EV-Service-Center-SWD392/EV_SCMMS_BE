@@ -69,9 +69,17 @@ public interface ISparepartReplenishmentRequestService
     /// Approve replenishment request
     /// </summary>
     /// <param name="id">Request ID</param>
-    /// <param name="approvedBy">Approver name</param>
+    /// <param name="approveDto">Approval details including approver ID and notes</param>
     /// <returns>Updated request DTO</returns>
-    Task<IServiceResult<SparepartReplenishmentRequestDto>> ApproveRequestAsync(Guid id, string approvedBy);
+    Task<IServiceResult<SparepartReplenishmentRequestDto>> ApproveRequestAsync(Guid id, ApproveRequestDto approveDto);
+
+    /// <summary>
+    /// Reject replenishment request
+    /// </summary>
+    /// <param name="id">Request ID</param>
+    /// <param name="rejectDto">Rejection details including rejector ID, reason and notes</param>
+    /// <returns>Updated request DTO</returns>
+    Task<IServiceResult<SparepartReplenishmentRequestDto>> RejectRequestAsync(Guid id, RejectRequestDto rejectDto);
 
     /// <summary>
     /// Get pending requests

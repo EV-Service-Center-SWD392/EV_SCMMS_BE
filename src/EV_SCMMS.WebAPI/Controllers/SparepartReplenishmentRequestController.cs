@@ -174,109 +174,74 @@ public class SparepartReplenishmentRequestController : ControllerBase
         return BadRequest(result.Message);
     }
 
-    // TODO: Implement these methods in ISparepartReplenishmentRequestService
-    /*
-    /// <summary>
-    /// Get requests by date range
-    /// </summary>
-    /// <param name="startDate">Start date</param>
-    /// <param name="endDate">End date</param>
-    /// <returns>List of requests in the date range</returns>
-    [HttpGet("date-range")]
-    public async Task<IActionResult> GetRequestsByDateRange([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
-    {
-        var result = await _sparepartReplenishmentRequestService.GetByDateRangeAsync(startDate, endDate);
-        
-        if (result.IsSuccess)
-        {
-            return Ok(result.Data);
-        }
-        
-        return BadRequest(result.Message);
-    }
-
-    /// <summary>
-    /// Get urgent requests
-    /// </summary>
-    /// <returns>List of urgent requests</returns>
-    [HttpGet("urgent")]
-    public async Task<IActionResult> GetUrgentRequests()
-    {
-        var result = await _sparepartReplenishmentRequestService.GetUrgentRequestsAsync();
-        
-        if (result.IsSuccess)
-        {
-            return Ok(result.Data);
-        }
-        
-        return BadRequest(result.Message);
-    }
-    */
-
-    // TODO: Implement ApproveAsync and RejectRequestAsync in service
-    /*
     /// <summary>
     /// Approve a replenishment request
     /// </summary>
     /// <param name="id">Request ID</param>
-    /// <param name="approvedBy">User approving the request</param>
-    /// <returns>Success or failure result</returns>
+    /// <param name="approveDto">Approval details including approver ID and optional notes</param>
+    /// <returns>Updated replenishment request</returns>
+    /// <remarks>
+    /// Sample request:
+    /// 
+    ///     PUT /api/SparepartReplenishmentRequest/{id}/approve
+    ///     {
+    ///         "approvedBy": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    ///         "notes": "Approved for immediate procurement"
+    ///     }
+    /// 
+    /// </remarks>
     [HttpPut("{id}/approve")]
-    public async Task<IActionResult> ApproveRequest(Guid id, [FromBody] string approvedBy)
+    public async Task<IActionResult> ApproveRequest(Guid id, [FromBody] ApproveRequestDto approveDto)
     {
-        var result = await _replenishmentRequestService.ApproveAsync(id.ToString(), approvedBy);
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var result = await _replenishmentRequestService.ApproveRequestAsync(id, approveDto);
         
         if (result.IsSuccess)
         {
-            return Ok(result.Data);
+            return Ok(result);
         }
         
-        return BadRequest(result.Message);
+        return BadRequest(result);
     }
-    */
 
-    // TODO: Implement RejectRequestAsync in service
-    /*
     /// <summary>
     /// Reject a replenishment request
     /// </summary>
     /// <param name="id">Request ID</param>
-    /// <param name="rejectedBy">User rejecting the request</param>
-    /// <param name="reason">Rejection reason</param>
-    /// <returns>Success or failure result</returns>
+    /// <param name="rejectDto">Rejection details including rejector ID, reason and optional notes</param>
+    /// <returns>Updated replenishment request</returns>
+    /// <remarks>
+    /// Sample request:
+    /// 
+    ///     PUT /api/SparepartReplenishmentRequest/{id}/reject
+    ///     {
+    ///         "rejectedBy": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    ///         "reason": "Budget constraints for this quarter",
+    ///         "notes": "Please resubmit next quarter"
+    ///     }
+    /// 
+    /// </remarks>
     [HttpPut("{id}/reject")]
     public async Task<IActionResult> RejectRequest(Guid id, [FromBody] RejectRequestDto rejectDto)
     {
-        var result = await _sparepartReplenishmentRequestService.RejectRequestAsync(id.ToString(), rejectDto.RejectedBy, rejectDto.Reason);
-        
-        if (result.IsSuccess)
+        if (!ModelState.IsValid)
         {
-            return Ok(result.Data);
+            return BadRequest(ModelState);
         }
-        
-        return BadRequest(result.Message);
-    }
-    */
 
-    // TODO: Implement GetUrgentRequestsAsync in service
-    /*
-    /// <summary>
-    /// Get urgent requests
-    /// </summary>
-    /// <returns>List of urgent requests</returns>
-    [HttpGet("urgent")]
-    public async Task<IActionResult> GetUrgentRequests()
-    {
-        var result = await _replenishmentRequestService.GetUrgentRequestsAsync();
+        var result = await _replenishmentRequestService.RejectRequestAsync(id, rejectDto);
         
         if (result.IsSuccess)
         {
-            return Ok(result.Data);
+            return Ok(result);
         }
         
-        return BadRequest(result.Message);
+        return BadRequest(result);
     }
-    */
 
     /// <summary>
     /// Get pending requests

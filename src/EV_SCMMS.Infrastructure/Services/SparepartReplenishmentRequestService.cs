@@ -196,7 +196,7 @@ public class SparepartReplenishmentRequestService : ISparepartReplenishmentReque
         }
     }
 
-    public async Task<IServiceResult<SparepartReplenishmentRequestDto>> ApproveRequestAsync(Guid id, string approvedBy)
+    public async Task<IServiceResult<SparepartReplenishmentRequestDto>> ApproveRequestAsync(Guid id, ApproveRequestDto approveDto)
     {
         try
         {
@@ -211,11 +211,29 @@ public class SparepartReplenishmentRequestService : ISparepartReplenishmentReque
                 return ServiceResult<SparepartReplenishmentRequestDto>.Failure("Request is already approved");
             }
 
-            // Note: approvedBy is string but entity expects Guid - this needs to be adjusted
-            // For now, we'll leave it null or you might need to convert it to Guid
-            // request.Approvedby = Guid.Parse(approvedBy); // If approvedBy is a valid Guid string
+            if (request.Status == "REJECTED")
+            {
+                return ServiceResult<SparepartReplenishmentRequestDto>.Failure("Cannot approve a rejected request");
+            }
+
+            if (request.Status == "COMPLETED")
+            {
+                return ServiceResult<SparepartReplenishmentRequestDto>.Failure("Cannot approve a completed request");
+            }
+
+            // Update request with approval details
+            request.Approvedby = approveDto.ApprovedBy;
             request.Approvedat = DateTime.UtcNow;
             request.Status = "APPROVED";
+            
+            // Update notes if provided
+            if (!string.IsNullOrEmpty(approveDto.Notes))
+            {
+                request.Notes = string.IsNullOrEmpty(request.Notes) 
+                    ? $"[APPROVED] {approveDto.Notes}" 
+                    : $"{request.Notes}\n[APPROVED] {approveDto.Notes}";
+            }
+            
             request.Updatedat = DateTime.UtcNow;
 
             await _unitOfWork.SparepartReplenishmentRequestRepository.UpdateAsync(request);
@@ -227,6 +245,59 @@ public class SparepartReplenishmentRequestService : ISparepartReplenishmentReque
         catch (Exception ex)
         {
             return ServiceResult<SparepartReplenishmentRequestDto>.Failure($"Error approving replenishment request: {ex.Message}");
+        }
+    }
+
+    public async Task<IServiceResult<SparepartReplenishmentRequestDto>> RejectRequestAsync(Guid id, RejectRequestDto rejectDto)
+    {
+        try
+        {
+            var request = await _unitOfWork.SparepartReplenishmentRequestRepository.GetByIdAsync(id);
+            if (request == null)
+            {
+                return ServiceResult<SparepartReplenishmentRequestDto>.Failure("Replenishment request not found");
+            }
+
+            if (request.Status == "REJECTED")
+            {
+                return ServiceResult<SparepartReplenishmentRequestDto>.Failure("Request is already rejected");
+            }
+
+            if (request.Status == "APPROVED")
+            {
+                return ServiceResult<SparepartReplenishmentRequestDto>.Failure("Cannot reject an approved request");
+            }
+
+            if (request.Status == "COMPLETED")
+            {
+                return ServiceResult<SparepartReplenishmentRequestDto>.Failure("Cannot reject a completed request");
+            }
+
+            // Update request with rejection details
+            request.Status = "REJECTED";
+            
+            // Store rejection information in notes
+            var rejectionNote = $"[REJECTED by User {rejectDto.RejectedBy}] Reason: {rejectDto.Reason}";
+            if (!string.IsNullOrEmpty(rejectDto.Notes))
+            {
+                rejectionNote += $"\nAdditional notes: {rejectDto.Notes}";
+            }
+            
+            request.Notes = string.IsNullOrEmpty(request.Notes) 
+                ? rejectionNote 
+                : $"{request.Notes}\n{rejectionNote}";
+            
+            request.Updatedat = DateTime.UtcNow;
+
+            await _unitOfWork.SparepartReplenishmentRequestRepository.UpdateAsync(request);
+            await _unitOfWork.SaveChangesAsync();
+
+            var requestDto = request.ToDto();
+            return ServiceResult<SparepartReplenishmentRequestDto>.Success(requestDto, "Replenishment request rejected successfully");
+        }
+        catch (Exception ex)
+        {
+            return ServiceResult<SparepartReplenishmentRequestDto>.Failure($"Error rejecting replenishment request: {ex.Message}");
         }
     }
 
